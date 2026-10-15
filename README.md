@@ -75,6 +75,14 @@ JWT_SECRET=super_secreto_para_firmar_tokens_jwt
 
 ---
 
+### 2.3 Cuentas de Prueba para Desarrollo (Seed)
+
+Para poblar la base de datos con el esquema inicial y las cuentas de prueba, ejecutar:
+```bash
+cd server
+npm run seed
+```
+
 ## 3. Comandos de Desarrollo
 
 El proyecto cuenta con frontend y backend desacoplados. Se deben levantar en dos terminales separadas.

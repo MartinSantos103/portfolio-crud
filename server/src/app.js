@@ -27,7 +27,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Error interno del servidor' });
 });
 
-if (!process.env.VERCEL) {
+if (!process.env.VERCEL && process.env.NODE_ENV !== 'test') {
   const port = process.env.PORT || 3000;
   app.listen(port, () => console.log(`API en http://localhost:${port}`));
 }
