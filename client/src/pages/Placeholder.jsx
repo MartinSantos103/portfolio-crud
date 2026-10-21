@@ -10,6 +10,7 @@ export default function Placeholder({ title }) {
     <div>
       <h1>{title}</h1>
       <p>Estado de la API: {status}</p>
+      <button>Datos de Usuarios</button>
     </div>
   );
 }
