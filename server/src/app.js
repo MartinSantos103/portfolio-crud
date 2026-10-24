@@ -6,25 +6,39 @@ import routes from './routes/index.js';
 const app = express();
 
 const allowedOrigins = [
+  ...(process.env.CLIENT_URL ? process.env.CLIENT_URL.split(',').map((u) => u.trim()) : []),
   'http://localhost:5173',
-  ...(process.env.CLIENT_URL ? process.env.CLIENT_URL.split(',') : []),
-];
-const previewPattern = /^https:\/\/portfolio-client-[a-z0-9-]+\.vercel\.app$/;
+  'http://localhost:3000',
+].filter(Boolean);
 
-app.use(cors({
+// Acepta el dominio principal y cualquier preview de Vercel del cliente
+const vercelPreviewRegex = /^https:\/\/portfolio(-crud)?-client(-[a-z0-9-]+)?\.vercel\.app$/i;
+
+const corsOptions = {
   origin(origin, callback) {
-    if (!origin || allowedOrigins.includes(origin) || previewPattern.test(origin)) {
+    // Permitir peticiones sin origin (como Postman, curl o tests)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin) || vercelPreviewRegex.test(origin)) {
       return callback(null, true);
     }
-    callback(new Error('Origen no permitido por CORS'));
+
+    return callback(new Error(`Bloqueado por CORS: ${origin}`));
   },
-}));
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
+
+app.use(cors(corsOptions));
+app.options('{*splat}', cors(corsOptions)); // Asegura que el preflight OPTIONS responda siempre en Express 5
+
 app.use(express.json());
 app.use('/api', routes);
 
 app.use((err, req, res, next) => {
   console.error(err);
-  res.status(500).json({ error: 'Error interno del servidor' });
+  res.status(500).json({ error: err.message || 'Error interno del servidor' });
 });
 
 if (!process.env.VERCEL && process.env.NODE_ENV !== 'test') {
