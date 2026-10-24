@@ -10,10 +10,15 @@ function getApiBaseUrl() {
       'portfolio-crud-client-',
       'portfolio-crud-server-'
     );
-    return `https://${serverHost}`;
+    const subdomain = serverHost.split('.')[0];
+    // El estándar DNS permite hasta 63 caracteres por subdominio;
+    // si lo supera, Vercel trunca con un hash distinto por proyecto.
+    if (subdomain.length <= 63) {
+      return `https://${serverHost}`;
+    }
   }
 
-  // En local o en producción, usa la variable de entorno habitual
+  // En local o en producción (o cuando la URL usa hash único de deployment), usa la variable de entorno
   return import.meta.env.VITE_API_URL || 'http://localhost:3000';
 }
 
