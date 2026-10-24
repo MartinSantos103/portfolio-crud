@@ -1,35 +1,29 @@
-import 'dotenv/config';
-import express from 'express';
 import cors from 'cors';
-import routes from './routes/index.js';
-
-const app = express();
 
 const allowedOrigins = [
+  process.env.CLIENT_URL,
   'http://localhost:5173',
-  ...(process.env.CLIENT_URL ? process.env.CLIENT_URL.split(',') : []),
-];
-const previewPattern = /^https:\/\/portfolio-client-[a-z0-9-]+\.vercel\.app$/;
+  'http://localhost:3000',
+].filter(Boolean);
 
-app.use(cors({
+// Acepta el dominio principal y cualquier preview de Vercel del cliente
+const vercelPreviewRegex = /^https:\/\/portfolio-crud-client(-[a-z0-9-]+)?\.vercel\.app$/i;
+
+const corsOptions = {
   origin(origin, callback) {
-    if (!origin || allowedOrigins.includes(origin) || previewPattern.test(origin)) {
+    // Permitir peticiones sin origin (como Postman, curl o tests)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin) || vercelPreviewRegex.test(origin)) {
       return callback(null, true);
     }
-    callback(new Error('Origen no permitido por CORS'));
+
+    return callback(new Error(`Bloqueado por CORS: ${origin}`));
   },
-}));
-app.use(express.json());
-app.use('/api', routes);
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
 
-app.use((err, req, res, next) => {
-  console.error(err);
-  res.status(500).json({ error: 'Error interno del servidor' });
-});
-
-if (!process.env.VERCEL && process.env.NODE_ENV !== 'test') {
-  const port = process.env.PORT || 3000;
-  app.listen(port, () => console.log(`API en http://localhost:${port}`));
-}
-
-export default app;
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); // Asegura que el preflight OPTIONS responda siempre
