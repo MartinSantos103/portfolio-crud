@@ -1,13 +1,18 @@
+import 'dotenv/config';
+import express from 'express';
 import cors from 'cors';
+import routes from './routes/index.js';
+
+const app = express();
 
 const allowedOrigins = [
-  process.env.CLIENT_URL,
+  ...(process.env.CLIENT_URL ? process.env.CLIENT_URL.split(',').map((u) => u.trim()) : []),
   'http://localhost:5173',
   'http://localhost:3000',
 ].filter(Boolean);
 
 // Acepta el dominio principal y cualquier preview de Vercel del cliente
-const vercelPreviewRegex = /^https:\/\/portfolio-crud-client(-[a-z0-9-]+)?\.vercel\.app$/i;
+const vercelPreviewRegex = /^https:\/\/portfolio(-crud)?-client(-[a-z0-9-]+)?\.vercel\.app$/i;
 
 const corsOptions = {
   origin(origin, callback) {
@@ -26,4 +31,19 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions)); // Asegura que el preflight OPTIONS responda siempre
+app.options('{*splat}', cors(corsOptions)); // Asegura que el preflight OPTIONS responda siempre en Express 5
+
+app.use(express.json());
+app.use('/api', routes);
+
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(500).json({ error: err.message || 'Error interno del servidor' });
+});
+
+if (!process.env.VERCEL && process.env.NODE_ENV !== 'test') {
+  const port = process.env.PORT || 3000;
+  app.listen(port, () => console.log(`API en http://localhost:${port}`));
+}
+
+export default app;
