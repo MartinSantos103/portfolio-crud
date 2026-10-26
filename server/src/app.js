@@ -9,15 +9,27 @@ const allowedOrigins = [
   ...(process.env.CLIENT_URL ? process.env.CLIENT_URL.split(',').map((u) => u.trim()) : []),
   'http://localhost:5173',
   'http://localhost:3000',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:3000',
 ].filter(Boolean);
 
 // Acepta el dominio principal y cualquier preview de Vercel del cliente
 const vercelPreviewRegex = /^https:\/\/portfolio(-crud)?-client(-[a-z0-9-]+)?\.vercel\.app$/i;
+const isDev = process.env.NODE_ENV !== 'production' && !process.env.VERCEL;
 
 const corsOptions = {
   origin(origin, callback) {
     // Permitir peticiones sin origin (como Postman, curl o tests)
     if (!origin) return callback(null, true);
+
+    // En desarrollo local, permitir cualquier puerto de localhost y 127.0.0.1
+    if (
+      isDev &&
+      (/^http:\/\/localhost(:\d+)?$/.test(origin) ||
+        /^http:\/\/127\.0\.0\.1(:\d+)?$/.test(origin))
+    ) {
+      return callback(null, true);
+    }
 
     if (allowedOrigins.includes(origin) || vercelPreviewRegex.test(origin)) {
       return callback(null, true);
