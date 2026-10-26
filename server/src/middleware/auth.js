@@ -43,3 +43,26 @@ export function signToken(user) {
     algorithm: 'HS256',
   });
 }
+
+// Middleware opcional: si hay token válido, carga el usuario en req.user y req.userId.
+// Si no hay token o es inválido/expiró, continúa la petición como anónimo (sin arrojar 401).
+export function optionalAuth(req, res, next) {
+  const header = req.headers.authorization || '';
+  const [scheme, token] = header.split(' ');
+  if (scheme !== 'Bearer' || !token) {
+    req.user = null;
+    req.userId = null;
+    return next();
+  }
+
+  try {
+    const payload = jwt.verify(token, config.jwtSecret, { algorithms: ['HS256'] });
+    const userId = Number(payload.sub ?? payload.id);
+    req.user = { id: userId, role: payload.role };
+    req.userId = userId;
+  } catch {
+    req.user = null;
+    req.userId = null;
+  }
+  return next();
+}
