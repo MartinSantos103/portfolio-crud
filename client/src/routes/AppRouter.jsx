@@ -1,5 +1,9 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Placeholder from '../pages/Placeholder.jsx';
+import HomePage from '../features/public/pages/HomePage.jsx';
+import ProjectDetail from '../features/projects/public/ProjectDetail.jsx';
+import Login from '../features/auth/pages/Login.jsx';
+import Register from '../features/auth/pages/Register.jsx';
 import {
   AuthProvider,
   ProtectedRoute,
@@ -12,19 +16,19 @@ export default function AppRouter() {
       <AuthProvider>
         <Routes>
           {/* Rutas Públicas: accesibles para cualquier visitante */}
-          <Route path="/" element={<Placeholder title="Home" />} />
-          <Route path="/proyectos" element={<Placeholder title="Proyectos" />} />
-          <Route path="/contacto" element={<Placeholder title="Contacto" />} />
+          <Route path="/" element={<HomePage />} />
+          <Route path="/proyectos" element={<HomePage initialSection="proyectos" />} />
+          <Route path="/contacto" element={<HomePage initialSection="contacto" />} />
 
           {/* Rutas de Invitados: no accesibles si ya se tiene sesión activa (redirige según rol) */}
           <Route element={<PublicOnlyRoute />}>
-            <Route path="/login" element={<Placeholder title="Iniciar sesión" />} />
-            <Route path="/registro" element={<Placeholder title="Registro" />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/registro" element={<Register />} />
           </Route>
 
           {/* Rutas Protegidas de Usuario Autenticado (admin o user) */}
           <Route element={<ProtectedRoute allowedRoles={['admin', 'user']} />}>
-            <Route path="/proyectos/:id" element={<Placeholder title="Detalle de proyecto" />} />
+            <Route path="/proyectos/:id" element={<ProjectDetail />} />
           </Route>
 
           {/* Rutas Protegidas Exclusivas de Administrador (solo admin) */}

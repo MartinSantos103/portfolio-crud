@@ -1,1 +1,116 @@
 @import "tailwindcss";
+
+:root,
+[data-theme="dark"] {
+  --fondo: #0B0D17;
+  --superficie: #141830;
+  --superficie-alta: #1B2040;
+  --borde: #262B4A;
+  --texto: #E8EAF6;
+  --texto-suave: #9AA0C0;
+  --acento: #8B7CFF;
+  --acento-hover: #A99EFF;
+  --sobre-acento: #0B0D17;
+  --estrellas: #FFFFFF;
+  --disponible: #3DDC97;
+
+  /* Transparencias derivadas de variables CSS para soportar temas futuros */
+  --header-bg: color-mix(in srgb, var(--superficie) 72%, transparent);
+  --tile-icono-bg: color-mix(in srgb, var(--acento) 15%, transparent);
+  --etiqueta-tipo-bg: color-mix(in srgb, var(--acento) 14%, transparent);
+  --halo-punto-bg: color-mix(in srgb, var(--acento) 18%, transparent);
+  --stack-bloque-bg: color-mix(in srgb, var(--superficie) 60%, transparent);
+  --insignia-candado-bg: color-mix(in srgb, var(--fondo) 80%, transparent);
+  --logo-marca-bg: color-mix(in srgb, var(--acento) 30%, transparent);
+  --foto-halo-bg: color-mix(in srgb, var(--acento) 35%, transparent);
+  --foto-anillo-borde: color-mix(in srgb, var(--acento) 40%, transparent);
+  --chip-hover-shadow: 0 8px 22px rgba(139, 124, 255, 0.35);
+
+  --font-heading: 'Space Grotesk', sans-serif;
+  --font-sans: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+@layer base {
+  html {
+    background-color: var(--fondo);
+    color: var(--texto);
+    font-family: var(--font-sans);
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+
+  body {
+    background-color: var(--fondo);
+    color: var(--texto);
+    margin: 0;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+}
+
+.font-heading {
+  font-family: var(--font-heading);
+}
+
+.font-sans-ui {
+  font-family: var(--font-sans);
+}
+
+.font-mono-ui {
+  font-family: var(--font-mono);
+}
+
+/* Hover del chip de tecnología */
+.tech-chip {
+  background-color: var(--superficie);
+  border: 1px solid var(--borde);
+  color: var(--texto);
+  font-family: var(--font-mono);
+  font-weight: 500;
+  transition:
+    transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.tech-chip:hover {
+  transform: translateY(-3px);
+  border-color: var(--acento);
+  background-color: var(--superficie-alta);
+  box-shadow: var(--chip-hover-shadow);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tech-chip:hover {
+    transform: none;
+  }
+}
+
+/* Cursor de escritura en Hero */
+@keyframes cursor-blink {
+  0%, 49% {
+    opacity: 1;
+  }
+  50%, 100% {
+    opacity: 0;
+  }
+}
+
+.typing-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1.1em;
+  background-color: var(--acento);
+  vertical-align: text-bottom;
+  margin-left: 3px;
+  animation: cursor-blink 1s infinite;
+}
