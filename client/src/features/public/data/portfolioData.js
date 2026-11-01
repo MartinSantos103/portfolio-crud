@@ -39,7 +39,9 @@ export const PROFILE_DATA = {
   availabilityLabel: 'Disponible para nuevos proyectos',
   greeting: 'Hola, soy',
   role: 'Desarrollador Web Full Stack',
-  shortDescription: 'Construyo aplicaciones web rápidas, claras y pensadas para escalar.',
+  shortDescription: 'Construyo aplicaciones web rápidas, escalables, intuitivas y modernas.',
+  typewriterPrefix: 'Construyo aplicaciones web',
+  typewriterWords: ['rápidas', 'escalables', 'intuitivas', 'modernas'],
   primaryCtaLabel: 'Ver proyectos',
   secondaryCtaLabel: 'Contactar',
   cvLabel: 'Descargar CV',
@@ -47,7 +49,7 @@ export const PROFILE_DATA = {
   photoUrl: null,
   photoPlaceholderLabel: 'Foto del profesional',
   scrollLabel: 'SCROLL',
-  contactEmail: 'hola@lucasandrade.dev',
+  contactEmail: 'martinsantos4890@gmail.com',
   socialLinks: [
     { id: 'github', name: 'GitHub', url: 'https://github.com', iconUrl: null },
     { id: 'linkedin', name: 'LinkedIn', url: 'https://linkedin.com', iconUrl: null },
@@ -266,7 +268,7 @@ export const CONTACT_DATA = {
   titleLines: ['¿Tenés una idea?', 'Hablemos.'],
   description:
     'Contame sobre tu proyecto, propuesta laboral o consulta. Respondo personalmente dentro de las 24 a 48 horas hábiles.',
-  email: 'hola@lucasandrade.dev',
+  email: 'martinsantos4890@gmail.com',
   consultationTypes: [
     { value: 'cotizacion', label: 'Cotización' },
     { value: 'consulta', label: 'Consulta general' },

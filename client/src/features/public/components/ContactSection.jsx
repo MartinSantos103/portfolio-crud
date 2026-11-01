@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import { Check } from 'lucide-react';
 import IconSlot from '../../../components/ui/IconSlot.jsx';
 import Button from '../../../components/ui/Button.jsx';
 import FormField from '../../../components/ui/FormField.jsx';
@@ -9,14 +11,10 @@ import FormField from '../../../components/ui/FormField.jsx';
  *   - Etiqueta 05 / CONTACTO (JetBrains Mono 500, 13 px, 2 px, --acento)
  *   - Título de dos líneas (Space Grotesk 700, 60 px, interlineado 64 px, -1.2 px)
  *   - Párrafo (Inter 400, 18 px, interlineado 28 px, --texto-suave)
- *   - Fila con icono de correo de 20 px y dirección (JetBrains Mono 500, 15 px)
- *   - Fila de dos botones cuadrados de 44 px con borde 1 px y radio 12 px para GitHub y LinkedIn,
- *     con iconos de 20 px y 12 px entre botones.
+ *   - Fila de botones cuadrados de 44 px con borde 1 px y radio 12 px para Correo (con copiado al portapapeles),
+ *     GitHub y LinkedIn, con iconos de 20 px y 12 px entre botones.
  * - Derecha (formulario):
  *   - 520 px de ancho, padding 32 px, 18 px entre elementos, radio 20 px, fondo --superficie, borde 1 px --borde.
- *   - Campos Nombre y Email, fila de dos selectores con 16 px de separación (Tipo de consulta y Servicio de interés),
- *     campo Mensaje de 120 px de alto, botón primario de ancho completo con "Enviar mensaje" y flecha de 18 px,
- *     y debajo una línea con candado de 14 px y el aviso de que se pedirá iniciar sesión.
  */
 export default function ContactSection({
   contact,
@@ -29,6 +27,8 @@ export default function ContactSection({
   sending = false,
   feedback = null,
 }) {
+  const [copied, setCopied] = useState(false);
+
   const serviceOptions =
     contact.serviceOptions?.length > 0
       ? contact.serviceOptions
@@ -46,6 +46,31 @@ export default function ContactSection({
       : isAuthenticated
         ? user?.email || ''
         : '';
+
+  const handleCopyEmail = async () => {
+    const emailToCopy = contact.email || 'martinsantos4890@gmail.com';
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(emailToCopy);
+      } else {
+        // Fallback para entornos donde Clipboard API no esté disponible
+        const textArea = document.createElement('textarea');
+        textArea.value = emailToCopy;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand('copy');
+        textArea.remove();
+      }
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2200);
+    } catch (err) {
+      console.error('No se pudo copiar el correo al portapapeles:', err);
+    }
+  };
 
   return (
     <section id="contacto" className="relative z-10 w-full py-[80px] lg:py-[110px]">
@@ -66,19 +91,39 @@ export default function ContactSection({
             {contact.description}
           </p>
 
-          {/* Fila con icono de correo de 20 px y la dirección */}
-          <a
-            href={`mailto:${contact.email}`}
-            className="font-mono-ui inline-flex items-center gap-[12px] text-[15px] font-medium text-[var(--texto)] transition-colors hover:text-[var(--acento)]"
-          >
-            <span className="inline-flex text-[var(--acento)]">
-              <IconSlot size={20} name="contact-mail" />
-            </span>
-            <span>{contact.email}</span>
-          </a>
-
-          {/* Fila de dos botones cuadrados de 44 px con borde y radio 12 para GitHub y LinkedIn, 12 px entre botones */}
+          {/* Fila de botones de contacto: Correo (copiar al portapapeles), GitHub y LinkedIn */}
           <div className="flex items-center gap-[12px]">
+            {/* Botón con icono de correo que copia el correo del dueño del repo */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={handleCopyEmail}
+                aria-label="Copiar correo electrónico del desarrollador"
+                title={copied ? '¡Correo copiado!' : 'Copiar correo electrónico'}
+                className={`flex h-[44px] w-[44px] cursor-pointer items-center justify-center rounded-[12px] border transition-all duration-150 ${
+                  copied
+                    ? 'border-[var(--disponible)] bg-[var(--disponible)]/15 text-[var(--disponible)]'
+                    : 'border-[var(--borde)] bg-[var(--superficie)] text-[var(--texto-suave)] hover:border-[var(--acento)] hover:bg-[var(--superficie-alta)] hover:text-[var(--texto)]'
+                }`}
+              >
+                {copied ? (
+                  <Check size={20} className="text-[var(--disponible)]" />
+                ) : (
+                  <IconSlot size={20} name="contact-mail" />
+                )}
+              </button>
+
+              {/* Aviso flotante de confirmación */}
+              {copied && (
+                <span
+                  role="status"
+                  className="font-mono-ui pointer-events-none absolute -top-[34px] left-1/2 -translate-x-1/2 whitespace-nowrap rounded-[8px] border border-[var(--borde)] bg-[var(--superficie-alta)] px-[8px] py-[3px] text-[11px] font-medium text-[var(--disponible)] shadow-lg"
+                >
+                  ¡Copiado!
+                </span>
+              )}
+            </div>
+
             {socialLinks.map((social) => (
               <a
                 key={social.id}
@@ -86,6 +131,7 @@ export default function ContactSection({
                 target="_blank"
                 rel="noreferrer"
                 aria-label={social.name}
+                title={social.name}
                 className="flex h-[44px] w-[44px] items-center justify-center rounded-[12px] border border-[var(--borde)] bg-[var(--superficie)] text-[var(--texto-suave)] transition-colors duration-150 hover:border-[var(--acento)] hover:bg-[var(--superficie-alta)] hover:text-[var(--texto)]"
               >
                 <IconSlot

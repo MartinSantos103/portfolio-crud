@@ -1,6 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import IconSlot from '../../../components/ui/IconSlot.jsx';
 import Button from '../../../components/ui/Button.jsx';
+
+const DEFAULT_PREFIX = 'Construyo aplicaciones web';
+const DEFAULT_WORDS = ['rápidas', 'escalables', 'intuitivas', 'modernas'];
 
 /**
  * Sección Inicio (Hero).
@@ -10,7 +13,7 @@ import Button from '../../../components/ui/Button.jsx';
  *   1. Saludo "Hola, soy" en Inter 500, 20 px, --texto-suave
  *   2. Nombre grande en Space Grotesk 700, 76 px, interlineado 80 px, -1.5 px
  *   3. Rol en Space Grotesk 500, 32 px, --acento
- *   4. Descripción breve con animación de escritura letra a letra y barra vertical en --acento
+ *   4. Descripción breve con efecto de ciclo de escritura y borrado (rápidas → escalables → intuitivas → modernas) y cursor en --acento
  *   5. Fila de dos botones con 16 px de separación: "Ver proyectos" (primario con flecha de 18 px) y "Contactar" (secundario)
  *   6. Fila de redes con 24 px de separación: GitHub (22 px), LinkedIn (22 px) y "Descargar CV" (JetBrains Mono 500, 13 px + icono descarga 16 px)
  * - Bloque derecho de 440 x 440 px:
@@ -19,32 +22,100 @@ import Button from '../../../components/ui/Button.jsx';
  *   - Disco de 360 px (--superficie-alta, borde --acento de 3 px) con icono de persona de 150 px y etiqueta
  */
 export default function HeroSection({ profile }) {
-  const fullText =
-    profile.shortDescription ||
-    'Construyo aplicaciones web rápidas, claras y pensadas para escalar.';
+  const rawPrefix =
+    profile?.typewriterPrefix ??
+    profile?.shortDescriptionPrefix ??
+    DEFAULT_PREFIX;
 
-  const [typedText, setTypedText] = useState('');
+  const cleanPrefix = rawPrefix.trimEnd();
+
+  const words = useMemo(() => {
+    if (Array.isArray(profile?.typewriterWords) && profile.typewriterWords.length > 0) {
+      return profile.typewriterWords;
+    }
+    if (Array.isArray(profile?.shortDescriptionWords) && profile.shortDescriptionWords.length > 0) {
+      return profile.shortDescriptionWords;
+    }
+    return DEFAULT_WORDS;
+  }, [profile?.typewriterWords, profile?.shortDescriptionWords]);
+
+  const wordsKey = words.join('|');
+
+  const prefersReducedMotion =
+    typeof window !== 'undefined' &&
+    window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+
+  const [typedPrefix, setTypedPrefix] = useState(() =>
+    prefersReducedMotion ? cleanPrefix : ''
+  );
+  const [typedWord, setTypedWord] = useState(() =>
+    prefersReducedMotion ? (words[0] || '') : ''
+  );
 
   useEffect(() => {
-    let index = 0;
-    let intervalId = null;
+    if (prefersReducedMotion) return;
 
-    const timeoutId = setTimeout(() => {
-      setTypedText('');
-      intervalId = setInterval(() => {
-        index += 1;
-        setTypedText(fullText.slice(0, index));
-        if (index >= fullText.length) {
-          clearInterval(intervalId);
+    let timerId = null;
+    let isCancelled = false;
+
+    let prefixIndex = 0;
+    let wordIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+
+    const TYPE_PREFIX_SPEED = 35;
+    const TYPE_WORD_SPEED = 65;
+    const DELETE_SPEED = 40;
+    const PAUSE_BEFORE_DELETE = 1800;
+    const PAUSE_BEFORE_NEXT_WORD = 350;
+
+    function step() {
+      if (isCancelled) return;
+
+      // Fase 1: Escribir el prefijo base ("Construyo aplicaciones web")
+      if (prefixIndex < cleanPrefix.length) {
+        prefixIndex += 1;
+        setTypedPrefix(cleanPrefix.slice(0, prefixIndex));
+        timerId = setTimeout(step, TYPE_PREFIX_SPEED);
+        return;
+      }
+
+      // Fase 2: Ciclo de escritura y borrado de las palabras dinámicas
+      const currentFullWord = words[wordIndex] || '';
+
+      if (!isDeleting) {
+        // Escribiendo la palabra actual
+        if (charIndex < currentFullWord.length) {
+          charIndex += 1;
+          setTypedWord(currentFullWord.slice(0, charIndex));
+          timerId = setTimeout(step, TYPE_WORD_SPEED);
+        } else {
+          // Palabra completada: pausa para lectura antes de borrar
+          isDeleting = true;
+          timerId = setTimeout(step, PAUSE_BEFORE_DELETE);
         }
-      }, 40);
-    }, 250);
+      } else {
+        // Borrando la palabra actual
+        if (charIndex > 0) {
+          charIndex -= 1;
+          setTypedWord(currentFullWord.slice(0, charIndex));
+          timerId = setTimeout(step, DELETE_SPEED);
+        } else {
+          // Palabra borrada: pasar a la siguiente palabra y pausar brevemente
+          isDeleting = false;
+          wordIndex = (wordIndex + 1) % words.length;
+          timerId = setTimeout(step, PAUSE_BEFORE_NEXT_WORD);
+        }
+      }
+    }
+
+    timerId = setTimeout(step, 250);
 
     return () => {
-      clearTimeout(timeoutId);
-      if (intervalId) clearInterval(intervalId);
+      isCancelled = true;
+      if (timerId) clearTimeout(timerId);
     };
-  }, [fullText]);
+  }, [cleanPrefix, words, wordsKey, prefersReducedMotion]);
 
   const scrollTo = (id) => {
     const el = document.getElementById(id);
@@ -76,9 +147,16 @@ export default function HeroSection({ profile }) {
             {profile.role}
           </p>
 
-          {/* 4. Descripción breve con efecto de escritura letra a letra y barra vertical en --acento */}
+          {/* 4. Descripción breve con efecto de escritura y borrado en ciclo */}
           <p className="font-sans-ui min-h-[56px] max-w-[540px] text-[18px] font-normal leading-[28px] text-[var(--texto-suave)]">
-            <span>{typedText}</span>
+            <span className="sr-only">
+              {cleanPrefix} {words.join(', ')}.
+            </span>
+            <span aria-hidden="true">
+              <span>{typedPrefix}</span>
+              {typedPrefix.length >= cleanPrefix.length && <span>&nbsp;</span>}
+              <span className="text-[var(--acento)] font-semibold">{typedWord}</span>
+            </span>
             <span aria-hidden="true" className="typing-cursor" />
           </p>
 

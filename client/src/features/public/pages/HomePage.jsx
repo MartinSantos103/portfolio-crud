@@ -52,17 +52,6 @@ export default function HomePage({ initialSection = null }) {
   const [contactSending, setContactSending] = useState(false);
   const [contactFeedback, setContactFeedback] = useState(null);
 
-  // Prellenar nombre y correo si el usuario tiene sesión activa
-  useEffect(() => {
-    if (user) {
-      setContactForm((prev) => ({
-        ...prev,
-        name: prev.name || user.name || '',
-        email: prev.email || user.email || '',
-      }));
-    }
-  }, [user]);
-
   // Al cargar y recargar, situarse siempre en Inicio (top: 0) y limpiar cualquier hash que fuerce el salto
   useEffect(() => {
     if ('scrollRestoration' in window.history) {
