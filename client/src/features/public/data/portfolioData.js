@@ -274,7 +274,7 @@ export const CONTACT_DATA = {
   ],
   defaultServiceOption: 'Sitios y landing pages',
   submitLabel: 'Enviar mensaje',
-  authNotice: 'Para enviar necesitás iniciar sesión',
+  authNotice: 'Mensaje directo a mi casilla de correo (o iniciá sesión si querés vincular tu cuenta)',
 };
 
 export const FOOTER_DATA = {

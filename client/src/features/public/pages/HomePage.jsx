@@ -52,6 +52,17 @@ export default function HomePage({ initialSection = null }) {
   const [contactSending, setContactSending] = useState(false);
   const [contactFeedback, setContactFeedback] = useState(null);
 
+  // Prellenar nombre y correo si el usuario tiene sesión activa
+  useEffect(() => {
+    if (user) {
+      setContactForm((prev) => ({
+        ...prev,
+        name: prev.name || user.name || '',
+        email: prev.email || user.email || '',
+      }));
+    }
+  }, [user]);
+
   // Al cargar y recargar, situarse siempre en Inicio (top: 0) y limpiar cualquier hash que fuerce el salto
   useEffect(() => {
     if ('scrollRestoration' in window.history) {
@@ -162,6 +173,26 @@ export default function HomePage({ initialSection = null }) {
     e.preventDefault();
     setContactFeedback(null);
 
+    const finalName = contactForm.name.trim() || user?.name || '';
+    const finalEmail = contactForm.email.trim() || user?.email || '';
+
+    if (!finalName || !finalEmail) {
+      setContactFeedback({
+        type: 'error',
+        message: 'Por favor completá tu nombre y correo electrónico.',
+      });
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(finalEmail)) {
+      setContactFeedback({
+        type: 'error',
+        message: 'El formato del correo electrónico es inválido.',
+      });
+      return;
+    }
+
     if (!contactForm.body.trim()) {
       setContactFeedback({
         type: 'error',
@@ -170,16 +201,7 @@ export default function HomePage({ initialSection = null }) {
       return;
     }
 
-    if (!isAuthenticated) {
-      setAuthModalMode('login');
-      setAuthModalContext(
-        'Iniciá sesión para completar el envío de tu mensaje. Lo que escribiste se conserva automáticamente.'
-      );
-      setPendingAction({ type: 'contact' });
-      setAuthModalOpen(true);
-      return;
-    }
-
+    // Permite el envío tanto a usuarios con sesión activa como a visitantes anónimos
     await sendContactMessage(user);
   };
 

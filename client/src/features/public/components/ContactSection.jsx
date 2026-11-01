@@ -187,7 +187,7 @@ export default function ContactSection({
             <span className="font-sans-ui text-[13px] font-normal text-[var(--texto-suave)]">
               {isAuthenticated
                 ? `Enviando con sesión activa (${user?.email})`
-                : contact.authNotice}
+                : (contact.authNotice || 'Mensaje directo a mi casilla de correo (o iniciá sesión si querés vincular tu cuenta)')}
             </span>
           </div>
         </form>
