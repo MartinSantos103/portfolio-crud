@@ -1,4 +1,5 @@
 import { motion as Motion, useReducedMotion } from 'framer-motion';
+import IconSlot from './IconSlot.jsx';
 
 /**
  * Entrada y tarjeta de trayectoria con variante de lado izquierdo ('left') y derecho ('right').
@@ -13,14 +14,20 @@ import { motion as Motion, useReducedMotion } from 'framer-motion';
 export default function TrajectoryCard({ entry, side = 'left', index = 0 }) {
   const prefersReducedMotion = useReducedMotion();
   const isLeft = side === 'left';
+  const isFormacion = entry.type === 'formacion';
 
   const cardElement = (
     <article
       data-interactive-card="true"
-      className=" flex w-full max-w-[460px] flex-col gap-[8px] rounded-[16px] border border-[var(--borde)] bg-[var(--superficie)] px-[24px] py-[22px]"
+      className="flex w-full max-w-[460px] flex-col gap-[8px] rounded-[16px] border border-[var(--borde)] bg-[var(--superficie)] px-[24px] py-[22px]"
     >
-      <span className="font-mono-ui inline-flex w-fit items-center rounded-full bg-[var(--etiqueta-tipo-bg)] px-[10px] py-[3px] text-[11px] font-medium uppercase tracking-[1.5px] text-[var(--acento)]">
-        {entry.typeLabel || (entry.type === 'formacion' ? 'FORMACIÓN' : 'EXPERIENCIA')}
+      <span className="font-mono-ui inline-flex w-fit items-center gap-[6px] rounded-full bg-[var(--etiqueta-tipo-bg)] px-[10px] py-[4px] text-[11px] font-medium uppercase tracking-[1.5px] text-[var(--acento)]">
+        <IconSlot
+          size={12}
+          name={isFormacion ? 'formacion' : 'experiencia'}
+          strokeWidth={2}
+        />
+        <span>{entry.typeLabel || (isFormacion ? 'FORMACIÓN' : 'EXPERIENCIA')}</span>
       </span>
       <h3 className="font-heading text-[20px] font-medium leading-[1.3] text-[var(--texto)]">
         {entry.title}

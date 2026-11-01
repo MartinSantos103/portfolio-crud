@@ -158,7 +158,7 @@ export default function Navbar({
               {isAuthenticated && userMenuOpen && (
                 <div
                   role="menu"
-                  className="absolute top-[48px] right-0 z-50 min-w-[210px] rounded-[12px] border border-[var(--borde)] bg-[var(--superficie)] p-[8px] shadow-xl"
+                  className="absolute top-[48px] right-0 z-50 min-w-[220px] rounded-[12px] border border-[var(--borde)] bg-[var(--superficie)] p-[8px] shadow-xl"
                 >
                   <div className="mb-[6px] border-b border-[var(--borde)] px-[12px] py-[8px]">
                     <p className="font-sans-ui truncate text-[14px] font-medium text-[var(--texto)]">
@@ -180,6 +180,7 @@ export default function Navbar({
                       className="font-sans-ui flex w-full cursor-pointer items-center justify-between rounded-[8px] px-[12px] py-[9px] text-left text-[14px] font-medium text-[var(--acento)] transition-colors hover:bg-[var(--superficie-alta)]"
                     >
                       <span>Panel de administración</span>
+                      <IconSlot size={16} name="dashboard" />
                     </button>
                   )}
 
@@ -193,6 +194,7 @@ export default function Navbar({
                     className="font-sans-ui flex w-full cursor-pointer items-center justify-between rounded-[8px] px-[12px] py-[9px] text-left text-[14px] font-medium text-[var(--texto)] transition-colors hover:bg-[var(--superficie-alta)]"
                   >
                     <span>Cerrar sesión</span>
+                    <IconSlot size={16} name="logout" />
                   </button>
                 </div>
               )}
@@ -266,7 +268,7 @@ export default function Navbar({
               </a>
             ))}
             {isAuthenticated && (
-              <div className="mt-[8px] flex flex-col gap-[10px] border-t border-[var(--borde)] pt-[12px]">
+              <div className="mt-[8px] flex flex-col gap-[12px] border-t border-[var(--borde)] pt-[14px]">
                 <span className="font-mono-ui text-[12px] text-[var(--texto-suave)]">
                   Sesión activa: {user?.email}
                 </span>
@@ -277,9 +279,10 @@ export default function Navbar({
                       setMobileMenuOpen(false);
                       navigate('/admin');
                     }}
-                    className="font-sans-ui text-left text-[15px] font-medium text-[var(--acento)]"
+                    className="font-sans-ui flex items-center gap-[8px] text-left text-[15px] font-medium text-[var(--acento)]"
                   >
-                    Ir al Panel de administración
+                    <IconSlot size={16} name="dashboard" />
+                    <span>Ir al Panel de administración</span>
                   </button>
                 )}
                 <button
@@ -288,9 +291,10 @@ export default function Navbar({
                     setMobileMenuOpen(false);
                     logout();
                   }}
-                  className="font-sans-ui text-left text-[15px] font-medium text-[var(--texto)]"
+                  className="font-sans-ui flex items-center gap-[8px] text-left text-[15px] font-medium text-[var(--texto)]"
                 >
-                  Cerrar sesión
+                  <IconSlot size={16} name="logout" />
+                  <span>Cerrar sesión</span>
                 </button>
               </div>
             )}

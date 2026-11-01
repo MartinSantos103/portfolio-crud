@@ -37,7 +37,8 @@ export default function ProjectDetail() {
       <main className="relative z-10 mx-auto w-full max-w-[1440px] px-[24px] pt-[128px] pb-[110px] sm:px-[64px] xl:px-[160px]">
         <div className="mb-[32px]">
           <Button variant="secondary" onClick={() => navigate('/#proyectos')}>
-            <span>← Volver a Proyectos</span>
+            <IconSlot size={16} name="arrow-left" />
+            <span>Volver a Proyectos</span>
           </Button>
         </div>
 

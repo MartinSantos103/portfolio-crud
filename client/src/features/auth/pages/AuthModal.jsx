@@ -136,9 +136,9 @@ export default function AuthModal({
                 type="button"
                 onClick={onClose}
                 aria-label="Cerrar ventana"
-                className="font-mono-ui flex h-[36px] w-[36px] cursor-pointer items-center justify-center rounded-[12px] border border-[var(--borde)] bg-[var(--fondo)] text-[14px] text-[var(--texto-suave)] transition-colors hover:border-[var(--acento)] hover:text-[var(--texto)]"
+                className="font-mono-ui flex h-[36px] w-[36px] cursor-pointer items-center justify-center rounded-[12px] border border-[var(--borde)] bg-[var(--fondo)] text-[var(--texto-suave)] transition-colors hover:border-[var(--acento)] hover:text-[var(--texto)]"
               >
-                ✕
+                <IconSlot size={18} name="close" />
               </button>
             </div>
 
@@ -158,7 +158,7 @@ export default function AuthModal({
                 }}
                 className={`font-sans-ui cursor-pointer rounded-[8px] py-[8px] text-[14px] font-medium transition-colors ${
                   mode === 'login'
-                    ? 'bg-[var(--acento)] text-[var(--sobre-acento)]'
+                    ? 'bg-[var(--superficie)] text-[var(--texto)] shadow-sm'
                     : 'text-[var(--texto-suave)] hover:text-[var(--texto)]'
                 }`}
               >
@@ -172,7 +172,7 @@ export default function AuthModal({
                 }}
                 className={`font-sans-ui cursor-pointer rounded-[8px] py-[8px] text-[14px] font-medium transition-colors ${
                   mode === 'register'
-                    ? 'bg-[var(--acento)] text-[var(--sobre-acento)]'
+                    ? 'bg-[var(--superficie)] text-[var(--texto)] shadow-sm'
                     : 'text-[var(--texto-suave)] hover:text-[var(--texto)]'
                 }`}
               >
@@ -183,26 +183,30 @@ export default function AuthModal({
             <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-[16px]">
               {mode === 'register' && (
                 <FormField
-                  label="Nombre"
+                  as="input"
+                  label="Nombre completo"
                   name="name"
+                  type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Tu nombre completo"
+                  placeholder="Tu nombre"
                   required
                 />
               )}
 
               <FormField
-                label="Email"
+                as="input"
+                label="Correo electrónico"
                 name="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="tu@email.com"
+                placeholder="ejemplo@correo.com"
                 required
               />
 
               <FormField
+                as="input"
                 label="Contraseña"
                 name="password"
                 type="password"
