@@ -24,6 +24,14 @@ const serviceFormSchema = z.object({
   active: z.boolean().default(true),
 });
 
+const DEFAULT_SERVICE_VALUES = {
+  title: '',
+  description: '',
+  icon: 'sitios-landing',
+  items: ['Diseño responsive', 'Optimización de carga', 'Soporte continuo'],
+  active: true,
+};
+
 export default function ServiceFormPage() {
   const { id } = useParams();
   const isEditing = Boolean(id);
@@ -43,16 +51,10 @@ export default function ServiceFormPage() {
     formState: { errors, isDirty, isSubmitting },
   } = useForm({
     resolver: zodResolver(serviceFormSchema),
-    defaultValues: {
-      title: '',
-      description: '',
-      icon: 'sitios-landing',
-      items: ['Diseño responsive', 'Optimización de carga', 'Soporte continuo'],
-      active: true,
-    },
+    defaultValues: DEFAULT_SERVICE_VALUES,
   });
 
-  const { blocker } = useUnsavedChanges(isDirty);
+  const { blocker, bypassBlocker } = useUnsavedChanges(isDirty);
 
   const loadService = useCallback(async () => {
     if (!isEditing) return;
@@ -99,10 +101,12 @@ export default function ServiceFormPage() {
         }),
       });
 
-      reset(formValues);
+      bypassBlocker();
+      reset(DEFAULT_SERVICE_VALUES);
       toast.success(
-        res?.message ||
-          (isEditing ? 'Servicio actualizado correctamente' : 'Servicio creado correctamente')
+        isEditing
+          ? (res?.message || 'Servicio actualizado con éxito')
+          : 'Servicio agregado con éxito'
       );
       navigate('/admin/servicios');
     } catch (err) {

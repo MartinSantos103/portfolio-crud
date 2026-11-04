@@ -14,6 +14,16 @@ export async function touchLastLogin(id) {
   await query('UPDATE users SET last_login_at = now() WHERE id = $1', [id]);
 }
 
+export async function createUser({ name, email, passwordHash, role = 'user' }) {
+  const { rows } = await query(
+    `INSERT INTO users (name, email, password_hash, role, active)
+     VALUES ($1, $2, $3, $4, TRUE)
+     RETURNING id, name, email, role, active, created_at`,
+    [name, email, passwordHash, role]
+  );
+  return rows[0];
+}
+
 // Forma pública del usuario: lo único que sale hacia el frontend.
 export function toPublicUser(row) {
   return { id: row.id, name: row.name, email: row.email, role: row.role };

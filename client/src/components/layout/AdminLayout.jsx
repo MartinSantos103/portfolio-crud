@@ -11,7 +11,7 @@ import {
   Users,
   PanelLeftClose,
   PanelLeftOpen,
-  ExternalLink,
+  ArrowLeft,
   Sun,
   Moon,
   LogOut,
@@ -443,17 +443,15 @@ function AdminLayoutInner() {
               {isDark ? <Sun size={16} /> : <Moon size={16} />}
             </button>
 
-            {/* Botón «Abrir sitio público ↗» en pestaña nueva */}
-            <a
-              href="/"
-              target="_blank"
-              rel="noopener noreferrer"
+            {/* Botón «Volver al sitio público» — SPA navigation */}
+            <Link
+              to="/"
               className="font-sans-ui inline-flex items-center gap-1.5 rounded-[10px] border border-[var(--borde)] bg-[var(--fondo)] px-3 py-2 text-[13px] font-medium text-[var(--texto)] transition-colors hover:border-[var(--acento)] hover:bg-[var(--superficie-alta)]"
             >
-              <span className="hidden sm:inline">Abrir sitio público</span>
+              <ArrowLeft size={14} className="text-[var(--acento-texto)]" />
+              <span className="hidden sm:inline">Volver al sitio público</span>
               <span className="sm:hidden">Sitio</span>
-              <ExternalLink size={14} className="text-[var(--acento-texto)]" />
-            </a>
+            </Link>
           </div>
         </header>
 

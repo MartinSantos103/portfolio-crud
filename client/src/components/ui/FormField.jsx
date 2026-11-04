@@ -24,6 +24,7 @@ export default function FormField({
   options = [],
   required = false,
   disabled = false,
+  rightSlot = null,
   className = '',
   ...rest
 }) {
@@ -55,12 +56,13 @@ export default function FormField({
             className={`${baseBoxClasses} cursor-pointer appearance-none pr-[42px]`}
             {...rest}
           >
-            {options.map((opt) => {
+            {options.map((opt, idx) => {
               const optValue = typeof opt === 'object' ? opt.value : opt;
               const optLabel = typeof opt === 'object' ? opt.label : opt;
+              const optKey = typeof opt === 'object' && opt.id != null ? opt.id : `${optValue}-${idx}`;
               return (
                 <option
-                  key={optValue}
+                  key={optKey}
                   value={optValue}
                   className="bg-[var(--superficie)] text-[var(--texto)]"
                 >
@@ -86,18 +88,25 @@ export default function FormField({
           {...rest}
         />
       ) : (
-        <input
-          id={fieldId}
-          name={name}
-          type={type}
-          value={value}
-          onChange={onChange}
-          placeholder={placeholder}
-          required={required}
-          disabled={disabled}
-          className={baseBoxClasses}
-          {...rest}
-        />
+        <div className="relative flex items-center">
+          <input
+            id={fieldId}
+            name={name}
+            type={type}
+            value={value}
+            onChange={onChange}
+            placeholder={placeholder}
+            required={required}
+            disabled={disabled}
+            className={`${baseBoxClasses} ${rightSlot ? 'pr-[44px]' : ''}`}
+            {...rest}
+          />
+          {rightSlot && (
+            <div className="absolute right-[12px] flex items-center">
+              {rightSlot}
+            </div>
+          )}
+        </div>
       )}
     </div>
   );

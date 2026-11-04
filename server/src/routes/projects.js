@@ -283,7 +283,7 @@ router.post('/', requireAuth, requireRole('admin'), async (req, res, next) => {
     await client.query('COMMIT');
     return res.status(201).json({
       ok: true,
-      message: 'Proyecto creado correctamente',
+      message: 'Proyecto agregado con éxito',
       data: {
         ...createdProject,
         images: insertedImages,

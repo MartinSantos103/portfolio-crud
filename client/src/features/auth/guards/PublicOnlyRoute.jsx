@@ -5,7 +5,7 @@ import LoadingScreen from '../components/LoadingScreen.jsx';
 /**
  * Guardián para rutas de invitados (login, registro).
  * Redirige automáticamente según los permisos del usuario autenticado:
- * - Admin -> /admin (o la ruta previa si era accesible)
+ * - Admin -> /admin (o la ruta previa si era accesible dentro de /admin)
  * - User -> /proyectos (o la ruta previa si no era de admin)
  */
 export default function PublicOnlyRoute({ children }) {
@@ -20,11 +20,14 @@ export default function PublicOnlyRoute({ children }) {
     const origin = location.state?.from?.pathname;
     const defaultTarget = user?.role === 'admin' ? '/admin' : '/proyectos';
 
-    // Si un usuario común venía de una ruta /admin, no lo mandamos allí; va a su destino por rol
     const target =
-      origin && (user?.role === 'admin' || !origin.startsWith('/admin'))
-        ? origin
-        : defaultTarget;
+      user?.role === 'admin'
+        ? origin && origin.startsWith('/admin')
+          ? origin
+          : '/admin'
+        : origin && !origin.startsWith('/admin')
+          ? origin
+          : defaultTarget;
 
     return <Navigate to={target} replace />;
   }

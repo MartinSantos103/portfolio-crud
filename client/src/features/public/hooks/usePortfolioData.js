@@ -143,7 +143,7 @@ export function mapRemoteProfileToPublic(remoteProfile, prevProfile = PROFILE_DA
     typewriterWords,
     photoUrl: remoteProfile.photo_url ?? prevProfile.photoUrl,
     contactEmail: remoteProfile.contact_email || prevProfile.contactEmail,
-    cvUrl: remoteProfile.cv_url || prevProfile.cvUrl,
+    cvUrl: (remoteProfile.cv_url && remoteProfile.cv_url !== '#descargar-cv') ? remoteProfile.cv_url : prevProfile.cvUrl,
     available: remoteProfile.available ?? prevProfile.available,
     location: remoteProfile.location || prevProfile.location,
     socialLinks,
@@ -308,7 +308,7 @@ export function usePortfolioData() {
     contact: {
       ...CONTACT_DATA,
       email: profile.contactEmail || CONTACT_DATA.email,
-      serviceOptions: servicesSection.items.map((s) => s.title),
+      serviceOptions: servicesSection.items.map((s) => ({ id: s.id, value: s.title, label: s.title })),
     },
     footer: FOOTER_DATA,
   };

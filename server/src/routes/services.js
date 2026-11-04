@@ -139,7 +139,7 @@ router.post('/', requireAuth, requireRole('admin'), async (req, res, next) => {
 
     return res.status(201).json({
       ok: true,
-      message: 'Servicio creado correctamente',
+      message: 'Servicio agregado con éxito',
       data: rows[0],
     });
   } catch (err) {

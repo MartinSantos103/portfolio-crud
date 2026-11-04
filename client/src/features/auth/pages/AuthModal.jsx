@@ -25,6 +25,7 @@ export default function AuthModal({
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -36,6 +37,7 @@ export default function AuthModal({
     if (isOpen) {
       setMode(initialMode);
       setErrorMsg('');
+      setShowPassword(false);
     }
   }
 
@@ -155,6 +157,7 @@ export default function AuthModal({
                 onClick={() => {
                   setMode('login');
                   setErrorMsg('');
+                  setShowPassword(false);
                 }}
                 className={`font-sans-ui cursor-pointer rounded-[8px] py-[8px] text-[14px] font-medium transition-colors ${
                   mode === 'login'
@@ -169,6 +172,7 @@ export default function AuthModal({
                 onClick={() => {
                   setMode('register');
                   setErrorMsg('');
+                  setShowPassword(false);
                 }}
                 className={`font-sans-ui cursor-pointer rounded-[8px] py-[8px] text-[14px] font-medium transition-colors ${
                   mode === 'register'
@@ -209,11 +213,21 @@ export default function AuthModal({
                 as="input"
                 label="Contraseña"
                 name="password"
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 required
+                rightSlot={
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    aria-label={showPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
+                    className="flex h-[28px] w-[28px] cursor-pointer items-center justify-center rounded-[8px] text-[var(--texto-suave)] transition-colors hover:text-[var(--texto)] focus:outline-none"
+                  >
+                    <IconSlot size={18} name={showPassword ? 'eye-off' : 'eye'} />
+                  </button>
+                }
               />
 
               {errorMsg && (

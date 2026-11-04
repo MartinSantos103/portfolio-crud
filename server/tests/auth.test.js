@@ -145,4 +145,42 @@ describe('Pruebas de Autenticación y Autorización por Rol', () => {
     assert.equal(data.message, 'Acceso autorizado de administrador');
     assert.equal(data.user?.role, 'admin');
   });
+
+  test('6. POST /api/auth/register - Registra nuevo usuario (201) y rechaza duplicados (409)', async () => {
+    const testEmail = `newuser_${Date.now()}@pf.local`;
+
+    // 6.1 Registro exitoso
+    const res = await fetch(`${baseUrl}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: 'Nuevo Usuario Test',
+        email: testEmail,
+        password: 'password123',
+      }),
+    });
+
+    assert.equal(res.status, 201, 'El status debe ser 201 Created');
+    const data = await res.json();
+    assert.equal(data.ok, true);
+    assert.ok(data.user, 'Debe incluir los datos del usuario registrado');
+    assert.equal(data.user.email, testEmail);
+    assert.equal(data.user.role, 'user');
+    assert.equal(data.user.password_hash, undefined, 'No debe exponer password_hash');
+
+    // 6.2 Intento de registrar el mismo correo duplicado
+    const dupRes = await fetch(`${baseUrl}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: 'Otro Usuario',
+        email: testEmail,
+        password: 'password123',
+      }),
+    });
+
+    assert.equal(dupRes.status, 409, 'El status de correo duplicado debe ser 409 Conflict');
+    const dupData = await dupRes.json();
+    assert.equal(dupData.error?.code, 'USER_EXISTS');
+  });
 });

@@ -194,6 +194,8 @@ export default function HeroSection({ profile }) {
 
             <a
               href={profile.cvUrl}
+              target="_blank"
+              rel="noopener noreferrer"
               className="font-mono-ui inline-flex items-center gap-[8px] text-[13px] font-medium text-[var(--texto-suave)] transition-colors duration-150 hover:text-[var(--texto)]"
             >
               <IconSlot size={16} name="download-cv" />
