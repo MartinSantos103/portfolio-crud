@@ -29,17 +29,15 @@ export default function HeroSection({ profile }) {
 
   const cleanPrefix = rawPrefix.trimEnd();
 
-  const words = useMemo(() => {
-    if (Array.isArray(profile?.typewriterWords) && profile.typewriterWords.length > 0) {
-      return profile.typewriterWords;
-    }
-    if (Array.isArray(profile?.shortDescriptionWords) && profile.shortDescriptionWords.length > 0) {
-      return profile.shortDescriptionWords;
-    }
-    return DEFAULT_WORDS;
-  }, [profile?.typewriterWords, profile?.shortDescriptionWords]);
+  const rawWords =
+    Array.isArray(profile?.typewriterWords) && profile.typewriterWords.length > 0
+      ? profile.typewriterWords
+      : Array.isArray(profile?.shortDescriptionWords) && profile.shortDescriptionWords.length > 0
+        ? profile.shortDescriptionWords
+        : DEFAULT_WORDS;
 
-  const wordsKey = words.join('|');
+  const wordsKey = rawWords.filter(Boolean).join('|') || DEFAULT_WORDS.join('|');
+  const words = useMemo(() => wordsKey.split('|'), [wordsKey]);
 
   const prefersReducedMotion =
     typeof window !== 'undefined' &&
@@ -74,6 +72,9 @@ export default function HeroSection({ profile }) {
 
       // Fase 1: Escribir el prefijo base ("Construyo aplicaciones web")
       if (prefixIndex < cleanPrefix.length) {
+        if (prefixIndex === 0) {
+          setTypedWord('');
+        }
         prefixIndex += 1;
         setTypedPrefix(cleanPrefix.slice(0, prefixIndex));
         timerId = setTimeout(step, TYPE_PREFIX_SPEED);
@@ -89,7 +90,7 @@ export default function HeroSection({ profile }) {
           charIndex += 1;
           setTypedWord(currentFullWord.slice(0, charIndex));
           timerId = setTimeout(step, TYPE_WORD_SPEED);
-        } else {
+        } else if (words.length > 1) {
           // Palabra completada: pausa para lectura antes de borrar
           isDeleting = true;
           timerId = setTimeout(step, PAUSE_BEFORE_DELETE);
@@ -148,10 +149,10 @@ export default function HeroSection({ profile }) {
           </p>
 
           {/* 4. Descripción breve con efecto de escritura y borrado en ciclo */}
-          <p className="font-sans-ui min-h-[56px] max-w-[540px] text-[18px] font-normal leading-[28px] text-[var(--texto-suave)]">
-            <span className="sr-only">
-              {cleanPrefix} {words.join(', ')}.
-            </span>
+          <p
+            aria-label={`${cleanPrefix} ${words.join(', ')}.`}
+            className="font-sans-ui min-h-[56px] max-w-[540px] text-[18px] font-normal leading-[28px] text-[var(--texto-suave)]"
+          >
             <span aria-hidden="true">
               <span>{typedPrefix}</span>
               {typedPrefix.length >= cleanPrefix.length && <span>&nbsp;</span>}

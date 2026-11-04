@@ -2,20 +2,11 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import IconSlot from '../ui/IconSlot.jsx';
 import { useAuth } from '../../features/auth/index.js';
+import { useTheme } from '../../hooks/useTheme.js';
 
 /**
  * Header fijo de 72 px de alto, con padding lateral de 48 px (responsivo en móvil),
  * fondo --superficie al 72 % con desenfoque de 16 px y borde inferior de 1 px en --borde.
- *
- * - Izquierda: marca del logo (círculo de 16 px con relleno --acento al 30 % y borde --acento de 2 px)
- *   y nombre del desarrollador (Space Grotesk 700, 22 px, -0.3 px), con 10 px entre ambos.
- * - Derecha: 5 enlaces del menú (Inter 500, 15 px, --texto-suave, 32 px entre ellos) y a 36 px
- *   el grupo de acciones:
- *   - Interruptor sol y luna en píldora de 80x40 px, padding 4 px, dos espacios circulares de 32 px
- *     (activo relleno con --acento) con espacios de icono de 18 px.
- *   - A 12 px, botón circular de 40 px relleno con --acento para el icono de persona de 20 px.
- * - Cuando no hay sesión, el botón de persona abre el login emergente.
- * - Cuando hay sesión, abre un menú con Cerrar sesión y, si es admin, acceso al panel (/admin).
  */
 export default function Navbar({
   developerName = 'Lucas Andrade',
@@ -23,9 +14,9 @@ export default function Navbar({
   onOpenAuthModal,
 }) {
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [themeNotice, setThemeNotice] = useState(false);
   const menuRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
@@ -59,13 +50,6 @@ export default function Navbar({
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
     }
-  };
-
-  const handleThemeToggle = () => {
-    // Por ahora solo existe el tema oscuro; las variables CSS ya están preparadas para sumar el claro
-    document.documentElement.setAttribute('data-theme', 'dark');
-    setThemeNotice(true);
-    setTimeout(() => setThemeNotice(false), 2200);
   };
 
   const handleUserButtonClick = () => {
@@ -118,27 +102,30 @@ export default function Navbar({
             {/* Interruptor sol y luna: píldora de 80 x 40 px, padding 4 px, dos círculos de 32 px */}
             <button
               type="button"
-              onClick={handleThemeToggle}
-              aria-label="Cambiar tema (modo oscuro activo)"
-              title="Tema oscuro activo"
+              onClick={toggleTheme}
+              aria-label={isDark ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'}
+              title={isDark ? 'Tema oscuro activo (clic para modo claro)' : 'Tema claro activo (clic para modo oscuro)'}
               className="flex h-[40px] w-[80px] cursor-pointer items-center justify-between rounded-full border border-[var(--borde)] bg-[var(--superficie-alta)] p-[4px]"
             >
-              <span className="flex h-[32px] w-[32px] items-center justify-center rounded-full text-[var(--texto-suave)]">
+              <span
+                className={`flex h-[32px] w-[32px] items-center justify-center rounded-full transition-colors ${
+                  !isDark
+                    ? 'bg-[var(--acento)] text-[var(--sobre-acento)]'
+                    : 'text-[var(--texto-suave)]'
+                }`}
+              >
                 <IconSlot size={18} name="theme-sun" />
               </span>
-              <span className="flex h-[32px] w-[32px] items-center justify-center rounded-full bg-[var(--acento)] text-[var(--sobre-acento)]">
+              <span
+                className={`flex h-[32px] w-[32px] items-center justify-center rounded-full transition-colors ${
+                  isDark
+                    ? 'bg-[var(--acento)] text-[var(--sobre-acento)]'
+                    : 'text-[var(--texto-suave)]'
+                }`}
+              >
                 <IconSlot size={18} name="theme-moon" />
               </span>
             </button>
-
-            {themeNotice && (
-              <div
-                role="status"
-                className="font-mono-ui absolute top-[48px] right-[52px] whitespace-nowrap rounded-[8px] border border-[var(--borde)] bg-[var(--superficie)] px-[10px] py-[6px] text-[11px] text-[var(--texto-suave)] shadow-lg"
-              >
-                Tema oscuro activo
-              </div>
-            )}
 
             {/* Botón circular de 40 px a 12 px del interruptor */}
             <div ref={menuRef} className="relative ml-[12px]">
@@ -206,14 +193,26 @@ export default function Navbar({
         <div className="flex items-center gap-[10px] lg:hidden">
           <button
             type="button"
-            onClick={handleThemeToggle}
+            onClick={toggleTheme}
             aria-label="Cambiar tema"
             className="flex h-[36px] w-[72px] cursor-pointer items-center justify-between rounded-full border border-[var(--borde)] bg-[var(--superficie-alta)] p-[3px]"
           >
-            <span className="flex h-[28px] w-[28px] items-center justify-center rounded-full text-[var(--texto-suave)]">
+            <span
+              className={`flex h-[28px] w-[28px] items-center justify-center rounded-full ${
+                !isDark
+                  ? 'bg-[var(--acento)] text-[var(--sobre-acento)]'
+                  : 'text-[var(--texto-suave)]'
+              }`}
+            >
               <IconSlot size={16} name="theme-sun" />
             </span>
-            <span className="flex h-[28px] w-[28px] items-center justify-center rounded-full bg-[var(--acento)] text-[var(--sobre-acento)]">
+            <span
+              className={`flex h-[28px] w-[28px] items-center justify-center rounded-full ${
+                isDark
+                  ? 'bg-[var(--acento)] text-[var(--sobre-acento)]'
+                  : 'text-[var(--texto-suave)]'
+              }`}
+            >
               <IconSlot size={16} name="theme-moon" />
             </span>
           </button>

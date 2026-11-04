@@ -4,15 +4,11 @@ function getApiBaseUrl() {
     typeof window !== 'undefined' &&
     window.location.hostname.includes('portfolio-crud-client-git-')
   ) {
-    // Transforma: portfolio-crud-client-git-xxx.vercel.app
-    // En:         portfolio-crud-server-git-xxx.vercel.app
     const serverHost = window.location.hostname.replace(
       'portfolio-crud-client-',
       'portfolio-crud-server-'
     );
     const subdomain = serverHost.split('.')[0];
-    // El estándar DNS permite hasta 63 caracteres por subdominio;
-    // si lo supera, Vercel trunca con un hash distinto por proyecto.
     if (subdomain.length <= 63) {
       return `https://${serverHost}`;
     }
@@ -34,12 +30,14 @@ export const API_URL = getApiBaseUrl();
 
 export async function apiFetch(path, options = {}) {
   const token = localStorage.getItem('token');
+  const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
+
   let res;
   try {
     res = await fetch(`${API_URL}/api${path}`, {
       ...options,
       headers: {
-        'Content-Type': 'application/json',
+        ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...options.headers,
       },
@@ -53,6 +51,7 @@ export async function apiFetch(path, options = {}) {
     }
     throw err;
   }
+
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     const message =
@@ -63,7 +62,25 @@ export async function apiFetch(path, options = {}) {
     error.status = res.status;
     error.code = typeof body.error === 'object' ? body.error?.code : undefined;
     error.body = body;
+
+    // Regla 2.3: Si el token vence (401) mientras el administrador trabaja en /admin/*,
+    // NO redirigir forzosamente a /login ni desmontar la pantalla actual; emitir evento
+    // para abrir el Modal de Re-autenticación conservando el borrador en memoria.
+    if (
+      res.status === 401 &&
+      typeof window !== 'undefined' &&
+      window.location.pathname.startsWith('/admin') &&
+      !path.startsWith('/auth/login')
+    ) {
+      window.dispatchEvent(
+        new CustomEvent('auth:session-expired', {
+          detail: { path, message },
+        })
+      );
+    }
+
     throw error;
   }
+
   return res.json();
 }

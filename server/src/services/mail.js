@@ -25,6 +25,8 @@ const CAMPO_LABELS = {
   tipo_proyecto: 'Tipo de proyecto',
   presupuesto: 'Presupuesto estimado',
   plazo: 'Plazo previsto',
+  tema_tecnico: 'Tema técnico',
+  modalidad: 'Modalidad / Disponibilidad',
 };
 
 /**
@@ -68,7 +70,6 @@ export async function sendNotificationEmail(mensajeData) {
     return { skipped: true, reason: 'missing_credentials' };
   }
 
-  // Construcción dinámica de detalles adicionales (ej. presupuesto, plazo, servicio_interes)
   let detallesExtraHtml = '';
   if (datosExtra && typeof datosExtra === 'object' && Object.keys(datosExtra).length > 0) {
     detallesExtraHtml = Object.entries(datosExtra)
@@ -111,7 +112,6 @@ ${escapeHtml(mensaje)}
     </div>
   `;
 
-  // Limpiar el asunto para evitar repeticiones en el título
   let asuntoDetalle = asuntoRaw;
   if (asuntoDetalle.toUpperCase().startsWith(`${rawType.toUpperCase()} —`)) {
     asuntoDetalle = asuntoDetalle.substring(`${rawType.toUpperCase()} —`.length).trim();
@@ -119,8 +119,8 @@ ${escapeHtml(mensaje)}
 
   const mailOptions = {
     from: `"Portfolio Web" <${process.env.MAIL_USER}>`,
-    to: process.env.MAIL_USER, // Notificación a tu casilla de correo
-    replyTo: email,           // Permite responder directo al remitente
+    to: process.env.MAIL_USER,
+    replyTo: email,
     subject: `[Portfolio] ${tipoLabel} de ${nombre} - ${asuntoDetalle}`,
     html: htmlContent,
   };
@@ -128,7 +128,60 @@ ${escapeHtml(mensaje)}
   return transporter.sendMail(mailOptions);
 }
 
+/**
+ * Envía la respuesta del administrador al remitente de un mensaje.
+ * Lanza error si falla la conexión SMTP o si faltan credenciales para que la ruta
+ * pueda responder con 502 Bad Gateway sin alterar el estado en la base de datos.
+ */
+export async function sendReplyEmail({
+  to,
+  name,
+  subject,
+  originalBody,
+  replyBody,
+  simulateSmtpFailure = false,
+}) {
+  if (simulateSmtpFailure) {
+    throw new Error('Fallo SMTP simulado');
+  }
+
+  if (!process.env.MAIL_USER || !process.env.MAIL_APP_PASSWORD) {
+    throw new Error('Configuración SMTP incompleta (faltan MAIL_USER o MAIL_APP_PASSWORD)');
+  }
+
+  const replySubject = subject?.toLowerCase().startsWith('re:')
+    ? subject
+    : `Re: ${subject || 'Tu consulta en el Portfolio'}`;
+
+  const htmlContent = `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; color: #1a202c; background-color: #ffffff;">
+      <p style="margin: 0 0 16px 0; font-size: 15px;">Hola <strong>${escapeHtml(name)}</strong>,</p>
+      <div style="margin: 16px 0; white-space: pre-wrap; font-size: 15px; line-height: 1.6; color: #1a202c;">
+${escapeHtml(replyBody)}
+      </div>
+      ${
+        originalBody
+          ? `
+      <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 24px 0 16px 0;" />
+      <p style="font-size: 12px; color: #718096; margin: 0 0 8px 0;">En respuesta a tu mensaje:</p>
+      <blockquote style="margin: 0; background: #f7fafc; padding: 12px 16px; border-left: 3px solid #cbd5e0; border-radius: 4px; color: #4a5568; white-space: pre-wrap; font-size: 13px; line-height: 1.5;">
+${escapeHtml(originalBody)}
+      </blockquote>`
+          : ''
+      }
+    </div>
+  `;
+
+  return transporter.sendMail({
+    from: `"Portfolio Profesional" <${process.env.MAIL_USER}>`,
+    to,
+    subject: replySubject,
+    html: htmlContent,
+  });
+}
+
 export default {
   verifyTransporter,
   sendNotificationEmail,
+  sendReplyEmail,
 };

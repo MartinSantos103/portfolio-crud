@@ -1,8 +1,38 @@
+/* eslint-disable react-refresh/only-export-components */
 /**
  * DevIcon - Renderizador de iconos de tecnologías mediante Devicon.
  * Mapea identificadores de tecnologías a las clases font correspondientes
  * y adapta la coloración para un contraste impecable en temas oscuros y claros.
  */
+
+export const CURATED_TECH_ICONS = [
+  { key: 'react', label: 'React', category: 'frontend' },
+  { key: 'vite', label: 'Vite', category: 'frontend' },
+  { key: 'tailwind', label: 'Tailwind CSS', category: 'frontend' },
+  { key: 'javascript', label: 'JavaScript', category: 'frontend' },
+  { key: 'typescript', label: 'TypeScript', category: 'frontend' },
+  { key: 'nextjs', label: 'Next.js', category: 'frontend' },
+  { key: 'html5', label: 'HTML5', category: 'frontend' },
+  { key: 'css3', label: 'CSS3', category: 'frontend' },
+  { key: 'sass', label: 'Sass', category: 'frontend' },
+  { key: 'vue', label: 'Vue.js', category: 'frontend' },
+  { key: 'angular', label: 'Angular', category: 'frontend' },
+  { key: 'redux', label: 'Redux', category: 'frontend' },
+  { key: 'bootstrap', label: 'Bootstrap', category: 'frontend' },
+  { key: 'nodejs', label: 'Node.js', category: 'backend' },
+  { key: 'express', label: 'Express', category: 'backend' },
+  { key: 'python', label: 'Python', category: 'backend' },
+  { key: 'graphql', label: 'GraphQL', category: 'backend' },
+  { key: 'postgresql', label: 'PostgreSQL', category: 'database' },
+  { key: 'prisma', label: 'Prisma', category: 'database' },
+  { key: 'mongodb', label: 'MongoDB', category: 'database' },
+  { key: 'mysql', label: 'MySQL', category: 'database' },
+  { key: 'git', label: 'Git', category: 'tools' },
+  { key: 'github', label: 'GitHub', category: 'tools' },
+  { key: 'docker', label: 'Docker', category: 'tools' },
+  { key: 'figma', label: 'Figma', category: 'tools' },
+  { key: 'vercel', label: 'Vercel', category: 'tools' },
+];
 
 const DEVICON_CONFIG = {
   react: { icon: 'devicon-react-original', colored: true },

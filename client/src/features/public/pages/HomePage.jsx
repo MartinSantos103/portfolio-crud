@@ -13,6 +13,7 @@ import AuthModal from '../../auth/pages/AuthModal.jsx';
 import { usePortfolioData } from '../hooks/usePortfolioData.js';
 import { useAuth } from '../../auth/index.js';
 import { apiFetch } from '../../../services/api.js';
+import { trackPortfolioEvent } from '../../../services/analytics.js';
 
 /**
  * Página principal del Portfolio ("Landing — Oscuro").
@@ -54,6 +55,7 @@ export default function HomePage({ initialSection = null }) {
 
   // Al cargar y recargar, situarse siempre en Inicio (top: 0) y limpiar cualquier hash que fuerce el salto
   useEffect(() => {
+    trackPortfolioEvent({ type: 'visit', path: window.location.pathname || '/' });
     if ('scrollRestoration' in window.history) {
       window.history.scrollRestoration = 'manual';
     }

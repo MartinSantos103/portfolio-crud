@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Outlet } from 'react-router-dom';
 import Placeholder from '../pages/Placeholder.jsx';
 import HomePage from '../features/public/pages/HomePage.jsx';
 import ProjectDetail from '../features/projects/public/ProjectDetail.jsx';
@@ -9,44 +9,88 @@ import {
   ProtectedRoute,
   PublicOnlyRoute,
 } from '../features/auth/index.js';
+import { ToastProvider } from '../components/ui/Toast.jsx';
+import AdminLayout from '../components/layout/AdminLayout.jsx';
+import AdminDashboardPage from '../features/admin/dashboard/AdminDashboardPage.jsx';
+import ProfileEditPage from '../features/admin/profile/ProfileEditPage.jsx';
+import ProjectsListPage from '../features/admin/projects/ProjectsListPage.jsx';
+import ProjectFormPage from '../features/admin/projects/ProjectFormPage.jsx';
+import DemosListPage from '../features/admin/demos/DemosListPage.jsx';
+import DemoFormPage from '../features/admin/demos/DemoFormPage.jsx';
+import ServicesListPage from '../features/admin/services/ServicesListPage.jsx';
+import ServiceFormPage from '../features/admin/services/ServiceFormPage.jsx';
+import MessagesInboxPage from '../features/admin/messages/MessagesInboxPage.jsx';
+import UsersManagementPage from '../features/users/UsersManagementPage.jsx';
+import MetricsDashboardPage from '../features/metrics/MetricsDashboardPage.jsx';
+
+function RootProvidersLayout() {
+  return (
+    <AuthProvider>
+      <ToastProvider>
+        <Outlet />
+      </ToastProvider>
+    </AuthProvider>
+  );
+}
+
+const router = createBrowserRouter([
+  {
+    element: <RootProvidersLayout />,
+    children: [
+      /* Rutas Públicas: accesibles para cualquier visitante */
+      { path: '/', element: <HomePage /> },
+      { path: '/proyectos', element: <HomePage initialSection="proyectos" /> },
+      { path: '/contacto', element: <HomePage initialSection="contacto" /> },
+
+      /* Rutas de Invitados: no accesibles si ya se tiene sesión activa (redirige según rol) */
+      {
+        element: <PublicOnlyRoute />,
+        children: [
+          { path: '/login', element: <Login /> },
+          { path: '/registro', element: <Register /> },
+        ],
+      },
+
+      /* Rutas Protegidas de Usuario Autenticado (admin o user) */
+      {
+        element: <ProtectedRoute allowedRoles={['admin', 'user']} />,
+        children: [{ path: '/proyectos/:id', element: <ProjectDetail /> }],
+      },
+
+      /* Rutas Protegidas Exclusivas de Administrador (solo admin) — 15 rutas del CMS v2 */
+      {
+        path: '/admin',
+        element: <ProtectedRoute allowedRoles={['admin']} />,
+        children: [
+          {
+            element: <AdminLayout />,
+            children: [
+              { index: true, element: <AdminDashboardPage /> },
+              { path: 'perfil', element: <ProfileEditPage /> },
+              { path: 'proyectos', element: <ProjectsListPage /> },
+              { path: 'proyectos/nuevo', element: <ProjectFormPage /> },
+              { path: 'proyectos/:id/editar', element: <ProjectFormPage /> },
+              { path: 'demos', element: <DemosListPage /> },
+              { path: 'demos/nuevo', element: <DemoFormPage /> },
+              { path: 'demos/:id/editar', element: <DemoFormPage /> },
+              { path: 'servicios', element: <ServicesListPage /> },
+              { path: 'servicios/nuevo', element: <ServiceFormPage /> },
+              { path: 'servicios/:id/editar', element: <ServiceFormPage /> },
+              { path: 'mensajes', element: <MessagesInboxPage /> },
+              { path: 'mensajes/:id', element: <MessagesInboxPage /> },
+              { path: 'usuarios', element: <UsersManagementPage /> },
+              { path: 'metricas', element: <MetricsDashboardPage /> },
+            ],
+          },
+        ],
+      },
+
+      /* Ruta por defecto para URLs no coincidentes (404) */
+      { path: '*', element: <Placeholder title="404 - Página no encontrada" /> },
+    ],
+  },
+]);
 
 export default function AppRouter() {
-  return (
-    <BrowserRouter>
-      <AuthProvider>
-        <Routes>
-          {/* Rutas Públicas: accesibles para cualquier visitante */}
-          <Route path="/" element={<HomePage />} />
-          <Route path="/proyectos" element={<HomePage initialSection="proyectos" />} />
-          <Route path="/contacto" element={<HomePage initialSection="contacto" />} />
-
-          {/* Rutas de Invitados: no accesibles si ya se tiene sesión activa (redirige según rol) */}
-          <Route element={<PublicOnlyRoute />}>
-            <Route path="/login" element={<Login />} />
-            <Route path="/registro" element={<Register />} />
-          </Route>
-
-          {/* Rutas Protegidas de Usuario Autenticado (admin o user) */}
-          <Route element={<ProtectedRoute allowedRoles={['admin', 'user']} />}>
-            <Route path="/proyectos/:id" element={<ProjectDetail />} />
-          </Route>
-
-          {/* Rutas Protegidas Exclusivas de Administrador (solo admin) */}
-          <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
-            <Route path="/admin" element={<Placeholder title="Panel" />} />
-            <Route path="/admin/proyectos" element={<Placeholder title="Gestión de proyectos" />} />
-            <Route path="/admin/servicios" element={<Placeholder title="Gestión de servicios" />} />
-            <Route path="/admin/demos" element={<Placeholder title="Gestión de demos" />} />
-            <Route path="/admin/perfil" element={<Placeholder title="Edición de perfil" />} />
-            <Route path="/admin/mensajes" element={<Placeholder title="Bandeja de mensajes" />} />
-            <Route path="/admin/usuarios" element={<Placeholder title="Gestión de usuarios" />} />
-            <Route path="/admin/metricas" element={<Placeholder title="Métricas" />} />
-          </Route>
-
-          {/* Ruta por defecto para URLs no coincidentes (404) */}
-          <Route path="*" element={<Placeholder title="404 - Página no encontrada" />} />
-        </Routes>
-      </AuthProvider>
-    </BrowserRouter>
-  );
+  return <RouterProvider router={router} />;
 }

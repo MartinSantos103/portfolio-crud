@@ -10,11 +10,12 @@
   --texto-suave: #9AA0C0;
   --acento: #8B7CFF;
   --acento-hover: #A99EFF;
+  --acento-texto: #C4B5FD; /* text-violet-300: contraste WCAG AA >= 4.5:1 sobre fondos oscuros */
   --sobre-acento: #0B0D17;
   --estrellas: #FFFFFF;
   --disponible: #3DDC97;
 
-  /* Transparencias derivadas de variables CSS para soportar temas futuros */
+  /* Transparencias derivadas de variables CSS para soportar temas */
   --header-bg: color-mix(in srgb, var(--superficie) 72%, transparent);
   --tile-icono-bg: color-mix(in srgb, var(--acento) 15%, transparent);
   --etiqueta-tipo-bg: color-mix(in srgb, var(--acento) 14%, transparent);
@@ -29,6 +30,32 @@
   --font-heading: 'Space Grotesk', sans-serif;
   --font-sans: 'Inter', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
+}
+
+[data-theme="light"] {
+  --fondo: #F6F7FB;
+  --superficie: #FFFFFF;
+  --superficie-alta: #EEF1F8;
+  --borde: #D8DFEE;
+  --texto: #11152A;
+  --texto-suave: #4E5678;
+  --acento: #6552E6;
+  --acento-hover: #533FD6;
+  --acento-texto: #533FD6; /* alto contraste WCAG AA sobre fondos claros */
+  --sobre-acento: #FFFFFF;
+  --estrellas: #6552E6;
+  --disponible: #0D9F6E;
+
+  --header-bg: color-mix(in srgb, var(--superficie) 85%, transparent);
+  --tile-icono-bg: color-mix(in srgb, var(--acento) 12%, transparent);
+  --etiqueta-tipo-bg: color-mix(in srgb, var(--acento) 12%, transparent);
+  --halo-punto-bg: color-mix(in srgb, var(--acento) 15%, transparent);
+  --stack-bloque-bg: color-mix(in srgb, var(--superficie) 90%, transparent);
+  --insignia-candado-bg: color-mix(in srgb, var(--superficie) 90%, transparent);
+  --logo-marca-bg: color-mix(in srgb, var(--acento) 20%, transparent);
+  --foto-halo-bg: color-mix(in srgb, var(--acento) 22%, transparent);
+  --foto-anillo-borde: color-mix(in srgb, var(--acento) 35%, transparent);
+  --chip-hover-shadow: 0 8px 22px rgba(101, 82, 230, 0.22);
 }
 
 @layer base {

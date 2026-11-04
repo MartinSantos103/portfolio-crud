@@ -9,7 +9,6 @@ import TechChip from './TechChip.jsx';
 function BrowserMockup({ variant = 'store' }) {
   return (
     <div className="flex h-full w-full flex-col rounded-t-[12px] border-x border-t border-[var(--borde)] bg-[var(--fondo)] p-[14px]">
-      {/* Tres puntos pequeños arriba */}
       <div className="mb-[14px] flex items-center gap-[5px]">
         <span className="h-[6px] w-[6px] rounded-full bg-[var(--borde)]" />
         <span className="h-[6px] w-[6px] rounded-full bg-[var(--borde)]" />
@@ -62,38 +61,32 @@ function BrowserMockup({ variant = 'store' }) {
 }
 
 /**
- * Tarjeta de proyecto reutilizable.
- * - Ancho flexible (~357 px en grilla de 3 columnas), alto ~368 px, radio 20 px, borde 1 px --borde, sin padding.
- * - Vista previa: 200 px de alto fijo, fondo --superficie-alta, padding 24 px arriba y lados, 0 abajo (o imagen Cloudinary a todo el ancho y 200 px).
- * - Insignia de candado arriba a la derecha (12 px de bordes), solo visible sin sesión iniciada.
- * - Cuerpo: padding 20 px arriba, 22 px lados y abajo, 12 px entre elementos.
+ * ProjectCardView - Componente Presentacional Puro (Sección 4.2.3).
+ * No ejecuta llamadas a la API, no monta animaciones de scroll ni dispara analítica.
+ * Es consumido tanto por la tarjeta pública como por el Live Preview de /admin/proyectos.
  */
-export default function ProjectCard({
-  project,
+export function ProjectCardView({
+  project = {},
   technologies = [],
   isAuthenticated = false,
   lockBadgeLabel = 'Detalle con sesión',
   onSelect,
-  index = 0,
 }) {
-  const prefersReducedMotion = useReducedMotion();
-
   return (
-    <Motion.article
-      data-interactive-card="true"
-      initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.2 }}
-      transition={{ duration: 0.4, delay: (index % 3) * 0.08, ease: [0.22, 1, 0.36, 1] }}
+    <div
       onClick={() => onSelect?.(project)}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onSelect?.(project);
-        }
-      }}
+      role={onSelect ? 'button' : undefined}
+      tabIndex={onSelect ? 0 : undefined}
+      onKeyDown={
+        onSelect
+          ? (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onSelect(project);
+              }
+            }
+          : undefined
+      }
       className="group flex min-h-[368px] w-full cursor-pointer flex-col overflow-hidden rounded-[20px] border border-[var(--borde)] bg-[var(--superficie)] p-0 text-left transition-colors duration-200 hover:border-[var(--acento)] focus:outline-none focus-visible:border-[var(--acento)]"
     >
       {/* Zona de vista previa: 200 px de alto fijo */}
@@ -101,7 +94,7 @@ export default function ProjectCard({
         {project.cover_image_url ? (
           <img
             src={project.cover_image_url}
-            alt={project.title}
+            alt={project.title || 'Portada del proyecto'}
             className="absolute inset-0 h-[200px] w-full object-cover"
           />
         ) : (
@@ -117,14 +110,21 @@ export default function ProjectCard({
         )}
       </div>
 
-      {/* Cuerpo de la tarjeta: padding 20px arriba, 22px a los lados y abajo, 12px entre elementos */}
+      {/* Cuerpo de la tarjeta */}
       <div className="flex flex-1 flex-col gap-[12px] px-[22px] pt-[20px] pb-[22px]">
-        <h3 className="font-heading text-[20px] font-medium leading-[1.3] text-[var(--texto)] transition-colors group-hover:text-[var(--acento-hover)]">
-          {project.title}
-        </h3>
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="font-heading text-[20px] font-medium leading-[1.3] text-[var(--texto)] transition-colors group-hover:text-[var(--acento-hover)]">
+            {project.title || 'Título del proyecto'}
+          </h3>
+          {project.featured && (
+            <span className="font-mono-ui shrink-0 rounded-md border border-[var(--borde)] bg-[var(--superficie-alta)] px-2 py-0.5 text-[10px] font-medium text-[var(--acento-texto)]">
+              Destacado
+            </span>
+          )}
+        </div>
 
         <p className="font-sans-ui line-clamp-3 text-[14px] font-normal leading-[22px] text-[var(--texto-suave)]">
-          {project.summary || project.description}
+          {project.description || project.summary || 'Descripción breve del proyecto para visitantes.'}
         </p>
 
         <div
@@ -134,14 +134,59 @@ export default function ProjectCard({
           {technologies.map((tech) => (
             <TechChip
               key={tech.id || tech.name}
-              name={tech.name}
-              iconId={tech.id}
+              name={tech.name || tech}
+              iconId={tech.icon_key || tech.id || tech.name || tech}
               iconUrl={tech.iconUrl}
               size="sm"
             />
           ))}
         </div>
       </div>
+    </div>
+  );
+}
+
+export default function ProjectCard({
+  project,
+  technologies = [],
+  isAuthenticated = false,
+  lockBadgeLabel = 'Detalle con sesión',
+  onSelect,
+  index = 0,
+  disableAnimation = false,
+}) {
+  const prefersReducedMotion = useReducedMotion();
+
+  if (disableAnimation || prefersReducedMotion) {
+    return (
+      <article data-interactive-card="true" className="w-full">
+        <ProjectCardView
+          project={project}
+          technologies={technologies}
+          isAuthenticated={isAuthenticated}
+          lockBadgeLabel={lockBadgeLabel}
+          onSelect={onSelect}
+        />
+      </article>
+    );
+  }
+
+  return (
+    <Motion.article
+      data-interactive-card="true"
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.2 }}
+      transition={{ duration: 0.4, delay: (index % 3) * 0.08, ease: [0.22, 1, 0.36, 1] }}
+      className="w-full"
+    >
+      <ProjectCardView
+        project={project}
+        technologies={technologies}
+        isAuthenticated={isAuthenticated}
+        lockBadgeLabel={lockBadgeLabel}
+        onSelect={onSelect}
+      />
     </Motion.article>
   );
 }

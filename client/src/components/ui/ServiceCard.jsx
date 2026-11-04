@@ -3,46 +3,35 @@ import IconSlot from './IconSlot.jsx';
 import Button from './Button.jsx';
 
 /**
- * Tarjeta de servicio reutilizable.
- * - Columna con padding 32 px y 20 px entre elementos, radio 20 px, borde 1 px --borde.
- * - Tile de 56 px (radio 14 px, fondo --acento al 15 %) con icono de 28 px.
- * - Título: Space Grotesk 700, 24 px, -0.3 px.
- * - Descripción: Inter 400, 15 px, interlineado 24 px, --texto-suave.
- * - Lista de 3 ítems: cada ítem es una fila con tilde de 16 px y texto (Inter 500, 14 px), 10 px de separación, y 10 px entre ítems.
- * - Botón secundario de ancho completo (Inter 600, 15 px) con "Solicitar cotización" y flecha de 16 px.
+ * ServiceCardView - Componente Presentacional Puro (Sección 4.2.3).
+ * Consumido por la sección pública de Servicios y por el Live Preview de /admin/servicios.
  */
-export default function ServiceCard({
-  service,
+export function ServiceCardView({
+  service = {},
   ctaLabel = 'Solicitar cotización',
   onRequestQuote,
-  index = 0,
 }) {
-  const prefersReducedMotion = useReducedMotion();
+  const iconName = service.icon
+    ? `service-${service.icon}`
+    : `service-${service.id || 'sitios-landing'}`;
 
   return (
-    <Motion.article
-      data-interactive-card="true"
-      initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.2 }}
-      transition={{ duration: 0.4, delay: index * 0.08, ease: [0.22, 1, 0.36, 1] }}
-      className="flex h-full flex-col gap-[20px] rounded-[20px] border border-[var(--borde)] bg-[var(--superficie)] p-[32px]"
-    >
+    <div className="flex h-full flex-col gap-[20px] rounded-[20px] border border-[var(--borde)] bg-[var(--superficie)] p-[32px]">
       <div className="flex h-[56px] w-[56px] shrink-0 items-center justify-center rounded-[14px] bg-[var(--tile-icono-bg)] text-[var(--acento)]">
-        <IconSlot size={28} name={`service-${service.id}`} iconUrl={service.iconUrl} />
+        <IconSlot size={28} name={iconName} iconUrl={service.iconUrl} />
       </div>
 
       <h3 className="font-heading text-[24px] font-bold leading-[1.25] tracking-[-0.3px] text-[var(--texto)]">
-        {service.title}
+        {service.title || 'Título del servicio'}
       </h3>
 
       <p className="font-sans-ui text-[15px] font-normal leading-[24px] text-[var(--texto-suave)]">
-        {service.description}
+        {service.description || 'Descripción concisa del servicio profesional.'}
       </p>
 
-      {Array.isArray(service.items) && service.items.length > 0 && (
+      {Array.isArray(service.items) && service.items.filter(Boolean).length > 0 && (
         <ul className="flex flex-col gap-[10px]">
-          {service.items.map((itemText, idx) => (
+          {service.items.filter(Boolean).map((itemText, idx) => (
             <li
               key={idx}
               className="font-sans-ui flex items-center gap-[10px] text-[14px] font-medium text-[var(--texto)]"
@@ -67,6 +56,45 @@ export default function ServiceCard({
           <IconSlot size={16} name="arrow-right" />
         </Button>
       </div>
+    </div>
+  );
+}
+
+export default function ServiceCard({
+  service,
+  ctaLabel = 'Solicitar cotización',
+  onRequestQuote,
+  index = 0,
+  disableAnimation = false,
+}) {
+  const prefersReducedMotion = useReducedMotion();
+
+  if (disableAnimation || prefersReducedMotion) {
+    return (
+      <article data-interactive-card="true" className="h-full">
+        <ServiceCardView
+          service={service}
+          ctaLabel={ctaLabel}
+          onRequestQuote={onRequestQuote}
+        />
+      </article>
+    );
+  }
+
+  return (
+    <Motion.article
+      data-interactive-card="true"
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.2 }}
+      transition={{ duration: 0.4, delay: index * 0.08, ease: [0.22, 1, 0.36, 1] }}
+      className="h-full"
+    >
+      <ServiceCardView
+        service={service}
+        ctaLabel={ctaLabel}
+        onRequestQuote={onRequestQuote}
+      />
     </Motion.article>
   );
 }

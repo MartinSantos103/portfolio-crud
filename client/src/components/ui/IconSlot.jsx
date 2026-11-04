@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import {
   Sun,
   Moon,
@@ -26,12 +27,37 @@ import {
   Compass,
   Lightbulb,
   Code2,
+  Database,
+  Shield,
+  Smartphone,
+  Cloud,
+  Cpu,
+  Globe,
+  Layers,
+  Terminal,
+  Zap,
+  Wrench,
+  BarChart3,
 } from 'lucide-react';
 import DevIcon from './DevIcon.jsx';
 
-/**
- * Mapeo de nombres de iconos de interfaz a componentes Lucide.
- */
+export const CURATED_SERVICE_ICONS = [
+  { key: 'sitios-landing', label: 'Diseño Web / Landing' },
+  { key: 'apps-medida', label: 'Aplicación a Medida' },
+  { key: 'apis-backend', label: 'API / Servidor Backend' },
+  { key: 'database', label: 'Base de Datos / SQL' },
+  { key: 'smartphone', label: 'Mobile / Responsivo' },
+  { key: 'cloud', label: 'Despliegue Cloud / DevOps' },
+  { key: 'shield', label: 'Seguridad / Auditoría' },
+  { key: 'bar-chart', label: 'Analítica / Dashboards' },
+  { key: 'layers', label: 'Arquitectura Fullstack' },
+  { key: 'terminal', label: 'Automatización / CLI' },
+  { key: 'zap', label: 'Optimización / Performance' },
+  { key: 'wrench', label: 'Mantenimiento / Soporte' },
+  { key: 'globe', label: 'SEO / Presencia Digital' },
+  { key: 'cpu', label: 'Integraciones / IA' },
+];
+
 const LUCIDE_ICON_MAP = {
   // Tema y usuario
   'theme-sun': Sun,
@@ -80,29 +106,42 @@ const LUCIDE_ICON_MAP = {
   // Servicios
   'service-sitios-landing': Layout,
   'sitios-landing': Layout,
+  'layout': Layout,
   'service-apps-medida': AppWindow,
   'apps-medida': AppWindow,
+  'app-window': AppWindow,
   'service-apis-backend': Server,
   'apis-backend': Server,
+  'server': Server,
+  'service-database': Database,
+  'database': Database,
+  'service-shield': Shield,
+  'shield': Shield,
+  'service-smartphone': Smartphone,
+  'smartphone': Smartphone,
+  'service-cloud': Cloud,
+  'cloud': Cloud,
+  'service-cpu': Cpu,
+  'cpu': Cpu,
+  'service-globe': Globe,
+  'globe': Globe,
+  'service-layers': Layers,
+  'layers': Layers,
+  'service-terminal': Terminal,
+  'terminal': Terminal,
+  'service-zap': Zap,
+  'zap': Zap,
+  'service-wrench': Wrench,
+  'wrench': Wrench,
+  'service-bar-chart': BarChart3,
+  'bar-chart': BarChart3,
 
   // Trayectoria
   'formacion': GraduationCap,
+  'educacion': GraduationCap,
   'experiencia': Briefcase,
 };
 
-/**
- * IconSlot - Despachador de iconos para el portfolio.
- * - Iconos de interfaz: implementados mediante Lucide.
- * - Stack tecnológico y redes: implementados mediante Devicon.
- * - Soporte de URL directa de imagen si ya proviene de una API.
- *
- * @param {Object} props
- * @param {number} props.size - Tamaño del icono en píxeles
- * @param {string} [props.name] - Identificador semántico del icono
- * @param {string|null} [props.iconUrl] - URL del icono si ya proviene de la API
- * @param {string} [props.className] - Clases CSS adicionales
- * @param {number} [props.strokeWidth] - Grosor del trazo para iconos Lucide
- */
 export default function IconSlot({
   size = 20,
   name = 'icon',
@@ -118,7 +157,6 @@ export default function IconSlot({
     minHeight: `${size}px`,
   };
 
-  // 1. Si viene una URL directa, se renderiza la imagen
   if (iconUrl) {
     return (
       <img
@@ -133,7 +171,6 @@ export default function IconSlot({
     );
   }
 
-  // 2. Redes sociales específicas de desarrollador (GitHub, LinkedIn)
   if (
     name.includes('github') ||
     name === 'github' ||
@@ -164,7 +201,6 @@ export default function IconSlot({
     );
   }
 
-  // 3. Tecnologías (prefijo 'tech-')
   if (name.startsWith('tech-')) {
     const techKey = name.replace(/^tech-/, '');
     return (
@@ -179,8 +215,7 @@ export default function IconSlot({
     );
   }
 
-  // 4. Iconos de interfaz mediante Lucide
-  const LucideIcon = LUCIDE_ICON_MAP[name];
+  const LucideIcon = LUCIDE_ICON_MAP[name] || LUCIDE_ICON_MAP[name.replace(/^service-/, '')];
   if (LucideIcon) {
     return (
       <LucideIcon
@@ -194,7 +229,6 @@ export default function IconSlot({
     );
   }
 
-  // 5. Fallback por defecto si no coincide con ningún icono conocido
   return (
     <span
       aria-hidden="true"
