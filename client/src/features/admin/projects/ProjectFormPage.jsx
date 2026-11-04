@@ -73,6 +73,22 @@ function toSlug(str) {
     .replace(/^-+|-+$/g, '');
 }
 
+const DEFAULT_PROJECT_VALUES = {
+  title: '',
+  slug: '',
+  description: '',
+  cover_image_url: '',
+  featured: false,
+  published: true,
+  technologies: ['react', 'nodejs', 'postgresql'],
+  problem: '',
+  solution: '',
+  tech_decisions: '',
+  images: [],
+  repo_url: '',
+  live_url: '',
+};
+
 export default function ProjectFormPage() {
   const { id } = useParams();
   const isEditing = Boolean(id);
@@ -119,7 +135,7 @@ export default function ProjectFormPage() {
     swap: swapImage,
   } = useFieldArray({ control, name: 'images' });
 
-  const { blocker } = useUnsavedChanges(isDirty);
+  const { blocker, bypassBlocker } = useUnsavedChanges(isDirty);
 
   const loadInitialData = useCallback(async () => {
     setErrorMsg('');
@@ -207,10 +223,12 @@ export default function ProjectFormPage() {
         }),
       });
 
-      reset(formValues);
+      bypassBlocker();
+      reset(DEFAULT_PROJECT_VALUES);
       toast.success(
-        res?.message ||
-          (isEditing ? 'Proyecto actualizado con éxito' : 'Proyecto creado con éxito')
+        isEditing
+          ? (res?.message || 'Proyecto actualizado con éxito')
+          : 'Proyecto agregado con éxito'
       );
       navigate('/admin/proyectos');
     } catch (err) {

@@ -28,10 +28,12 @@ export default function Login() {
           }
           onClose={() => navigate('/')}
           onSuccess={(user) => {
-            if (fromPath) {
+            if (user?.role === 'admin') {
+              navigate('/admin', { replace: true });
+            } else if (fromPath && fromPath !== '/' && !fromPath.startsWith('/admin')) {
               navigate(fromPath, { replace: true });
             } else {
-              navigate(user?.role === 'admin' ? '/admin' : '/', { replace: true });
+              navigate('/', { replace: true });
             }
           }}
         />

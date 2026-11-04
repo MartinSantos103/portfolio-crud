@@ -197,6 +197,11 @@ export default function HomePage({ initialSection = null }) {
   };
 
   const handleAuthSuccess = (loggedInUser) => {
+    if (loggedInUser?.role === 'admin') {
+      navigate('/admin');
+      return;
+    }
+
     if (pendingAction?.type === 'project' && pendingAction.projectId) {
       const targetProjectId = pendingAction.projectId;
       setPendingAction(null);

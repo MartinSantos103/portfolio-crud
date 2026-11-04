@@ -45,7 +45,7 @@ export const PROFILE_DATA = {
   primaryCtaLabel: 'Ver proyectos',
   secondaryCtaLabel: 'Contactar',
   cvLabel: 'Descargar CV',
-  cvUrl: '#descargar-cv',
+  cvUrl: 'https://docs.google.com/document/d/1Dc6XLkxgorfTKWNGc5zvuy-6oRQaYMvV/edit?usp=sharing',
   photoUrl: null,
   photoPlaceholderLabel: 'Foto del profesional',
   scrollLabel: 'SCROLL',

@@ -21,7 +21,7 @@ export default function Register() {
           initialMode="register"
           contextMessage="Creá tu cuenta para acceder al detalle de los proyectos y ponerte en contacto."
           onClose={() => navigate('/')}
-          onSuccess={() => navigate('/', { replace: true })}
+          onSuccess={(user) => navigate(user?.role === 'admin' ? '/admin' : '/', { replace: true })}
         />
       </main>
       <Footer copyright={FOOTER_DATA.copyright} socialLinks={PROFILE_DATA.socialLinks} />

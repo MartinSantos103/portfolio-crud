@@ -89,7 +89,7 @@ export default function MessagesInboxPage() {
     defaultValues: { body: '' },
   });
 
-  const { blocker } = useUnsavedChanges(isDirty);
+  const { blocker, bypassBlocker } = useUnsavedChanges(isDirty);
 
   const fetchMessages = useCallback(async () => {
     setListStatus('cargando');
@@ -213,20 +213,12 @@ export default function MessagesInboxPage() {
         body: JSON.stringify({ body: values.body }),
       });
       toast.success('Respuesta enviada por correo y registrada correctamente');
-      reset({ body: '' }, { keepValues: false });
-      const createdReply = res.data?.reply;
-      setSelectedMessage((prev) => {
-        if (!prev) return prev;
-        return {
-          ...prev,
-          status: 'respondido',
-          replies: createdReply ? [...(prev.replies || []), createdReply] : prev.replies,
-        };
-      });
-      setMessages((prev) =>
-        prev.map((m) => (m.id === selectedMessage.id ? { ...m, status: 'respondido' } : m))
-      );
-      refreshUnreadMessages();
+      bypassBlocker();
+      reset({ body: '' });
+      setSelectedMessage(null);
+      await refreshUnreadMessages();
+      fetchMessages();
+      navigate('/admin/mensajes');
     } catch (err) {
       // Si el servidor devuelve 502 Bad Gateway o error SMTP, conservamos intacto el texto en el textarea
       toast.error(

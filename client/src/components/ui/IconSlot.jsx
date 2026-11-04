@@ -38,6 +38,8 @@ import {
   Zap,
   Wrench,
   BarChart3,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import DevIcon from './DevIcon.jsx';
 
@@ -92,6 +94,8 @@ const LUCIDE_ICON_MAP = {
   'lock': Lock,
   'contact-mail': Mail,
   'mail': Mail,
+  'eye': Eye,
+  'eye-off': EyeOff,
 
   // Actitudes (Sobre mí)
   'attitude-curiosidad': Sparkles,

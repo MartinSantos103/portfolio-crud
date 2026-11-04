@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import rateLimit from 'express-rate-limit';
 import { z } from 'zod';
 import { requireAuth, signToken } from '../middleware/auth.js';
-import { findUserByEmail, findUserById, touchLastLogin, toPublicUser } from '../db/users.js';
+import { findUserByEmail, findUserById, touchLastLogin, toPublicUser, createUser } from '../db/users.js';
 
 const router = Router();
 
@@ -16,12 +16,49 @@ const loginSchema = z.object({
   password: z.string({ error: 'La contraseña es obligatoria' }).min(1, 'La contraseña es obligatoria').max(200),
 });
 
+const registerSchema = z.object({
+  name: z.string({ error: 'El nombre es obligatorio' }).trim().min(2, 'El nombre debe tener al menos 2 caracteres').max(100),
+  email: z.string({ error: 'El correo es obligatorio' }).trim().email('Correo inválido').max(254),
+  password: z.string({ error: 'La contraseña es obligatoria' }).min(6, 'La contraseña debe tener al menos 6 caracteres').max(200),
+});
+
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   limit: 30,
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: { code: 'TOO_MANY_REQUESTS', message: 'Demasiados intentos, probá en unos minutos' } },
+});
+
+router.post('/register', loginLimiter, async (req, res, next) => {
+  try {
+    const parsed = registerSchema.safeParse(req.body ?? {});
+    if (!parsed.success) {
+      const fields = {};
+      for (const issue of parsed.error.issues) fields[issue.path[0] ?? 'body'] ??= issue.message;
+      return res.status(400).json({ error: { code: 'VALIDATION', message: 'Datos inválidos', fields } });
+    }
+    const { name, email, password } = parsed.data;
+
+    const existingUser = await findUserByEmail(email);
+    if (existingUser) {
+      return res.status(409).json({
+        error: { code: 'USER_EXISTS', message: 'El correo electrónico ya se encuentra registrado' },
+      });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+    const newUser = await createUser({ name, email, passwordHash, role: 'user' });
+
+    return res.status(201).json({
+      ok: true,
+      message: 'Usuario registrado exitosamente',
+      user: toPublicUser(newUser),
+      token: signToken(newUser),
+    });
+  } catch (err) {
+    next(err);
+  }
 });
 
 router.post('/login', loginLimiter, async (req, res) => {
