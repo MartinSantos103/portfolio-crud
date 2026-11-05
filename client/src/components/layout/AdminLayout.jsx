@@ -1,5 +1,5 @@
-﻿import { useState, useEffect, useMemo } from 'react';
-import { NavLink, Outlet, useLocation, useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { NavLink, Outlet, useLocation, Link } from 'react-router-dom';
 import {
   LayoutDashboard,
   BarChart3,
@@ -12,8 +12,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   ArrowLeft,
-  Sun,
-  Moon,
+  Palette,
   LogOut,
   Menu,
   X,
@@ -23,7 +22,10 @@ import {
 import { useAuth } from '../../features/auth/index.js';
 import { useTheme } from '../../hooks/useTheme.js';
 import { useToast } from '../ui/Toast.jsx';
-import { AdminFormProvider, useAdminFormContext } from '../../features/admin/context/AdminFormContext.jsx';
+import {
+  AdminFormProvider,
+  useAdminFormContext,
+} from '../../features/admin/context/AdminFormContext.jsx';
 
 const SIDEBAR_GROUPS = [
   {
@@ -62,6 +64,17 @@ const BREADCRUMB_LABELS = {
   metricas: 'Métricas',
   nuevo: 'Nuevo',
   editar: 'Editar',
+};
+
+const SECTION_PLANETS = {
+  admin: 'var(--planet-resumen)',
+  metricas: 'var(--planet-metricas)',
+  perfil: 'var(--planet-perfil)',
+  proyectos: 'var(--planet-proyectos)',
+  demos: 'var(--planet-demos)',
+  servicios: 'var(--planet-servicios)',
+  mensajes: 'var(--planet-mensajes)',
+  usuarios: 'var(--planet-usuarios)',
 };
 
 /**
@@ -105,24 +118,21 @@ function ReLoginModal({ isOpen, onClose }) {
       role="dialog"
       aria-modal="true"
       aria-labelledby="relogin-modal-title"
-      className="fixed inset-0 z-[110] flex items-center justify-center bg-black/70 p-4 backdrop-blur-xs"
+      className="fixed inset-0 z-[110] flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm"
     >
       <form
         onSubmit={handleReLogin}
-        className="w-full max-w-[420px] rounded-[20px] border border-[var(--borde)] bg-[var(--superficie)] p-6 shadow-2xl"
+        className="adm-card w-full max-w-[420px] rounded-[20px] p-6"
       >
         <div className="flex items-center gap-3">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] border border-violet-500/35 bg-violet-500/15 text-[var(--acento-texto)]">
-            <Lock size={20} />
+          <span className="adm-ico">
+            <Lock size={18} />
           </span>
           <div>
-            <h2
-              id="relogin-modal-title"
-              className="font-heading text-[18px] font-bold text-[var(--texto)]"
-            >
+            <h2 id="relogin-modal-title" className="adm-h2">
               Tu sesión ha expirado
             </h2>
-            <p className="font-sans-ui text-[12px] text-[var(--texto-suave)]">
+            <p className="adm-sub">
               Ingresá tu contraseña para continuar sin perder el borrador actual.
             </p>
           </div>
@@ -130,22 +140,18 @@ function ReLoginModal({ isOpen, onClose }) {
 
         <div className="mt-5 flex flex-col gap-3.5">
           <div>
-            <label className="font-sans-ui mb-1.5 block text-[12px] font-medium text-[var(--texto)]">
-              Correo de administrador
-            </label>
+            <label className="adm-label">Correo de administrador</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="font-sans-ui w-full rounded-[10px] border border-[var(--borde)] bg-[var(--fondo)] px-3.5 py-2.5 text-[14px] text-[var(--texto)] focus:border-[var(--acento)] focus:outline-none"
+              className="adm-input"
             />
           </div>
 
           <div>
-            <label className="font-sans-ui mb-1.5 block text-[12px] font-medium text-[var(--texto)]">
-              Contraseña
-            </label>
+            <label className="adm-label">Contraseña</label>
             <input
               type="password"
               value={password}
@@ -153,23 +159,19 @@ function ReLoginModal({ isOpen, onClose }) {
               placeholder="••••••••"
               autoFocus
               required
-              className="font-sans-ui w-full rounded-[10px] border border-[var(--borde)] bg-[var(--fondo)] px-3.5 py-2.5 text-[14px] text-[var(--texto)] focus:border-[var(--acento)] focus:outline-none"
+              className="adm-input"
             />
           </div>
 
           {errorMsg && (
-            <p role="alert" className="font-sans-ui text-[13px] text-red-400">
+            <p role="alert" className="font-sans-ui text-[13px] text-[var(--bad)]">
               {errorMsg}
             </p>
           )}
         </div>
 
         <div className="mt-6 flex items-center justify-end gap-3">
-          <button
-            type="submit"
-            disabled={submitting}
-            className="font-sans-ui w-full cursor-pointer rounded-[12px] bg-[var(--acento)] px-4 py-2.5 text-[14px] font-semibold text-[var(--sobre-acento)] transition-colors hover:bg-[var(--acento-hover)] disabled:opacity-60"
-          >
+          <button type="submit" disabled={submitting} className="adm-btn primary w-full">
             {submitting ? 'Verificando...' : 'Renovar sesión y mantener cambios'}
           </button>
         </div>
@@ -180,23 +182,49 @@ function ReLoginModal({ isOpen, onClose }) {
 
 function AdminLayoutInner() {
   const { user, logout } = useAuth();
-  const { isDark, toggleTheme } = useTheme();
+  const { palettes, paletteIndex, currentPalette, setPalette } = useTheme();
   const { isDirty, isFormRoute, unreadMessagesCount } = useAdminFormContext();
   const location = useLocation();
-  const navigate = useNavigate();
 
   const [collapsed, setCollapsed] = useState(false);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
   const [reLoginOpen, setReLoginOpen] = useState(false);
+  const paletteRef = useRef(null);
+
+  useEffect(() => {
+    const handlePointerDown = (e) => {
+      if (paletteRef.current && !paletteRef.current.contains(e.target)) {
+        setPaletteOpen(false);
+      }
+    };
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setPaletteOpen(false);
+      }
+    };
+    document.addEventListener('pointerdown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
+  // Sincronizar el planeta decorativo del sidebar según la sección activa
+  useEffect(() => {
+    const segments = location.pathname.split('/').filter(Boolean);
+    const sectionKey = segments[1] || 'admin';
+    const planetVar = SECTION_PLANETS[sectionKey] || SECTION_PLANETS.admin;
+    document.documentElement.style.setProperty('--active-planet', planetVar);
+  }, [location.pathname]);
 
   // Regla 4.2.1: Al entrar a una vista de edición o creación (o perfil), el Sidebar se colapsa
   // automáticamente a modo íconos para maximizar el ancho útil en notebooks de 1366px.
   useEffect(() => {
     const p = location.pathname;
     const isSplitPreviewRoute =
-      p.endsWith('/nuevo') ||
-      p.endsWith('/editar') ||
-      p === '/admin/perfil';
+      p.endsWith('/nuevo') || p.endsWith('/editar') || p === '/admin/perfil';
     const timer = setTimeout(() => {
       if (isSplitPreviewRoute) {
         setCollapsed(true);
@@ -222,26 +250,34 @@ function AdminLayoutInner() {
     segments.forEach((seg) => {
       currentPath += `/${seg}`;
       const label =
-        BREADCRUMB_LABELS[seg] ||
-        (/^\d+$/.test(seg) ? `#${seg}` : seg);
+        BREADCRUMB_LABELS[seg] || (/^\d+$/.test(seg) ? `#${seg}` : seg);
       items.push({ path: currentPath, label });
     });
     return items;
   }, [location.pathname]);
+
+  const userInitials = useMemo(() => {
+    const name = user?.name || 'Admin';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+    }
+    return name.slice(0, 2).toUpperCase();
+  }, [user?.name]);
 
   const renderSidebarContent = (isCompact = false) => (
     <div className="flex h-full flex-col justify-between">
       {/* Cabecera del Sidebar */}
       <div>
         <div
-          className={`flex h-[64px] items-center border-b border-[var(--borde)] px-4 ${
+          className={`adm-brand flex h-[64px] items-center border-b border-[var(--adm-borde)] px-4 ${
             isCompact ? 'justify-center' : 'justify-between'
           }`}
         >
           {!isCompact && (
             <div className="flex items-center gap-2.5 truncate">
-              <span className="h-3.5 w-3.5 shrink-0 rounded-full border-2 border-[var(--acento)] bg-[var(--logo-marca-bg)]" />
-              <span className="font-heading truncate text-[16px] font-bold tracking-tight text-[var(--texto)]">
+              <span className="logo-dot" aria-hidden="true" />
+              <span className="font-heading truncate text-[16px] font-bold tracking-tight text-[var(--adm-texto)]">
                 CMS Portfolio
               </span>
             </div>
@@ -252,20 +288,18 @@ function AdminLayoutInner() {
             onClick={() => setCollapsed((prev) => !prev)}
             aria-label={isCompact ? 'Expandir menú lateral' : 'Colapsar menú lateral'}
             title={isCompact ? 'Expandir barra lateral' : 'Modo compacto (solo íconos)'}
-            className="hidden cursor-pointer rounded-[8px] p-1.5 text-[var(--texto-suave)] hover:bg-[var(--superficie-alta)] hover:text-[var(--texto)] lg:inline-flex"
+            className="adm-iconbtn hidden lg:inline-grid"
           >
-            {isCompact ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
+            {isCompact ? <PanelLeftOpen size={15} /> : <PanelLeftClose size={15} />}
           </button>
         </div>
 
         {/* Navegación agrupada en 3 bloques */}
-        <nav aria-label="Menú de administración" className="flex flex-col gap-5 p-3">
+        <nav aria-label="Menú de administración" className="flex flex-col gap-1 p-3">
           {SIDEBAR_GROUPS.map((group) => (
             <div key={group.title} className="flex flex-col gap-1">
               {!isCompact && (
-                <span className="font-mono-ui px-2.5 pb-1 text-[10px] font-semibold uppercase tracking-[1.5px] text-[var(--texto-suave)]">
-                  {group.title}
-                </span>
+                <div className="adm-eyebrow adm-nav-group">{group.title}</div>
               )}
 
               {group.items.map((item) => {
@@ -277,24 +311,18 @@ function AdminLayoutInner() {
                     end={item.end}
                     title={isCompact ? item.label : undefined}
                     className={({ isActive }) =>
-                      `font-sans-ui relative flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-[13px] font-medium transition-colors ${
-                        isCompact ? 'justify-center' : 'justify-between'
-                      } ${
-                        isActive
-                          ? 'bg-[var(--tile-icono-bg)] font-semibold text-[var(--acento-texto)]'
-                          : 'text-[var(--texto-suave)] hover:bg-[var(--superficie-alta)] hover:text-[var(--texto)]'
+                      `adm-nav-item ${isCompact ? 'is-compact justify-center' : ''} ${
+                        isActive ? 'is-active' : ''
                       }`
                     }
                   >
-                    <div className="flex items-center gap-3 truncate">
-                      <Icon size={18} className="shrink-0" />
-                      {!isCompact && <span className="truncate">{item.label}</span>}
-                    </div>
+                    <Icon size={17} className="shrink-0" />
+                    {!isCompact && <span className="truncate">{item.label}</span>}
 
                     {item.showUnreadBadge && unreadMessagesCount > 0 && (
                       <span
-                        className={`font-mono-ui inline-flex items-center justify-center rounded-full bg-[var(--acento)] px-1.5 py-0.5 text-[10px] font-bold leading-none text-[var(--sobre-acento)] ${
-                          isCompact ? 'absolute top-1 right-1' : ''
+                        className={`adm-count ${
+                          isCompact ? 'absolute top-1 right-1 !px-1.5 !py-0.5 !text-[9px]' : ''
                         }`}
                       >
                         {unreadMessagesCount}
@@ -309,15 +337,20 @@ function AdminLayoutInner() {
       </div>
 
       {/* Pie del Sidebar: Usuario y Cerrar sesión */}
-      <div className="border-t border-[var(--borde)] p-3">
+      <div className="border-t border-[var(--adm-borde)] p-3">
         {!isCompact && (
-          <div className="mb-2 rounded-[10px] bg-[var(--fondo)] px-3 py-2">
-            <p className="font-sans-ui truncate text-[12px] font-semibold text-[var(--texto)]">
-              {user?.name || 'Administrador'}
-            </p>
-            <p className="font-mono-ui truncate text-[11px] text-[var(--texto-suave)]">
-              {user?.email || 'admin@pf.local'}
-            </p>
+          <div className="adm-user mb-2">
+            <span className="adm-avatar sm" aria-hidden="true">
+              {userInitials}
+            </span>
+            <div className="min-w-0 flex-1">
+              <b className="block truncate text-[12.5px] font-semibold text-[var(--adm-texto)]">
+                {user?.name || 'Administrador'}
+              </b>
+              <small className="adm-mono block truncate text-[11px]">
+                {user?.email || 'admin@pf.local'}
+              </small>
+            </div>
           </div>
         )}
         <button
@@ -326,11 +359,11 @@ function AdminLayoutInner() {
             logout();
           }}
           title={isCompact ? 'Cerrar sesión' : undefined}
-          className={`font-sans-ui flex w-full cursor-pointer items-center gap-2.5 rounded-[10px] px-3 py-2 text-[13px] font-medium text-[var(--texto-suave)] transition-colors hover:bg-red-500/10 hover:text-red-400 ${
-            isCompact ? 'justify-center' : ''
+          className={`adm-nav-item w-full text-left hover:!border-[rgba(251,113,133,0.35)] hover:!bg-[rgba(251,113,133,0.12)] hover:!text-[var(--bad)] ${
+            isCompact ? 'is-compact justify-center' : ''
           }`}
         >
-          <LogOut size={17} />
+          <LogOut size={16} className="shrink-0" />
           {!isCompact && <span>Cerrar sesión</span>}
         </button>
       </div>
@@ -338,14 +371,16 @@ function AdminLayoutInner() {
   );
 
   return (
-    <div className="flex min-h-screen w-full bg-[var(--fondo)] text-[var(--texto)]">
+    <div className="adm-root flex min-h-screen w-full">
+      <div className="adm-stars" aria-hidden="true" />
+
       {/* Sidebar fijo en escritorio (>= 1024px) */}
       <aside
-        className={`hidden shrink-0 border-r border-[var(--borde)] bg-[var(--superficie)] transition-all duration-200 lg:block ${
-          collapsed ? 'w-[72px]' : 'w-[248px]'
+        className={`adm-sidebar sticky top-0 hidden h-screen shrink-0 transition-all duration-200 lg:block ${
+          collapsed ? 'is-collapsed w-[72px]' : 'w-[244px]'
         }`}
       >
-        <div className="sticky top-0 h-screen overflow-y-auto">
+        <div className="flex h-full flex-col overflow-y-auto">
           {renderSidebarContent(collapsed)}
         </div>
       </aside>
@@ -354,53 +389,59 @@ function AdminLayoutInner() {
       {mobileDrawerOpen && (
         <div className="fixed inset-0 z-[80] flex lg:hidden">
           <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-xs"
+            className="fixed inset-0 bg-black/70 backdrop-blur-xs"
             onClick={() => setMobileDrawerOpen(false)}
           />
-          <aside className="relative z-10 flex h-full w-[260px] flex-col border-r border-[var(--borde)] bg-[var(--superficie)]">
+          <aside className="adm-sidebar relative z-10 flex h-full w-[260px] flex-col">
             <button
               type="button"
               onClick={() => setMobileDrawerOpen(false)}
               aria-label="Cerrar menú"
-              className="absolute top-4 right-3 cursor-pointer rounded-lg p-1.5 text-[var(--texto-suave)] hover:bg-[var(--superficie-alta)]"
+              className="adm-iconbtn absolute top-4 right-3 z-20"
             >
-              <X size={18} />
+              <X size={16} />
             </button>
-            {renderSidebarContent(false)}
+            <div className="flex h-full flex-col overflow-y-auto">
+              {renderSidebarContent(false)}
+            </div>
           </aside>
         </div>
       )}
 
       {/* Columna Principal: Topbar Contextual + Lienzo de Trabajo */}
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-40 flex h-[64px] items-center justify-between gap-4 border-b border-[var(--borde)] bg-[var(--superficie)] px-4 sm:px-6">
+        <header className="adm-topbar">
           {/* Izquierda: Botón móvil + Migas de pan (Breadcrumbs) */}
           <div className="flex min-w-0 items-center gap-3">
             <button
               type="button"
               onClick={() => setMobileDrawerOpen(true)}
               aria-label="Abrir menú de navegación"
-              className="inline-flex cursor-pointer rounded-[10px] border border-[var(--borde)] bg-[var(--fondo)] p-2 text-[var(--texto)] lg:hidden"
+              className="adm-iconbtn lg:!hidden"
             >
-              <Menu size={18} />
+              <Menu size={17} />
             </button>
 
             <nav aria-label="Migas de pan" className="flex items-center gap-1.5 truncate">
+              <span className="adm-crumb-star" aria-hidden="true" />
               {breadcrumbs.map((crumb, idx) => {
                 const isLast = idx === breadcrumbs.length - 1;
                 return (
                   <span key={crumb.path} className="flex items-center gap-1.5 truncate">
                     {idx > 0 && (
-                      <ChevronRight size={14} className="shrink-0 text-[var(--texto-suave)]" />
+                      <ChevronRight
+                        size={14}
+                        className="shrink-0 text-[var(--adm-texto-suave)]"
+                      />
                     )}
                     {isLast ? (
-                      <span className="font-sans-ui truncate text-[14px] font-semibold text-[var(--texto)]">
+                      <span className="font-sans-ui truncate text-[14px] font-semibold text-[var(--adm-texto)]">
                         {crumb.label}
                       </span>
                     ) : (
                       <Link
                         to={crumb.path}
-                        className="font-sans-ui truncate text-[13px] font-medium text-[var(--texto-suave)] hover:text-[var(--texto)]"
+                        className="font-sans-ui truncate text-[13px] font-medium text-[var(--adm-texto-suave)] hover:text-[var(--adm-texto)]"
                       >
                         {crumb.label}
                       </Link>
@@ -411,43 +452,67 @@ function AdminLayoutInner() {
             </nav>
           </div>
 
-          {/* Derecha: Estado del formulario + Conmutador de Tema + Abrir sitio público */}
-          <div className="flex shrink-0 items-center gap-3">
+          {/* Derecha: Estado del formulario + Selector de Paleta de Acento + Abrir sitio público */}
+          <div className="flex shrink-0 items-center gap-2.5">
             {isFormRoute && (
               <span
                 role="status"
-                className={`font-mono-ui hidden items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-medium sm:inline-flex ${
-                  isDirty
-                    ? 'border-amber-500/40 bg-amber-500/15 text-amber-800 [html[data-theme="dark"]_&]:text-amber-300'
-                    : 'border-emerald-500/40 bg-emerald-500/15 text-emerald-700 [html[data-theme="dark"]_&]:text-emerald-300'
+                className={`badge hidden sm:inline-flex ${
+                  isDirty ? 'badge-warn' : 'badge-ok'
                 }`}
               >
                 <span
-                  className={`h-1.5 w-1.5 rounded-full ${
-                    isDirty ? 'bg-amber-400' : 'bg-emerald-400'
-                  }`}
+                  className="h-1.5 w-1.5 rounded-full"
+                  style={{ backgroundColor: isDirty ? 'var(--warn)' : 'var(--ok)' }}
                 />
                 <span>{isDirty ? 'Cambios sin guardar' : 'Guardado'}</span>
               </span>
             )}
 
-            {/* Conmutador de Tema Claro / Oscuro */}
-            <button
-              type="button"
-              onClick={toggleTheme}
-              aria-label={isDark ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'}
-              title={isDark ? 'Modo oscuro activo (clic para modo claro)' : 'Modo claro activo (clic para modo oscuro)'}
-              className="inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-[10px] border border-[var(--borde)] bg-[var(--fondo)] text-[var(--texto)] transition-colors hover:border-[var(--acento)]"
-            >
-              {isDark ? <Sun size={16} /> : <Moon size={16} />}
-            </button>
+            {/* Selector compartido de Paleta de Acento (misma clave 'ac' del sitio público) */}
+            <div ref={paletteRef} className="relative">
+              <button
+                type="button"
+                onClick={() => setPaletteOpen((prev) => !prev)}
+                aria-label="Paleta de colores de acento"
+                aria-expanded={paletteOpen}
+                title={`Color de acento: ${currentPalette.name}`}
+                className="adm-btn secondary sm !px-2.5"
+              >
+                <Palette size={15} className="text-[var(--ac2)]" />
+                <span className="hidden md:inline">{currentPalette.name}</span>
+              </button>
 
-            {/* Botón «Volver al sitio público» — SPA navigation */}
+              <div
+                className={`pp ${paletteOpen ? 'open' : ''}`}
+                role="dialog"
+                aria-label="Selector de color de acento"
+              >
+                <p className="pt">Color de acento</p>
+                <div className="ps">
+                  {palettes.map((p, idx) => (
+                    <button
+                      key={p.name}
+                      type="button"
+                      onClick={() => setPalette(idx)}
+                      style={{ '--c': p.ar }}
+                      aria-label={p.name}
+                      aria-pressed={paletteIndex === idx}
+                      title={p.name}
+                      className={`sw2 ${paletteIndex === idx ? 'on' : ''}`}
+                    />
+                  ))}
+                </div>
+                <p className="pn">{currentPalette.name}</p>
+              </div>
+            </div>
+
+            {/* Botón «Volver al sitio público» */}
             <Link
               to="/"
-              className="font-sans-ui inline-flex items-center gap-1.5 rounded-[10px] border border-[var(--borde)] bg-[var(--fondo)] px-3 py-2 text-[13px] font-medium text-[var(--texto)] transition-colors hover:border-[var(--acento)] hover:bg-[var(--superficie-alta)]"
+              className="adm-btn secondary sm"
             >
-              <ArrowLeft size={14} className="text-[var(--acento-texto)]" />
+              <ArrowLeft size={13} className="text-[var(--ac2)]" />
               <span className="hidden sm:inline">Volver al sitio público</span>
               <span className="sm:hidden">Sitio</span>
             </Link>
@@ -455,7 +520,7 @@ function AdminLayoutInner() {
         </header>
 
         {/* Contenido de la ruta administrativa activa */}
-        <main className="mx-auto w-full max-w-[1600px] flex-1 p-4 sm:p-6 lg:p-8">
+        <main className="mx-auto w-full max-w-[1440px] flex-1 p-4 sm:p-6 lg:p-8">
           <Outlet />
         </main>
       </div>
