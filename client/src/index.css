@@ -1340,6 +1340,60 @@
   }
 }
 
+/* ==========================================================================
+   8. CURSOR CON BRILLO DEL COLOR DE ACENTO (PARTE 2 — Solo Sitio Público)
+   ========================================================================== */
+.cur {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0;
+  transition:
+    opacity 0.25s,
+    scale 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.25s;
+}
+
+html.cv .cur {
+  opacity: 1;
+}
+
+html.cx-t .cur {
+  opacity: 0;
+}
+
+.cur-d {
+  width: 10px;
+  height: 10px;
+  margin: -5px 0 0 -5px;
+  border-radius: 50%;
+  background: rgb(var(--lt));
+  box-shadow:
+    0 0 12px 3px rgba(var(--ar), 0.95),
+    0 0 34px 10px rgba(var(--ar), 0.5);
+}
+
+html.cx-h .cur-d {
+  scale: 1.5;
+}
+
+html.cx-d .cur-d {
+  scale: 0.7;
+}
+
+html.cc,
+html.cc * {
+  cursor: none !important;
+}
+
+html.cc input,
+html.cc textarea,
+html.cc select {
+  cursor: auto !important;
+}
+
 /* Accesibilidad: Respeto estricto por prefers-reduced-motion */
 @media (prefers-reduced-motion: reduce) {
   html {
