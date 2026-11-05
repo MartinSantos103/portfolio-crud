@@ -3,6 +3,7 @@ process.env.NODE_ENV = 'test';
 
 import test, { describe, before, after } from 'node:test';
 import assert from 'node:assert/strict';
+import { OAuth2Client } from 'google-auth-library';
 
 describe('Pruebas de Autenticación y Autorización por Rol', () => {
   let server;
@@ -10,6 +11,8 @@ describe('Pruebas de Autenticación y Autorización por Rol', () => {
   let adminToken;
   let userToken;
   let closePool;
+  let query;
+  const cleanupEmails = [];
 
   before(async () => {
     // Importamos dinámicamente app y pool luego de setear NODE_ENV='test'
@@ -17,6 +20,7 @@ describe('Pruebas de Autenticación y Autorización por Rol', () => {
     const { default: app } = await import('../src/app.js');
     const poolModule = await import('../src/db/pool.js');
     closePool = poolModule.closePool;
+    query = poolModule.query;
 
     server = app.listen(0);
     await new Promise((resolve) => server.once('listening', resolve));
@@ -25,6 +29,9 @@ describe('Pruebas de Autenticación y Autorización por Rol', () => {
   });
 
   after(async () => {
+    if (query && cleanupEmails.length > 0) {
+      await query('DELETE FROM users WHERE email = ANY($1)', [cleanupEmails]);
+    }
     if (server) {
       server.closeAllConnections?.();
       await new Promise((resolve, reject) => {
@@ -80,7 +87,7 @@ describe('Pruebas de Autenticación y Autorización por Rol', () => {
     assert.ok(data.user.id, 'Debe incluir el id del usuario');
   });
 
-  test('3. Ruta protegida con requireRole(\'admin\') - Responde 401 cuando no hay token', async () => {
+  test("3. Ruta protegida con requireRole('admin') - Responde 401 cuando no hay token", async () => {
     const res = await fetch(`${baseUrl}/admin/ping`, {
       method: 'GET',
     });
@@ -92,7 +99,7 @@ describe('Pruebas de Autenticación y Autorización por Rol', () => {
     assert.equal(data.error?.message, 'Falta el token de sesión', 'El mensaje debe indicar falta de token');
   });
 
-  test('4. Ruta protegida con requireRole(\'admin\') - Responde 403 cuando entra un usuario común', async () => {
+  test("4. Ruta protegida con requireRole('admin') - Responde 403 cuando entra un usuario común", async () => {
     // 4.1 Iniciar sesión como usuario común
     const loginRes = await fetch(`${baseUrl}/auth/login`, {
       method: 'POST',
@@ -148,6 +155,7 @@ describe('Pruebas de Autenticación y Autorización por Rol', () => {
 
   test('6. POST /api/auth/register - Registra nuevo usuario (201) y rechaza duplicados (409)', async () => {
     const testEmail = `newuser_${Date.now()}@pf.local`;
+    cleanupEmails.push(testEmail);
 
     // 6.1 Registro exitoso
     const res = await fetch(`${baseUrl}/auth/register`, {
@@ -182,5 +190,71 @@ describe('Pruebas de Autenticación y Autorización por Rol', () => {
     assert.equal(dupRes.status, 409, 'El status de correo duplicado debe ser 409 Conflict');
     const dupData = await dupRes.json();
     assert.equal(dupData.error?.code, 'USER_EXISTS');
+  });
+
+  test('7. POST /api/auth/google - Rechaza petición sin credential (400) y token inválido (401)', async () => {
+    const emptyRes = await fetch(`${baseUrl}/auth/google`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+    assert.equal(emptyRes.status, 400);
+    const emptyData = await emptyRes.json();
+    assert.equal(emptyData.error?.code, 'VALIDATION');
+
+    const invalidRes = await fetch(`${baseUrl}/auth/google`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ credential: 'invalid.jwt.token' }),
+    });
+    assert.equal(invalidRes.status, 401);
+    const invalidData = await invalidRes.json();
+    assert.equal(invalidData.error?.code, 'INVALID_GOOGLE_TOKEN');
+  });
+
+  test('8. POST /api/auth/google - Crea usuario nuevo con Google y vincula cuenta existente', async () => {
+    const googleEmail = `googleuser_${Date.now()}@pf.local`;
+    const googleSub = `google_sub_${Date.now()}`;
+    cleanupEmails.push(googleEmail);
+
+    const originalVerify = OAuth2Client.prototype.verifyIdToken;
+    OAuth2Client.prototype.verifyIdToken = async () => ({
+      getPayload: () => ({
+        sub: googleSub,
+        email: googleEmail,
+        name: 'Usuario Google Test',
+        email_verified: true,
+      }),
+    });
+
+    try {
+      // 8.1 Creación de usuario nuevo vía Google
+      const res1 = await fetch(`${baseUrl}/auth/google`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential: 'mocked_valid_google_token' }),
+      });
+
+      assert.equal(res1.status, 200);
+      const data1 = await res1.json();
+      assert.equal(data1.ok, true);
+      assert.ok(data1.token);
+      assert.equal(data1.user.email, googleEmail);
+      assert.equal(data1.user.name, 'Usuario Google Test');
+      assert.equal(data1.user.role, 'user');
+
+      // 8.2 Re-ingreso del mismo usuario vía Google
+      const res2 = await fetch(`${baseUrl}/auth/google`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential: 'mocked_valid_google_token' }),
+      });
+
+      assert.equal(res2.status, 200);
+      const data2 = await res2.json();
+      assert.equal(data2.user.id, data1.user.id, 'Debe reutilizar el mismo usuario');
+    } finally {
+      OAuth2Client.prototype.verifyIdToken = originalVerify;
+    }
   });
 });

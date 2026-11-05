@@ -70,7 +70,8 @@ export async function apiFetch(path, options = {}) {
       res.status === 401 &&
       typeof window !== 'undefined' &&
       window.location.pathname.startsWith('/admin') &&
-      !path.startsWith('/auth/login')
+      !path.startsWith('/auth/login') &&
+      !path.startsWith('/auth/google')
     ) {
       window.dispatchEvent(
         new CustomEvent('auth:session-expired', {

@@ -73,6 +73,29 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
+  const loginWithGoogle = useCallback(async (credential) => {
+    setError(null);
+    try {
+      const data = await apiFetch('/auth/google', {
+        method: 'POST',
+        body: JSON.stringify({ credential }),
+      });
+
+      if (!data?.token || !data?.user) {
+        throw new Error('Respuesta de autenticación incompleta');
+      }
+
+      localStorage.setItem('token', data.token);
+      setToken(data.token);
+      setUser(data.user);
+      return { ok: true, user: data.user };
+    } catch (err) {
+      const message = err.message || 'Error al iniciar sesión con Google';
+      setError(message);
+      throw err;
+    }
+  }, []);
+
   const value = {
     user,
     token,
@@ -82,6 +105,7 @@ export function AuthProvider({ children }) {
     isAdmin: user?.role === 'admin',
     isUser: user?.role === 'user',
     login,
+    loginWithGoogle,
     logout,
   };
 

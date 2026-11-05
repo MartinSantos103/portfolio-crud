@@ -1,4 +1,5 @@
 import { createBrowserRouter, RouterProvider, Outlet } from 'react-router-dom';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import Placeholder from '../pages/Placeholder.jsx';
 import HomePage from '../features/public/pages/HomePage.jsx';
 import ProjectDetail from '../features/projects/public/ProjectDetail.jsx';
@@ -24,13 +25,17 @@ import MessagesInboxPage from '../features/admin/messages/MessagesInboxPage.jsx'
 import UsersManagementPage from '../features/users/UsersManagementPage.jsx';
 import MetricsDashboardPage from '../features/metrics/MetricsDashboardPage.jsx';
 
+const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
+
 function RootProvidersLayout() {
   return (
-    <AuthProvider>
-      <ToastProvider>
-        <Outlet />
-      </ToastProvider>
-    </AuthProvider>
+    <GoogleOAuthProvider clientId={googleClientId}>
+      <AuthProvider>
+        <ToastProvider>
+          <Outlet />
+        </ToastProvider>
+      </AuthProvider>
+    </GoogleOAuthProvider>
   );
 }
 

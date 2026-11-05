@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
+import { GoogleLogin } from '@react-oauth/google';
 import { Eye, EyeOff } from 'lucide-react';
 import Button from '../../../components/ui/Button.jsx';
 import FormField from '../../../components/ui/FormField.jsx';
@@ -10,7 +11,7 @@ import { apiFetch } from '../../../services/api.js';
 /**
  * Ventana modal emergente de Inicio de sesión y Registro tematizada según
  * Portfolio_animado_v4.html (.ov, .am, .tabs, .xb), conservando intacta la lógica
- * real de autenticación (useAuth().login, /auth/register, credenciales demo del seed).
+ * real de autenticación (useAuth().login, useAuth().loginWithGoogle, /auth/register, credenciales demo del seed).
  */
 export default function AuthModal({
   isOpen = false,
@@ -19,7 +20,7 @@ export default function AuthModal({
   onClose,
   onSuccess,
 }) {
-  const { login } = useAuth();
+  const { login, loginWithGoogle } = useAuth();
   const [mode, setMode] = useState(initialMode);
   const [prevOpenState, setPrevOpenState] = useState({ isOpen, initialMode });
   const [name, setName] = useState('');
@@ -84,6 +85,29 @@ export default function AuthModal({
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    setErrorMsg('');
+    if (!credentialResponse?.credential) {
+      setErrorMsg('No se recibió la credencial de Google.');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const result = await loginWithGoogle(credentialResponse.credential);
+      onSuccess?.(result.user);
+      onClose?.();
+    } catch (err) {
+      setErrorMsg(err.message || 'No se pudo iniciar sesión con Google.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleGoogleError = () => {
+    setErrorMsg('Se canceló o falló la autenticación con Google.');
   };
 
   const fillDemoCredentials = (demoEmail, demoPass) => {
@@ -263,6 +287,30 @@ export default function AuthModal({
                 )}
               </Button>
             </form>
+
+            {/* Inicio de sesión con Google OAuth 2.0 */}
+            <div className="flex flex-col items-center gap-[12px]">
+              <div className="flex w-full items-center gap-[12px]">
+                <div className="h-[1px] flex-1 bg-[var(--bd)]" />
+                <span className="font-mono-ui text-[11px] uppercase tracking-wider text-[var(--mut)]">
+                  o continuar con
+                </span>
+                <div className="h-[1px] flex-1 bg-[var(--bd)]" />
+              </div>
+
+              <div className="flex w-full justify-center overflow-hidden rounded-full">
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={handleGoogleError}
+                  theme="filled_black"
+                  shape="pill"
+                  size="large"
+                  width="380"
+                  text={mode === 'login' ? 'signin_with' : 'signup_with'}
+                  locale="es"
+                />
+              </div>
+            </div>
 
             {/* Accesos rápidos a cuentas de prueba del seed */}
             <div className="flex flex-col gap-[8px] border-t border-[var(--bd)] pt-[12px]">
