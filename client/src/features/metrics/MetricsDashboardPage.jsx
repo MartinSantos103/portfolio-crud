@@ -27,10 +27,8 @@ import {
   Info,
 } from 'lucide-react';
 import { apiFetch } from '../../services/api.js';
+import { useTheme } from '../../hooks/useTheme.js';
 import DataState from '../../components/ui/DataState.jsx';
-import Badge from '../../components/ui/Badge.jsx';
-
-const PIE_COLORS = ['#7c5cff', '#38bdf8', '#10b981'];
 
 function toIsoDate(date) {
   const y = date.getFullYear();
@@ -62,16 +60,15 @@ function formatBucketLabel(bucketStr, groupBy) {
 
 function ChartEmptyState({ message = 'Sin actividad registrada en las fechas seleccionadas.' }) {
   return (
-    <div className="flex h-[300px] flex-col items-center justify-center rounded-[12px] border border-dashed border-[var(--borde)] bg-[var(--superficie-alta)]/35 p-6 text-center">
-      <BarChart3 size={28} className="text-[var(--texto-suave)] opacity-60" />
-      <p className="font-sans-ui mt-2 max-w-xs text-[13px] text-[var(--texto-suave)]">
-        {message}
-      </p>
+    <div className="adm-empty flex h-[280px] flex-col items-center justify-center rounded-[14px] border border-dashed border-[var(--adm-borde)]">
+      <BarChart3 size={26} className="mb-2 text-[var(--adm-texto-suave)] opacity-70" />
+      <p className="max-w-xs text-[13px] text-[var(--adm-texto-suave)]">{message}</p>
     </div>
   );
 }
 
 export default function MetricsDashboardPage() {
+  const { currentPalette } = useTheme();
   const initialRange = useMemo(() => getPresetDates(30), []);
 
   const [preset, setPreset] = useState('30d');
@@ -103,6 +100,17 @@ export default function MetricsDashboardPage() {
     messagesDistribution: [],
     topProjects: [],
   });
+
+  // Colores de gráficos sincronizados con la paleta de acento activa y semánticos fijos
+  const accentColor = `rgb(${currentPalette.ar})`;
+  const okColor = '#34d399';
+  const infoColor = '#22d3ee';
+  const gridColor = `rgba(${currentPalette.ar}, 0.2)`;
+  const axisColor = '#9ea3c7';
+  const pieColors = useMemo(
+    () => [accentColor, infoColor, okColor],
+    [accentColor]
+  );
 
   // Cálculo de días del rango para regla automática de legibilidad (> 90 días deshabilita 'day')
   const diffDays = useMemo(() => {
@@ -175,30 +183,40 @@ export default function MetricsDashboardPage() {
     [metrics.topProjects]
   );
 
+  const tooltipStyle = {
+    backgroundColor: 'var(--card)',
+    borderColor: 'var(--bd)',
+    borderRadius: '12px',
+    color: 'var(--tx)',
+    fontFamily: 'var(--font-mono)',
+    fontSize: '12px',
+  };
+
   return (
-    <div className="space-y-6">
-      {/* Cabecera */}
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="font-heading text-[26px] font-bold tracking-tight text-[var(--texto)]">
-              Métricas y Analíticas Interactivas
-            </h1>
-            <Badge variant="neutral">TZ: America/Argentina/Salta</Badge>
+    <div id="v-metricas" className="adm-view is-on space-y-5">
+      {/* Cabecera estelar */}
+      <div className="adm-pagehead">
+        <div className="adm-pagehead-left">
+          <span className="adm-planet-orb" aria-hidden="true" />
+          <div>
+            <div className="flex flex-wrap items-center gap-2.5">
+              <h1 className="adm-h1">Métricas y Analíticas Interactivas</h1>
+              <span className="adm-chip">TZ: America/Argentina/Salta</span>
+            </div>
+            <p className="adm-sub">
+              Exploración temporal de sesiones únicas, conversión a contacto y proyectos más visitados.
+            </p>
           </div>
-          <p className="font-sans-ui mt-1 text-[14px] text-[var(--texto-suave)]">
-            Exploración temporal de sesiones únicas, conversión a contacto y proyectos más visitados.
-          </p>
         </div>
       </div>
 
       {/* Barra Superior de Controles de Exploración */}
-      <div className="space-y-4 rounded-[16px] border border-[var(--borde)] bg-[var(--superficie)] p-4">
+      <section className="adm-card adm-toolbar !block space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           {/* Presets rápidos */}
           <div className="flex flex-wrap items-center gap-2">
-            <span className="font-mono-ui mr-1 flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-[var(--texto-suave)]">
-              <Calendar size={14} className="text-[var(--acento-texto)]" />
+            <span className="adm-eyebrow mr-1 inline-flex items-center gap-1.5">
+              <Calendar size={13} className="text-[var(--ac2)]" />
               Período:
             </span>
             {[
@@ -211,11 +229,7 @@ export default function MetricsDashboardPage() {
                 key={item.key}
                 type="button"
                 onClick={() => applyPreset(item.key, item.days, item.group)}
-                className={`font-sans-ui cursor-pointer rounded-[10px] border px-3 py-1.5 text-[12px] font-medium transition-colors ${
-                  preset === item.key
-                    ? 'border-[var(--acento)] bg-[var(--acento)] text-[var(--sobre-acento)]'
-                    : 'border-[var(--borde)] bg-[var(--superficie-alta)] text-[var(--texto-suave)] hover:text-[var(--texto)]'
-                }`}
+                className={`adm-tab ${preset === item.key ? 'is-active' : ''}`}
               >
                 {item.label}
               </button>
@@ -224,10 +238,8 @@ export default function MetricsDashboardPage() {
 
           {/* Selector de Agrupación Temporal */}
           <div className="flex items-center gap-2">
-            <span className="font-mono-ui text-[11px] uppercase tracking-wider text-[var(--texto-suave)]">
-              Agrupar por:
-            </span>
-            <div className="inline-flex rounded-[10px] border border-[var(--borde)] bg-[var(--superficie-alta)] p-1">
+            <span className="adm-eyebrow">Agrupar por:</span>
+            <div className="adm-seg">
               {[
                 { key: 'day', label: 'Por Día', disabled: isDayDisabled },
                 { key: 'week', label: 'Por Semana', disabled: false },
@@ -237,17 +249,13 @@ export default function MetricsDashboardPage() {
                   key={opt.key}
                   type="button"
                   disabled={opt.disabled}
+                  aria-pressed={effectiveGroupBy === opt.key}
                   onClick={() => setGroupBy(opt.key)}
                   title={
                     opt.disabled
                       ? 'Deshabilitado para rangos mayores a 90 días para preservar legibilidad'
                       : undefined
                   }
-                  className={`font-sans-ui cursor-pointer rounded-[8px] px-3 py-1 text-[12px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
-                    effectiveGroupBy === opt.key
-                      ? 'bg-[var(--acento)] text-[var(--sobre-acento)]'
-                      : 'text-[var(--texto-suave)] hover:text-[var(--texto)]'
-                  }`}
                 >
                   {opt.label}
                 </button>
@@ -257,10 +265,10 @@ export default function MetricsDashboardPage() {
         </div>
 
         {/* Rango personalizado Desde / Hasta */}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--borde)] pt-3">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--adm-borde)] pt-3">
           <div className="flex flex-wrap items-center gap-3">
-            <label className="font-sans-ui flex items-center gap-2 text-[12px] text-[var(--texto-suave)]">
-              <span>Desde:</span>
+            <label className="inline-flex items-center gap-2">
+              <span className="adm-eyebrow">Desde:</span>
               <input
                 type="date"
                 value={fromDate}
@@ -269,12 +277,12 @@ export default function MetricsDashboardPage() {
                   setPreset('custom');
                   setFromDate(e.target.value);
                 }}
-                className="font-mono-ui rounded-[8px] border border-[var(--borde)] bg-[var(--superficie-alta)] px-2.5 py-1 text-[12px] text-[var(--texto)] focus:border-[var(--acento)] focus:outline-none"
+                className="adm-input adm-mono !w-[160px] !py-1.5"
               />
             </label>
 
-            <label className="font-sans-ui flex items-center gap-2 text-[12px] text-[var(--texto-suave)]">
-              <span>Hasta:</span>
+            <label className="inline-flex items-center gap-2">
+              <span className="adm-eyebrow">Hasta:</span>
               <input
                 type="date"
                 value={toDate}
@@ -283,19 +291,19 @@ export default function MetricsDashboardPage() {
                   setPreset('custom');
                   setToDate(e.target.value);
                 }}
-                className="font-mono-ui rounded-[8px] border border-[var(--borde)] bg-[var(--superficie-alta)] px-2.5 py-1 text-[12px] text-[var(--texto)] focus:border-[var(--acento)] focus:outline-none"
+                className="adm-input adm-mono !w-[160px] !py-1.5"
               />
             </label>
           </div>
 
           {isDayDisabled && (
-            <span className="font-sans-ui inline-flex items-center gap-1.5 text-[12px] text-amber-300">
+            <span className="font-sans-ui inline-flex items-center gap-1.5 text-[12px] text-[var(--warn)]">
               <Info size={14} />
               Rango de {diffDays} días (&gt; 90 días): agrupación diaria cambiada automáticamente a semanal/mensual.
             </span>
           )}
         </div>
-      </div>
+      </section>
 
       <DataState
         status={status}
@@ -303,233 +311,226 @@ export default function MetricsDashboardPage() {
         errorMessage={errorMsg}
         onRetry={fetchMetrics}
       >
-        {/* Resumen de KPIs del Período */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
-          <div className="rounded-[16px] border border-[var(--borde)] bg-[var(--superficie)] p-4">
-            <div className="flex items-center justify-between">
-              <span className="font-sans-ui text-[12px] font-medium text-[var(--texto-suave)]">
-                Sesiones Totales
-              </span>
-              <Activity size={16} className="text-[var(--acento-texto)]" />
+        {/* Resumen de 5 KPIs del Período */}
+        <section className="adm-grid-5">
+          <article className="adm-kpi">
+            <div className="adm-kpi-top !text-[12px]">
+              <span>Sesiones Totales</span>
+              <Activity size={15} className="text-[var(--ac2)]" />
             </div>
-            <div className="font-heading mt-3 text-[28px] font-bold text-[var(--texto)]">
+            <div className="adm-kpi-value mt-2 !text-[28px]">
               {metrics.kpis.totalSessions}
             </div>
-            <span className="font-mono-ui text-[11px] text-[var(--texto-suave)]">
+            <span className="adm-kpi-note !text-[11px]">
               COUNT(DISTINCT session_id)
             </span>
-          </div>
+          </article>
 
-          <div className="rounded-[16px] border border-[var(--borde)] bg-[var(--superficie)] p-4">
-            <div className="flex items-center justify-between">
-              <span className="font-sans-ui text-[12px] font-medium text-[var(--texto-suave)]">
-                Sesiones Autenticadas
-              </span>
-              <UserCheck size={16} className="text-[var(--acento-texto)]" />
+          <article className="adm-kpi">
+            <div className="adm-kpi-top !text-[12px]">
+              <span>Sesiones Autenticadas</span>
+              <UserCheck size={15} className="text-[var(--ac2)]" />
             </div>
-            <div className="font-heading mt-3 text-[28px] font-bold text-[var(--texto)]">
+            <div className="adm-kpi-value mt-2 !text-[28px]">
               {metrics.kpis.authenticatedSessions}
             </div>
-            <span className="font-mono-ui text-[11px] text-[var(--texto-suave)]">
+            <span className="adm-kpi-note !text-[11px]">
               Usuarios con sesión activa
             </span>
-          </div>
+          </article>
 
-          <div className="rounded-[16px] border border-[var(--borde)] bg-[var(--superficie)] p-4">
-            <div className="flex items-center justify-between">
-              <span className="font-sans-ui text-[12px] font-medium text-[var(--texto-suave)]">
-                Consultas Recibidas
-              </span>
-              <Mail size={16} className="text-[var(--acento-texto)]" />
+          <article className="adm-kpi">
+            <div className="adm-kpi-top !text-[12px]">
+              <span>Consultas Recibidas</span>
+              <Mail size={15} className="text-[var(--ac2)]" />
             </div>
-            <div className="font-heading mt-3 text-[28px] font-bold text-[var(--texto)]">
+            <div className="adm-kpi-value mt-2 !text-[28px]">
               {metrics.kpis.totalMessages}
             </div>
-            <span className="font-mono-ui text-[11px] text-[var(--texto-suave)]">
+            <span className="adm-kpi-note !text-[11px]">
               En el período filtrado
             </span>
-          </div>
+          </article>
 
-          <div className="rounded-[16px] border border-[var(--borde)] bg-[var(--superficie)] p-4">
-            <div className="flex items-center justify-between">
-              <span className="font-sans-ui text-[12px] font-medium text-[var(--texto-suave)]">
-                Tasa de Conversión
-              </span>
-              <TrendingUp size={16} className="text-emerald-400" />
+          <article className="adm-kpi">
+            <div className="adm-kpi-top !text-[12px]">
+              <span>Tasa de Conversión</span>
+              <TrendingUp size={15} className="text-[var(--ok)]" />
             </div>
-            <div className="font-heading mt-3 text-[28px] font-bold text-emerald-400">
+            <div className="adm-kpi-value is-good mt-2 !text-[28px]">
               {metrics.kpis.conversionRate}%
             </div>
-            <span className="font-mono-ui text-[11px] text-[var(--texto-suave)]">
+            <span className="adm-kpi-note !text-[11px]">
               (Mensajes / Sesiones) × 100
             </span>
-          </div>
+          </article>
 
-          <div className="rounded-[16px] border border-[var(--borde)] bg-[var(--superficie)] p-4">
-            <div className="flex items-center justify-between">
-              <span className="font-sans-ui text-[12px] font-medium text-[var(--texto-suave)]">
-                Nuevos Usuarios
-              </span>
-              <UserPlus size={16} className="text-[var(--acento-texto)]" />
+          <article className="adm-kpi">
+            <div className="adm-kpi-top !text-[12px]">
+              <span>Nuevos Usuarios</span>
+              <UserPlus size={15} className="text-[var(--ac2)]" />
             </div>
-            <div className="font-heading mt-3 text-[28px] font-bold text-[var(--texto)]">
+            <div className="adm-kpi-value mt-2 !text-[28px]">
               {metrics.kpis.newUsers}
             </div>
-            <span className="font-mono-ui text-[11px] text-[var(--texto-suave)]">
+            <span className="adm-kpi-note !text-[11px]">
               Registros con rol «user»
             </span>
-          </div>
-        </div>
+          </article>
+        </section>
 
         {/* Grilla de 4 Gráficos Interactivos Recharts */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <section className="adm-grid-eq">
           {/* 1. Evolución de Sesiones en el Tiempo (AreaChart de 2 series) */}
-          <div className="rounded-[16px] border border-[var(--borde)] bg-[var(--superficie)] p-5">
-            <div className="mb-4 flex items-center justify-between gap-2">
+          <article className="adm-card">
+            <div className="adm-card-head">
               <div>
-                <h2 className="font-heading text-[16px] font-bold text-[var(--texto)]">
-                  1. Evolución de Sesiones en el Tiempo
-                </h2>
-                <p className="font-sans-ui text-[12px] text-[var(--texto-suave)]">
+                <h2 className="adm-h3">1. Evolución de Sesiones en el Tiempo</h2>
+                <p className="adm-sub">
                   Comparativa de sesiones únicas totales frente a sesiones autenticadas.
                 </p>
               </div>
-              <Activity size={18} className="text-[var(--acento-texto)]" />
+              <Activity size={17} className="text-[var(--ac2)]" />
             </div>
 
             {!hasSessionsActivity ? (
               <ChartEmptyState message="Sin sesiones registradas en el rango de fechas seleccionado." />
             ) : (
-              <div className="h-[300px] w-full">
-                <ResponsiveContainer width="100%" height={300}>
+              <div className="h-[290px] w-full">
+                <ResponsiveContainer width="100%" height={290}>
                   <AreaChart
                     data={metrics.sessionsSeries}
                     margin={{ top: 10, right: 12, left: -16, bottom: 0 }}
                   >
                     <defs>
                       <linearGradient id="gradTotalSessions" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#7c5cff" stopOpacity={0.45} />
-                        <stop offset="95%" stopColor="#7c5cff" stopOpacity={0.02} />
+                        <stop offset="5%" stopColor={accentColor} stopOpacity={0.45} />
+                        <stop offset="95%" stopColor={accentColor} stopOpacity={0.02} />
                       </linearGradient>
                       <linearGradient id="gradAuthSessions" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.45} />
-                        <stop offset="95%" stopColor="#10b981" stopOpacity={0.02} />
+                        <stop offset="5%" stopColor={okColor} stopOpacity={0.45} />
+                        <stop offset="95%" stopColor={okColor} stopOpacity={0.02} />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.14)" />
+                    <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
                     <XAxis
                       dataKey="bucket"
                       tickFormatter={(val) => formatBucketLabel(val, metrics.filters.groupBy)}
-                      stroke="#94a3b8"
+                      stroke={axisColor}
                       fontSize={11}
+                      fontFamily="var(--font-mono)"
                     />
-                    <YAxis allowDecimals={false} stroke="#94a3b8" fontSize={11} />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: 'var(--superficie)',
-                        borderColor: 'var(--borde)',
-                        borderRadius: '12px',
-                        color: 'var(--texto)',
-                        fontSize: '12px',
+                    <YAxis
+                      allowDecimals={false}
+                      stroke={axisColor}
+                      fontSize={11}
+                      fontFamily="var(--font-mono)"
+                    />
+                    <Tooltip contentStyle={tooltipStyle} />
+                    <Legend
+                      wrapperStyle={{
+                        fontSize: '11.5px',
+                        fontFamily: 'var(--font-mono)',
                       }}
                     />
-                    <Legend wrapperStyle={{ fontSize: '12px' }} />
                     <Area
                       type="monotone"
                       dataKey="visitas_generales"
                       name="Sesiones Totales"
-                      stroke="#7c5cff"
+                      stroke={accentColor}
                       strokeWidth={2}
                       fillOpacity={1}
                       fill="url(#gradTotalSessions)"
+                      isAnimationActive={false}
                     />
                     <Area
                       type="monotone"
                       dataKey="visitas_autenticadas"
                       name="Sesiones Autenticadas"
-                      stroke="#10b981"
+                      stroke={okColor}
                       strokeWidth={2}
                       fillOpacity={1}
                       fill="url(#gradAuthSessions)"
+                      isAnimationActive={false}
                     />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
             )}
-          </div>
+          </article>
 
           {/* 2. Nuevos Usuarios Registrados por Período (BarChart) */}
-          <div className="rounded-[16px] border border-[var(--borde)] bg-[var(--superficie)] p-5">
-            <div className="mb-4 flex items-center justify-between gap-2">
+          <article className="adm-card">
+            <div className="adm-card-head">
               <div>
-                <h2 className="font-heading text-[16px] font-bold text-[var(--texto)]">
-                  2. Nuevos Usuarios Registrados por Período
-                </h2>
-                <p className="font-sans-ui text-[12px] text-[var(--texto-suave)]">
+                <h2 className="adm-h3">2. Nuevos Usuarios Registrados por Período</h2>
+                <p className="adm-sub">
                   Crecimiento de cuentas registradas con rol «user» en el tiempo.
                 </p>
               </div>
-              <UserPlus size={18} className="text-[var(--acento-texto)]" />
+              <UserPlus size={17} className="text-[var(--ac2)]" />
             </div>
 
             {!hasUsersActivity ? (
               <ChartEmptyState message="No hubo nuevos registros de usuarios en las fechas seleccionadas." />
             ) : (
-              <div className="h-[300px] w-full">
-                <ResponsiveContainer width="100%" height={300}>
+              <div className="h-[290px] w-full">
+                <ResponsiveContainer width="100%" height={290}>
                   <BarChart
                     data={metrics.usersSeries}
                     margin={{ top: 10, right: 12, left: -16, bottom: 0 }}
                   >
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.14)" />
+                    <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
                     <XAxis
                       dataKey="bucket"
                       tickFormatter={(val) => formatBucketLabel(val, metrics.filters.groupBy)}
-                      stroke="#94a3b8"
+                      stroke={axisColor}
                       fontSize={11}
+                      fontFamily="var(--font-mono)"
                     />
-                    <YAxis allowDecimals={false} stroke="#94a3b8" fontSize={11} />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: 'var(--superficie)',
-                        borderColor: 'var(--borde)',
-                        borderRadius: '12px',
-                        color: 'var(--texto)',
-                        fontSize: '12px',
+                    <YAxis
+                      allowDecimals={false}
+                      stroke={axisColor}
+                      fontSize={11}
+                      fontFamily="var(--font-mono)"
+                    />
+                    <Tooltip contentStyle={tooltipStyle} />
+                    <Legend
+                      wrapperStyle={{
+                        fontSize: '11.5px',
+                        fontFamily: 'var(--font-mono)',
                       }}
                     />
-                    <Legend wrapperStyle={{ fontSize: '12px' }} />
                     <Bar
                       dataKey="nuevos_usuarios"
                       name="Nuevos Usuarios"
-                      fill="#38bdf8"
+                      fill={infoColor}
                       radius={[6, 6, 0, 0]}
+                      isAnimationActive={false}
                     />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
             )}
-          </div>
+          </article>
 
           {/* 3. Distribución por Tipo de Consulta (PieChart Donut con leyenda) */}
-          <div className="rounded-[16px] border border-[var(--borde)] bg-[var(--superficie)] p-5">
-            <div className="mb-4 flex items-center justify-between gap-2">
+          <article className="adm-card">
+            <div className="adm-card-head">
               <div>
-                <h2 className="font-heading text-[16px] font-bold text-[var(--texto)]">
-                  3. Distribución por Tipo de Consulta
-                </h2>
-                <p className="font-sans-ui text-[12px] text-[var(--texto-suave)]">
+                <h2 className="adm-h3">3. Distribución por Tipo de Consulta</h2>
+                <p className="adm-sub">
                   Proporción de solicitudes de Cotización, Consulta General y Asesoría.
                 </p>
               </div>
-              <PieChartIcon size={18} className="text-[var(--acento-texto)]" />
+              <PieChartIcon size={17} className="text-[var(--ac2)]" />
             </div>
 
             {!hasMessagesActivity ? (
               <ChartEmptyState message="Sin consultas ni mensajes recibidos en el rango seleccionado." />
             ) : (
-              <div className="h-[300px] w-full">
-                <ResponsiveContainer width="100%" height={300}>
+              <div className="h-[290px] w-full">
+                <ResponsiveContainer width="100%" height={290}>
                   <PieChart>
                     <Pie
                       data={metrics.messagesDistribution}
@@ -540,12 +541,13 @@ export default function MetricsDashboardPage() {
                       innerRadius={62}
                       outerRadius={95}
                       paddingAngle={4}
+                      isAnimationActive={false}
                       label={({ name, percentage }) => `${name} (${percentage}%)`}
                     >
                       {metrics.messagesDistribution.map((entry, idx) => (
                         <Cell
                           key={`cell-${entry.type}`}
-                          fill={PIE_COLORS[idx % PIE_COLORS.length]}
+                          fill={pieColors[idx % pieColors.length]}
                         />
                       ))}
                     </Pie>
@@ -554,40 +556,37 @@ export default function MetricsDashboardPage() {
                         `${value} (${props.payload.percentage}%)`,
                         name,
                       ]}
-                      contentStyle={{
-                        backgroundColor: 'var(--superficie)',
-                        borderColor: 'var(--borde)',
-                        borderRadius: '12px',
-                        color: 'var(--texto)',
-                        fontSize: '12px',
+                      contentStyle={tooltipStyle}
+                    />
+                    <Legend
+                      wrapperStyle={{
+                        fontSize: '11.5px',
+                        fontFamily: 'var(--font-mono)',
                       }}
                     />
-                    <Legend wrapperStyle={{ fontSize: '12px' }} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
             )}
-          </div>
+          </article>
 
           {/* 4. Ranking de Proyectos Más Vistos (BarChart horizontal con filtro local) */}
-          <div className="rounded-[16px] border border-[var(--borde)] bg-[var(--superficie)] p-5">
-            <div className="mb-4 flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
+          <article className="adm-card">
+            <div className="adm-card-head">
               <div>
-                <h2 className="font-heading text-[16px] font-bold text-[var(--texto)]">
-                  4. Ranking de Proyectos Más Vistos
-                </h2>
-                <p className="font-sans-ui text-[12px] text-[var(--texto-suave)]">
-                  Eventos <code>project_view</code> agrupados por proyecto.
+                <h2 className="adm-h3">4. Ranking de Proyectos Más Vistos</h2>
+                <p className="adm-sub">
+                  Eventos <code className="adm-mono">project_view</code> agrupados por proyecto.
                 </p>
               </div>
 
               <div className="flex items-center gap-2">
-                <FolderKanban size={16} className="text-[var(--acento-texto)]" />
+                <FolderKanban size={15} className="text-[var(--ac2)]" />
                 <select
                   aria-label="Filtrar ranking de proyectos por audiencia"
                   value={projectSegment}
                   onChange={(e) => setProjectSegment(e.target.value)}
-                  className="font-sans-ui rounded-[8px] border border-[var(--borde)] bg-[var(--superficie-alta)] px-2.5 py-1.5 text-[12px] text-[var(--texto)] focus:border-[var(--acento)] focus:outline-none"
+                  className="adm-select !w-auto !py-1.5 !text-[12px]"
                 >
                   <option value="all">Todos los visitantes</option>
                   <option value="authenticated">Solo usuarios registrados</option>
@@ -598,47 +597,52 @@ export default function MetricsDashboardPage() {
             {!hasProjectsActivity ? (
               <ChartEmptyState message="Sin visualizaciones de detalle de proyectos en el período y segmento elegidos." />
             ) : (
-              <div className="h-[300px] w-full">
-                <ResponsiveContainer width="100%" height={300}>
+              <div className="h-[290px] w-full">
+                <ResponsiveContainer width="100%" height={290}>
                   <BarChart
                     layout="vertical"
                     data={metrics.topProjects}
                     margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
                   >
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.14)" />
-                    <XAxis type="number" allowDecimals={false} stroke="#94a3b8" fontSize={11} />
+                    <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+                    <XAxis
+                      type="number"
+                      allowDecimals={false}
+                      stroke={axisColor}
+                      fontSize={11}
+                      fontFamily="var(--font-mono)"
+                    />
                     <YAxis
                       type="category"
                       dataKey="title"
                       width={130}
-                      stroke="#94a3b8"
+                      stroke={axisColor}
                       fontSize={11}
+                      fontFamily="var(--font-mono)"
                       tickFormatter={(val) =>
                         val && val.length > 18 ? `${val.slice(0, 18)}…` : val
                       }
                     />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: 'var(--superficie)',
-                        borderColor: 'var(--borde)',
-                        borderRadius: '12px',
-                        color: 'var(--texto)',
-                        fontSize: '12px',
+                    <Tooltip contentStyle={tooltipStyle} />
+                    <Legend
+                      wrapperStyle={{
+                        fontSize: '11.5px',
+                        fontFamily: 'var(--font-mono)',
                       }}
                     />
-                    <Legend wrapperStyle={{ fontSize: '12px' }} />
                     <Bar
                       dataKey="views"
                       name="Vistas al proyecto"
-                      fill="#7c5cff"
+                      fill={accentColor}
                       radius={[0, 6, 6, 0]}
+                      isAnimationActive={false}
                     />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
             )}
-          </div>
-        </div>
+          </article>
+        </section>
       </DataState>
     </div>
   );

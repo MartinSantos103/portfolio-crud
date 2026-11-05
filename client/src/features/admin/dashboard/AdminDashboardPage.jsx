@@ -14,7 +14,6 @@ import {
 import { apiFetch } from '../../../services/api.js';
 import DataState from '../../../components/ui/DataState.jsx';
 import Badge from '../../../components/ui/Badge.jsx';
-import Button from '../../../components/ui/Button.jsx';
 
 const TYPE_LABELS = {
   consulta: 'Consulta general',
@@ -65,6 +64,7 @@ export default function AdminDashboardPage() {
       value: summary.kpis.totalSessions,
       icon: Activity,
       to: '/admin/metricas',
+      isAccent: true,
     },
     {
       label: 'Sesiones autenticadas',
@@ -72,6 +72,7 @@ export default function AdminDashboardPage() {
       value: summary.kpis.authenticatedSessions,
       icon: UserCheck,
       to: '/admin/metricas',
+      isAccent: false,
     },
     {
       label: 'Mensajes pendientes',
@@ -79,6 +80,7 @@ export default function AdminDashboardPage() {
       value: summary.kpis.pendingMessages,
       icon: Mail,
       to: '/admin/mensajes?status=nuevo',
+      isAccent: false,
     },
     {
       label: 'Proyectos publicados',
@@ -86,53 +88,52 @@ export default function AdminDashboardPage() {
       value: summary.kpis.publishedProjects,
       icon: FolderKanban,
       to: '/admin/proyectos',
+      isAccent: false,
     },
   ];
 
   return (
-    <div className="flex flex-col gap-7">
-      {/* Cabecera y Accesos Rápidos */}
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <div>
-          <h1 className="font-heading text-[26px] font-bold tracking-tight text-[var(--texto)]">
-            Resumen Operativo
-          </h1>
-          <p className="font-sans-ui mt-1 text-[14px] text-[var(--texto-suave)]">
-            Panorama general de actividad, consultas pendientes y accesos directos de edición.
-          </p>
+    <div id="v-resumen" className="adm-view is-on flex flex-col gap-5">
+      {/* Cabecera estelar y Accesos Rápidos */}
+      <div className="adm-pagehead">
+        <div className="adm-pagehead-left">
+          <span className="adm-planet-orb" aria-hidden="true" />
+          <div>
+            <h1 className="adm-h1">Resumen Operativo</h1>
+            <p className="adm-sub">
+              Panorama general de actividad, consultas pendientes y accesos directos de edición.
+            </p>
+          </div>
         </div>
 
         {/* Accesos Rápidos */}
-        <div className="flex flex-wrap items-center gap-2.5">
-          <Button
+        <div className="adm-actions">
+          <button
             type="button"
-            variant="primary"
             onClick={() => navigate('/admin/proyectos/nuevo')}
-            className="!px-4 !py-2.5 !text-[13px]"
+            className="adm-btn primary"
           >
             <Plus size={16} />
             <span>Nuevo proyecto</span>
-          </Button>
+          </button>
 
-          <Button
+          <button
             type="button"
-            variant="secondary"
             onClick={() => navigate('/admin/servicios/nuevo')}
-            className="!px-4 !py-2.5 !text-[13px]"
+            className="adm-btn secondary"
           >
             <Briefcase size={15} />
             <span>Nuevo servicio</span>
-          </Button>
+          </button>
 
-          <Button
+          <button
             type="button"
-            variant="secondary"
             onClick={() => navigate('/admin/perfil')}
-            className="!px-4 !py-2.5 !text-[13px]"
+            className="adm-btn secondary"
           >
             <UserCircle size={15} />
             <span>Editar perfil</span>
-          </Button>
+          </button>
         </div>
       </div>
 
@@ -143,53 +144,45 @@ export default function AdminDashboardPage() {
         onRetry={loadSummary}
       >
         {/* 4 Tarjetas KPI (Últimos 30 días) */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <section className="adm-grid-kpi">
           {kpiCards.map((card) => {
             const Icon = card.icon;
             return (
               <Link
                 key={card.label}
                 to={card.to}
-                className="group flex flex-col justify-between rounded-[16px] border border-[var(--borde)] bg-[var(--superficie)] p-5 transition-colors hover:border-[var(--acento)]"
+                className={`adm-kpi group ${card.isAccent ? 'is-accent' : ''}`}
               >
-                <div className="flex items-center justify-between">
-                  <span className="font-sans-ui text-[13px] font-medium text-[var(--texto-suave)]">
-                    {card.label}
-                  </span>
-                  <span className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-[var(--tile-icono-bg)] text-[var(--acento-texto)]">
-                    <Icon size={18} />
+                <div className="adm-kpi-top">
+                  <span>{card.label}</span>
+                  <span className="adm-ico">
+                    <Icon size={17} />
                   </span>
                 </div>
 
-                <div className="mt-4 flex items-baseline justify-between">
-                  <span className="font-heading text-[32px] font-bold leading-none text-[var(--texto)]">
-                    {card.value}
-                  </span>
-                  <span className="font-mono-ui text-[11px] text-[var(--texto-suave)] group-hover:text-[var(--acento-texto)]">
+                <div className="adm-kpi-bot">
+                  <span className="adm-kpi-value">{card.value}</span>
+                  <span className="adm-kpi-note group-hover:text-[var(--ac2)]">
                     {card.sublabel}
                   </span>
                 </div>
               </Link>
             );
           })}
-        </div>
+        </section>
 
         {/* Bandeja Rápida de Mensajes Nuevos */}
-        <div className="overflow-hidden rounded-[18px] border border-[var(--borde)] bg-[var(--superficie)]">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--borde)] bg-[var(--superficie-alta)] px-5 py-4">
-            <div className="flex items-center gap-2.5">
-              <Mail size={18} className="text-[var(--acento-texto)]" />
-              <h2 className="font-heading text-[17px] font-bold text-[var(--texto)]">
-                Bandeja rápida de mensajes nuevos
-              </h2>
-              <Badge variant="status" status="nuevo">
-                {summary.kpis.pendingMessages} nuevos
-              </Badge>
-            </div>
+        <section className="adm-card flush mt-1">
+          <div className="adm-card-bar">
+            <Mail size={18} className="text-[var(--ac2)]" />
+            <h2 className="adm-h2">Bandeja rápida de mensajes nuevos</h2>
+            <Badge variant="status" status="nuevo">
+              {summary.kpis.pendingMessages} nuevos
+            </Badge>
 
             <Link
               to="/admin/mensajes"
-              className="font-sans-ui inline-flex items-center gap-1.5 text-[13px] font-medium text-[var(--acento-texto)] hover:underline"
+              className="adm-link inline-flex items-center gap-1.5"
             >
               <span>Ver bandeja completa</span>
               <ArrowRight size={14} />
@@ -197,55 +190,52 @@ export default function AdminDashboardPage() {
           </div>
 
           {summary.recentMessages.length === 0 ? (
-            <div className="px-6 py-10 text-center">
-              <p className="font-sans-ui text-[14px] font-medium text-[var(--texto)]">
-                No tienes mensajes pendientes de lectura
-              </p>
-              <p className="font-sans-ui mt-1 text-[13px] text-[var(--texto-suave)]">
-                Todas las consultas recientes fueron revisadas o respondidas.
-              </p>
+            <div className="adm-empty">
+              <strong>No tienes mensajes pendientes de lectura</strong>
+              Todas las consultas recientes fueron revisadas o respondidas.
             </div>
           ) : (
-            <div className="divide-y divide-[var(--borde)]">
+            <div>
               {summary.recentMessages.map((msg) => (
                 <Link
                   key={msg.id}
                   to={`/admin/mensajes/${msg.id}`}
-                  className="flex flex-col justify-between gap-3 px-5 py-4 transition-colors hover:bg-[var(--superficie-alta)]/60 sm:flex-row sm:items-center"
+                  className="adm-msg-row"
                 >
-                  <div className="min-w-0 flex-1">
+                  <div className="top">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-sans-ui truncate text-[14px] font-semibold text-[var(--texto)]">
+                      <span className="font-semibold text-[var(--adm-texto)]">
                         {msg.name}
                       </span>
-                      <span className="font-mono-ui text-[12px] text-[var(--texto-suave)]">
-                        &lt;{msg.email}&gt;
-                      </span>
-                      <Badge variant="neutral">
-                        {TYPE_LABELS[msg.type] || msg.type}
-                      </Badge>
+                      <span className="adm-mono">&lt;{msg.email}&gt;</span>
                     </div>
-                    <p className="font-sans-ui mt-1 truncate text-[13px] text-[var(--texto-suave)]">
-                      {msg.subject}
-                    </p>
-                  </div>
-
-                  <div className="flex shrink-0 items-center gap-3">
-                    <Badge variant="status" status={msg.status} />
-                    <span className="font-mono-ui inline-flex items-center gap-1 text-[11px] text-[var(--texto-suave)]">
+                    <span className="adm-mono inline-flex items-center gap-1">
                       <Clock size={12} />
                       {new Date(msg.created_at).toLocaleDateString('es-AR', {
                         day: '2-digit',
                         month: 'short',
                       })}
                     </span>
-                    <ArrowRight size={15} className="text-[var(--texto-suave)]" />
+                  </div>
+
+                  <p className="truncate text-[13.5px] text-[var(--adm-texto-suave)]">
+                    {msg.subject}
+                  </p>
+
+                  <div className="bot">
+                    <span className="adm-chip">
+                      {TYPE_LABELS[msg.type] || msg.type}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="status" status={msg.status} />
+                      <ArrowRight size={14} className="text-[var(--adm-texto-suave)]" />
+                    </div>
                   </div>
                 </Link>
               ))}
             </div>
           )}
-        </div>
+        </section>
       </DataState>
     </div>
   );
