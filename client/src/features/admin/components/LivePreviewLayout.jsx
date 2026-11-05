@@ -27,20 +27,18 @@ export default function LivePreviewLayout({
       <div
         role="tablist"
         aria-label="Modo de edición y vista previa"
-        className="grid grid-cols-2 gap-2 rounded-[14px] border border-[var(--borde)] bg-[var(--superficie)] p-1.5 xl:hidden"
+        className="adm-tabs xl:hidden"
       >
         <button
           type="button"
           role="tab"
           aria-selected={mobileTab === 'form'}
           onClick={() => setMobileTab('form')}
-          className={`font-sans-ui flex cursor-pointer items-center justify-center gap-2 rounded-[10px] px-4 py-2.5 text-[13px] font-semibold transition-colors ${
-            mobileTab === 'form'
-              ? 'bg-[var(--acento)] text-[var(--sobre-acento)]'
-              : 'text-[var(--texto-suave)] hover:bg-[var(--superficie-alta)] hover:text-[var(--texto)]'
+          className={`adm-tab flex-1 justify-center ${
+            mobileTab === 'form' ? 'is-on' : ''
           }`}
         >
-          <FileEdit size={16} />
+          <FileEdit size={15} />
           <span>Editar formulario</span>
         </button>
 
@@ -49,19 +47,17 @@ export default function LivePreviewLayout({
           role="tab"
           aria-selected={mobileTab === 'preview'}
           onClick={() => setMobileTab('preview')}
-          className={`font-sans-ui flex cursor-pointer items-center justify-center gap-2 rounded-[10px] px-4 py-2.5 text-[13px] font-semibold transition-colors ${
-            mobileTab === 'preview'
-              ? 'bg-[var(--acento)] text-[var(--sobre-acento)]'
-              : 'text-[var(--texto-suave)] hover:bg-[var(--superficie-alta)] hover:text-[var(--texto)]'
+          className={`adm-tab flex-1 justify-center ${
+            mobileTab === 'preview' ? 'is-on' : ''
           }`}
         >
-          <Eye size={16} />
+          <Eye size={15} />
           <span>Vista previa</span>
         </button>
       </div>
 
       {/* Contenedor Split-Screen en >= 1280px (xl:) */}
-      <div className="flex flex-col items-start gap-6 xl:flex-row">
+      <div className="flex flex-col items-start gap-5 xl:flex-row">
         {/* Columna Izquierda (55% en xl:): Formulario */}
         <div
           className={`w-full xl:w-[55%] xl:shrink-0 ${
@@ -73,18 +69,16 @@ export default function LivePreviewLayout({
 
         {/* Columna Derecha (45% en xl:): Lienzo de Vista Previa Sticky */}
         <div
-          className={`w-full xl:sticky xl:top-[84px] xl:w-[45%] xl:shrink-0 ${
+          className={`w-full xl:sticky xl:top-[76px] xl:w-[45%] xl:shrink-0 ${
             mobileTab === 'preview' ? 'block' : 'hidden xl:block'
           }`}
         >
-          <div className="overflow-hidden rounded-[18px] border border-[var(--borde)] bg-[var(--superficie)] shadow-lg">
+          <div className="adm-card flush">
             {/* Cabecera del Lienzo de Vista Previa */}
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--borde)] bg-[var(--superficie-alta)] px-4 py-3">
-              <div className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-emerald-400" aria-hidden="true" />
-                <span className="font-mono-ui text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--texto)]">
-                  {previewTitle}
-                </span>
+            <div className="adm-preview-head">
+              <div className="adm-preview-title">
+                <span className="dot" aria-hidden="true" />
+                <span>{previewTitle}</span>
               </div>
 
               {/* Selector de Rol de Visualización (exclusivo para Proyectos y Demos) */}
@@ -92,15 +86,13 @@ export default function LivePreviewLayout({
                 <div
                   role="group"
                   aria-label="Selector de rol de visualización"
-                  className="inline-flex rounded-[10px] border border-[var(--borde)] bg-[var(--fondo)] p-1"
+                  className="adm-seg"
                 >
                   <button
                     type="button"
                     onClick={() => onPreviewRoleChange?.('visitor')}
-                    className={`font-sans-ui inline-flex cursor-pointer items-center gap-1.5 rounded-[7px] px-2.5 py-1 text-[11px] font-medium transition-colors ${
-                      previewRole === 'visitor'
-                        ? 'bg-[var(--acento)] text-[var(--sobre-acento)]'
-                        : 'text-[var(--texto-suave)] hover:text-[var(--texto)]'
+                    className={`inline-flex items-center gap-1.5 ${
+                      previewRole === 'visitor' ? 'is-on' : ''
                     }`}
                   >
                     <User size={12} />
@@ -110,10 +102,8 @@ export default function LivePreviewLayout({
                   <button
                     type="button"
                     onClick={() => onPreviewRoleChange?.('registered')}
-                    className={`font-sans-ui inline-flex cursor-pointer items-center gap-1.5 rounded-[7px] px-2.5 py-1 text-[11px] font-medium transition-colors ${
-                      previewRole === 'registered'
-                        ? 'bg-[var(--acento)] text-[var(--sobre-acento)]'
-                        : 'text-[var(--texto-suave)] hover:text-[var(--texto)]'
+                    className={`inline-flex items-center gap-1.5 ${
+                      previewRole === 'registered' ? 'is-on' : ''
                     }`}
                   >
                     <UserCheck size={12} />
@@ -124,7 +114,7 @@ export default function LivePreviewLayout({
             </div>
 
             {/* Cuerpo del Lienzo de Previsualización */}
-            <div className="max-h-[calc(100vh-165px)] overflow-y-auto bg-[var(--fondo)] p-4 sm:p-5">
+            <div className="adm-preview-body max-h-[calc(100vh-165px)] overflow-y-auto">
               {previewContent}
             </div>
           </div>
