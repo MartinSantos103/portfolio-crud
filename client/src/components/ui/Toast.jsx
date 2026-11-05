@@ -44,35 +44,42 @@ export function ToastProvider({ children }) {
           const isSuccess = item.type === 'success';
           const isError = item.type === 'error';
 
+          const borderColor = isSuccess
+            ? 'color-mix(in srgb, var(--ok) 45%, transparent)'
+            : isError
+              ? 'color-mix(in srgb, var(--bad) 45%, transparent)'
+              : 'rgba(var(--br), 0.4)';
+
+          const iconColor = isSuccess
+            ? 'var(--ok)'
+            : isError
+              ? 'var(--bad)'
+              : 'var(--ac2)';
+
           return (
             <div
               key={item.id}
               role="status"
-              className={`pointer-events-auto flex items-start gap-3 rounded-[14px] border p-4 shadow-xl transition-all ${
-                isSuccess
-                  ? 'border-emerald-500/40 bg-[var(--superficie)] text-[var(--texto)]'
-                  : isError
-                    ? 'border-red-500/45 bg-[var(--superficie)] text-[var(--texto)]'
-                    : 'border-[var(--borde)] bg-[var(--superficie)] text-[var(--texto)]'
-              }`}
+              style={{ borderColor }}
+              className="pointer-events-auto flex items-start gap-3 rounded-[14px] border bg-[#06060ef5] p-4 text-[var(--tx)] shadow-[0_14px_40px_-10px_#000,0_0_24px_-8px_rgba(var(--ar),0.45)] backdrop-blur-md transition-all"
             >
-              <span className="mt-0.5 shrink-0">
+              <span className="mt-0.5 shrink-0" style={{ color: iconColor }}>
                 {isSuccess ? (
-                  <CheckCircle2 size={18} className="text-emerald-400" />
+                  <CheckCircle2 size={18} />
                 ) : isError ? (
-                  <AlertCircle size={18} className="text-red-400" />
+                  <AlertCircle size={18} />
                 ) : (
-                  <Info size={18} className="text-[var(--acento-texto)]" />
+                  <Info size={18} />
                 )}
               </span>
 
-              <div className="flex-1 min-w-0">
+              <div className="min-w-0 flex-1">
                 {item.title && (
-                  <p className="font-sans-ui text-[13px] font-semibold leading-tight text-[var(--texto)]">
+                  <p className="font-sans-ui text-[13px] font-semibold leading-tight text-[var(--tx)]">
                     {item.title}
                   </p>
                 )}
-                <p className="font-sans-ui mt-1 text-[13px] leading-snug text-[var(--texto-suave)]">
+                <p className="font-sans-ui mt-1 text-[13px] leading-snug text-[var(--mut)]">
                   {item.message}
                 </p>
               </div>
@@ -81,7 +88,7 @@ export function ToastProvider({ children }) {
                 type="button"
                 onClick={() => removeToast(item.id)}
                 aria-label="Cerrar notificación"
-                className="cursor-pointer rounded-md p-1 text-[var(--texto-suave)] hover:bg-[var(--superficie-alta)] hover:text-[var(--texto)]"
+                className="cursor-pointer rounded-md p-1 text-[var(--mut)] hover:bg-[var(--card)] hover:text-[var(--tx)]"
               >
                 <X size={15} />
               </button>

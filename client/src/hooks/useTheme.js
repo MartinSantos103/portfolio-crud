@@ -1,55 +1,111 @@
 import { useState, useEffect, useCallback } from 'react';
 
-const STORAGE_KEY = 'portfolio_theme';
+export const PALETTES = [
+  { name: 'Violeta', ar: '130,119,242', br: '167,156,255', lt: '216,204,255', hue: 262 },
+  { name: 'Azul',    ar: '79,140,255',  br: '125,177,255', lt: '197,219,255', hue: 218 },
+  { name: 'Cian',    ar: '34,211,238',  br: '103,232,249', lt: '186,244,252', hue: 187 },
+  { name: 'Menta',   ar: '52,211,153',  br: '110,231,183', lt: '187,247,222', hue: 158 },
+  { name: 'Rosa',    ar: '244,114,182', br: '249,168,212', lt: '252,215,236', hue: 330 },
+  { name: 'Coral',   ar: '251,113,133', br: '253,164,175', lt: '254,215,220', hue: 350 },
+  { name: 'Ámbar',   ar: '251,191,36',  br: '252,211,77',  lt: '254,240,180', hue: 42 },
+];
 
-function getInitialTheme() {
-  if (typeof window === 'undefined') return 'dark';
-  const saved = localStorage.getItem(STORAGE_KEY);
-  if (saved === 'light' || saved === 'dark') {
-    return saved;
+const ACCENT_STORAGE_KEY = 'ac';
+const LEGACY_THEME_KEY = 'portfolio_theme';
+const NOOP = () => {};
+
+function getInitialPaletteIndex() {
+  if (typeof window === 'undefined') return 0;
+  try {
+    // Limpiar preferencia antigua de modo claro/oscuro y forzar oscuro
+    localStorage.removeItem(LEGACY_THEME_KEY);
+    // Transitorio: se mantiene data-theme="dark" para el panel sin tematizar
+    // (clases [html[data-theme="dark"]_&]:...). Se quita en el PR del panel.
+    document.documentElement.setAttribute('data-theme', 'dark');
+
+    const raw = localStorage.getItem(ACCENT_STORAGE_KEY);
+    const parsed = Number(raw);
+    if (Number.isInteger(parsed) && parsed >= 0 && parsed < PALETTES.length) {
+      return parsed;
+    }
+  } catch {
+    // Ignorar errores de almacenamiento restringido
   }
-  const attr = document.documentElement.getAttribute('data-theme');
-  if (attr === 'light' || attr === 'dark') {
-    return attr;
-  }
-  return 'dark';
+  return 0;
+}
+
+function applyPaletteVariables(index) {
+  if (typeof document === 'undefined') return;
+  const palette = PALETTES[index] || PALETTES[0];
+  const root = document.documentElement;
+  root.style.setProperty('--ar', palette.ar);
+  root.style.setProperty('--br', palette.br);
+  root.style.setProperty('--lt', palette.lt);
+  root.style.setProperty('--hue', String(palette.hue));
 }
 
 export function useTheme() {
-  const [theme, setThemeState] = useState(getInitialTheme);
+  const [paletteIndex, setPaletteIndex] = useState(getInitialPaletteIndex);
 
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem(STORAGE_KEY, theme);
-  }, [theme]);
+    applyPaletteVariables(paletteIndex);
+  }, [paletteIndex]);
 
   useEffect(() => {
-    const handleCustomChange = (e) => {
-      if (e.detail && (e.detail === 'light' || e.detail === 'dark')) {
-        setThemeState(e.detail);
+    const handleAccentSync = (e) => {
+      const nextIdx =
+        typeof e.detail === 'number'
+          ? e.detail
+          : getInitialPaletteIndex();
+      if (nextIdx >= 0 && nextIdx < PALETTES.length) {
+        setPaletteIndex(nextIdx);
       }
     };
-    window.addEventListener('portfolio:theme-change', handleCustomChange);
-    return () => window.removeEventListener('portfolio:theme-change', handleCustomChange);
+
+    const handleStorage = (e) => {
+      if (e.key === ACCENT_STORAGE_KEY) {
+        const parsed = Number(e.newValue);
+        if (Number.isInteger(parsed) && parsed >= 0 && parsed < PALETTES.length) {
+          applyPaletteVariables(parsed);
+          setPaletteIndex(parsed);
+        }
+      }
+    };
+
+    window.addEventListener('acento', handleAccentSync);
+    window.addEventListener('storage', handleStorage);
+    return () => {
+      window.removeEventListener('acento', handleAccentSync);
+      window.removeEventListener('storage', handleStorage);
+    };
   }, []);
 
-  const setTheme = useCallback((nextTheme) => {
-    const resolved = nextTheme === 'light' ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', resolved);
-    localStorage.setItem(STORAGE_KEY, resolved);
-    setThemeState(resolved);
-    window.dispatchEvent(new CustomEvent('portfolio:theme-change', { detail: resolved }));
-  }, []);
+  const setPalette = useCallback((nextIndex) => {
+    const idx = Number(nextIndex);
+    const validIndex =
+      Number.isInteger(idx) && idx >= 0 && idx < PALETTES.length ? idx : 0;
 
-  const toggleTheme = useCallback(() => {
-    setTheme(theme === 'dark' ? 'light' : 'dark');
-  }, [theme, setTheme]);
+    applyPaletteVariables(validIndex);
+    try {
+      localStorage.setItem(ACCENT_STORAGE_KEY, String(validIndex));
+    } catch {
+      // Ignorar errores de escritura en localStorage
+    }
+    setPaletteIndex(validIndex);
+    window.dispatchEvent(new CustomEvent('acento', { detail: validIndex }));
+  }, []);
 
   return {
-    theme,
-    isDark: theme === 'dark',
-    isLight: theme === 'light',
-    setTheme,
-    toggleTheme,
+    palettes: PALETTES,
+    paletteIndex,
+    currentPalette: PALETTES[paletteIndex] || PALETTES[0],
+    setPalette,
+    // Compatibilidad transitoria con AdminLayout (sin tematizar en este PR):
+    // el sitio es solo oscuro, así que el tema es fijo y el toggle no hace nada.
+    theme: 'dark',
+    isDark: true,
+    isLight: false,
+    setTheme: NOOP,
+    toggleTheme: NOOP,
   };
 }

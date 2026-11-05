@@ -2,7 +2,7 @@
 /**
  * DevIcon - Renderizador de iconos de tecnologías mediante Devicon.
  * Mapea identificadores de tecnologías a las clases font correspondientes
- * y adapta la coloración para un contraste impecable en temas oscuros y claros.
+ * y adapta la coloración para un contraste impecable sobre superficies cósmicas.
  */
 
 export const CURATED_TECH_ICONS = [

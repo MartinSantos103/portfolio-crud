@@ -1,10 +1,9 @@
 /**
- * Pastilla de filtro para la sección Trayectoria.
- * - Tipografía: Inter 500, 14 px
+ * Pastilla de filtro para la sección Trayectoria y barras de herramientas.
+ * - Tipografía: DM Sans (--font-sans), 14 px
  * - Radio: 999 px (píldora)
- * - Padding: 8 px vertical y 18 px horizontal
- * - Activo: fondo --acento y texto --sobre-acento
- * - Inactivo: borde 1 px --borde y fondo --superficie, texto --texto-suave
+ * - Activo: fondo --ac y texto #0a0c1b
+ * - Inactivo: borde 1 px --bd y fondo --bg2, texto --mut
  */
 export default function FilterPill({ label, active = false, onClick, className = '' }) {
   return (
@@ -12,11 +11,7 @@ export default function FilterPill({ label, active = false, onClick, className =
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`font-sans-ui cursor-pointer rounded-full px-[18px] py-[8px] text-[14px] font-medium transition-colors duration-200 ${
-        active
-          ? 'border border-[var(--acento)] bg-[var(--acento)] text-[var(--sobre-acento)]'
-          : 'border border-[var(--borde)] bg-[var(--superficie)] text-[var(--texto-suave)] hover:border-[var(--acento)] hover:text-[var(--texto)]'
-      } ${className}`}
+      className={`fbtn ${active ? 'on' : ''} ${className}`}
     >
       {label}
     </button>

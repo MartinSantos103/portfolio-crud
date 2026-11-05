@@ -1,7 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import {
-  Sun,
-  Moon,
+  Palette,
   User,
   ArrowRight,
   ArrowLeft,
@@ -61,11 +60,8 @@ export const CURATED_SERVICE_ICONS = [
 ];
 
 const LUCIDE_ICON_MAP = {
-  // Tema y usuario
-  'theme-sun': Sun,
-  'sun': Sun,
-  'theme-moon': Moon,
-  'moon': Moon,
+  // Paleta de acento y usuario
+  'palette': Palette,
   'user-person': User,
   'user': User,
   'profile-photo-placeholder': User,
@@ -115,6 +111,7 @@ const LUCIDE_ICON_MAP = {
   'apps-medida': AppWindow,
   'app-window': AppWindow,
   'service-apis-backend': Server,
+  'service-apis-backend-alt': Server,
   'apis-backend': Server,
   'server': Server,
   'service-database': Database,
@@ -238,7 +235,7 @@ export default function IconSlot({
       aria-hidden="true"
       data-icon-slot={name}
       style={dimensionStyle}
-      className={`inline-flex shrink-0 items-center justify-center text-[var(--texto-suave)] ${className}`}
+      className={`inline-flex shrink-0 items-center justify-center text-[var(--mut)] ${className}`}
       {...props}
     >
       <Code2 size={Math.max(12, size - 2)} strokeWidth={1.8} />

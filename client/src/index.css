@@ -1,85 +1,111 @@
 @import "tailwindcss";
 
-:root,
-[data-theme="dark"] {
-  --fondo: #0B0D17;
-  --superficie: #141830;
-  --superficie-alta: #1B2040;
-  --borde: #262B4A;
-  --texto: #E8EAF6;
-  --texto-suave: #9AA0C0;
-  --acento: #8B7CFF;
-  --acento-hover: #A99EFF;
-  --acento-texto: #C4B5FD; /* text-violet-300: contraste WCAG AA >= 4.5:1 sobre fondos oscuros */
-  --sobre-acento: #0B0D17;
-  --estrellas: #FFFFFF;
-  --disponible: #3DDC97;
-
-  /* Transparencias derivadas de variables CSS para soportar temas */
-  --header-bg: color-mix(in srgb, var(--superficie) 72%, transparent);
-  --tile-icono-bg: color-mix(in srgb, var(--acento) 15%, transparent);
-  --etiqueta-tipo-bg: color-mix(in srgb, var(--acento) 14%, transparent);
-  --halo-punto-bg: color-mix(in srgb, var(--acento) 18%, transparent);
-  --stack-bloque-bg: color-mix(in srgb, var(--superficie) 60%, transparent);
-  --insignia-candado-bg: color-mix(in srgb, var(--fondo) 80%, transparent);
-  --logo-marca-bg: color-mix(in srgb, var(--acento) 30%, transparent);
-  --foto-halo-bg: color-mix(in srgb, var(--acento) 35%, transparent);
-  --foto-anillo-borde: color-mix(in srgb, var(--acento) 40%, transparent);
-  --chip-hover-shadow: 0 8px 22px rgba(139, 124, 255, 0.35);
-
-  --font-heading: 'Space Grotesk', sans-serif;
-  --font-sans: 'Inter', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+@property --ang {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
 }
 
-[data-theme="light"] {
-  --fondo: #F6F7FB;
-  --superficie: #FFFFFF;
-  --superficie-alta: #EEF1F8;
-  --borde: #D8DFEE;
-  --texto: #11152A;
-  --texto-suave: #4E5678;
-  --acento: #6552E6;
-  --acento-hover: #533FD6;
-  --acento-texto: #533FD6; /* alto contraste WCAG AA sobre fondos claros */
-  --sobre-acento: #FFFFFF;
-  --estrellas: #6552E6;
-  --disponible: #0D9F6E;
+:root {
+  /* Colores base compartidos por sitio público y panel de administración */
+  --bg: #000000;
+  --bg2: #0b0a16;
+  --card: #0e0d1f;
+  --tx: #eceefb;
+  --mut: #9ea3c7;
 
-  --header-bg: color-mix(in srgb, var(--superficie) 85%, transparent);
-  --tile-icono-bg: color-mix(in srgb, var(--acento) 12%, transparent);
-  --etiqueta-tipo-bg: color-mix(in srgb, var(--acento) 12%, transparent);
-  --halo-punto-bg: color-mix(in srgb, var(--acento) 15%, transparent);
-  --stack-bloque-bg: color-mix(in srgb, var(--superficie) 90%, transparent);
-  --insignia-candado-bg: color-mix(in srgb, var(--superficie) 90%, transparent);
-  --logo-marca-bg: color-mix(in srgb, var(--acento) 20%, transparent);
-  --foto-halo-bg: color-mix(in srgb, var(--acento) 22%, transparent);
-  --foto-anillo-borde: color-mix(in srgb, var(--acento) 35%, transparent);
-  --chip-hover-shadow: 0 8px 22px rgba(101, 82, 230, 0.22);
+  /* Paleta de acento activa (por defecto Violeta) */
+  --ar: 130, 119, 242;
+  --br: 167, 156, 255;
+  --lt: 216, 204, 255;
+  --hue: 262;
+  --h: var(--hue, 262);
+
+  /* Colores de acento y borde derivados de la paleta */
+  --ac: rgb(var(--ar));
+  --ac2: rgb(var(--br));
+  --bd: rgba(var(--ar), 0.22);
+
+  /* Colores semánticos fijos (no cambian con la paleta) */
+  --ok: #34d399;
+  --warn: #fbbf24;
+  --bad: #fb7185;
+  --info: #22d3ee;
+
+  /* Tipografías del sistema de diseño */
+  --font-heading: 'Bricolage Grotesque', sans-serif;
+  --font-sans: 'DM Sans', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Esquema de color exclusivamente oscuro */
+  color-scheme: dark;
+
+  /* Alias semánticos para retrocompatibilidad de componentes */
+  --fondo: var(--bg);
+  --superficie: var(--bg2);
+  --superficie-alta: var(--card);
+  --borde: var(--bd);
+  --texto: var(--tx);
+  --texto-suave: var(--mut);
+  --acento: var(--ac);
+  --acento-hover: var(--ac2);
+  --acento-texto: rgb(var(--lt));
+  --sobre-acento: #0a0c1b;
+  --estrellas: #ffffff;
+  --disponible: var(--ok);
+
+  /* Transparencias derivadas de los tokens globales */
+  --header-bg: rgba(0, 0, 0, 0.72);
+  --tile-icono-bg: rgba(var(--ar), 0.16);
+  --etiqueta-tipo-bg: rgba(var(--ar), 0.16);
+  --halo-punto-bg: rgba(var(--ar), 0.18);
+  --stack-bloque-bg: rgba(11, 10, 22, 0.72);
+  --insignia-candado-bg: rgba(0, 0, 0, 0.85);
+  --logo-marca-bg: rgba(var(--ar), 0.3);
+  --foto-halo-bg: rgba(var(--ar), 0.35);
+  --foto-anillo-borde: rgba(var(--lt), 0.42);
+  --chip-hover-shadow: 0 8px 22px rgba(var(--ar), 0.35);
+
+  /* Constelación sutil para el fondo de las tarjetas (.cb::after) */
+  --cm: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 70 44'%3E%3Cpath d='M3 38 25 20 44 28 66 6' fill='none' stroke='%23fff' stroke-width='1.2'/%3E%3Cg fill='%23fff'%3E%3Ccircle cx='3' cy='38' r='2'/%3E%3Ccircle cx='25' cy='20' r='2.5'/%3E%3Ccircle cx='44' cy='28' r='2'/%3E%3Ccircle cx='66' cy='6' r='3'/%3E%3C/g%3E%3C/svg%3E");
 }
 
 @layer base {
   html {
-    background-color: var(--fondo);
-    color: var(--texto);
+    background-color: var(--bg);
+    color: var(--tx);
     font-family: var(--font-sans);
     scroll-behavior: smooth;
+    scroll-padding-top: 84px;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    html {
-      scroll-behavior: auto;
-    }
-  }
-
   body {
-    background-color: var(--fondo);
-    color: var(--texto);
+    background:
+      radial-gradient(ellipse at 15% 28%, rgba(var(--ar), 0.14), transparent 52%),
+      radial-gradient(ellipse at 88% 62%, rgba(var(--br), 0.08), transparent 52%),
+      var(--bg);
+    background-attachment: fixed;
+    color: var(--tx);
+    font-family: var(--font-sans);
+    line-height: 1.6;
     margin: 0;
     min-height: 100vh;
     overflow-x: hidden;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-heading);
+    line-height: 1.1;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ac2);
+    outline-offset: 3px;
   }
 }
 
@@ -95,31 +121,471 @@
   font-family: var(--font-mono);
 }
 
-/* Hover del chip de tecnología */
+/* ==========================================================
+   Componentes Base Reutilizables (Parte 0)
+   ========================================================== */
+
+/* 1. Tarjetas (.card / .cb) */
+.card {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(130% 100% at 100% 0, hsla(var(--h, 262), 80%, 60%, 0.12), transparent 58%),
+    linear-gradient(165deg, #14122a, #06060e);
+  border: 1px solid rgba(var(--br), 0.32);
+  border-radius: 16px;
+  box-shadow:
+    0 10px 30px -14px rgba(0, 0, 0, 0.9),
+    0 0 22px -8px rgba(var(--ar), 0.45);
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
+}
+
+.card:hover {
+  box-shadow:
+    0 22px 50px -18px var(--ac),
+    0 0 30px -6px rgba(var(--br), 0.55);
+}
+
+.cb {
+  position: relative;
+  padding: 20px;
+}
+
+/* 2. Botones (.btn, .btn.p / .btn-p, .btn-s, .btn-sm)
+   Solo se levantan verticalmente al pasar el mouse (sin efecto imán lateral) */
+.btn {
+  position: relative;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--bd);
+  background: rgba(0, 0, 0, 0.55);
+  color: var(--tx);
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 15px;
+  padding: 12px 20px;
+  border-radius: 10px;
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    translate 0.2s ease,
+    box-shadow 0.3s ease,
+    border-color 0.3s ease,
+    background-color 0.2s ease;
+}
+
+.btn:hover:not(:disabled) {
+  border-color: var(--ac);
+  box-shadow: 0 0 24px rgba(var(--ar), 0.4);
+  translate: 0 -3px;
+}
+
+.btn:active:not(:disabled) {
+  translate: 0 -1px;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn.p,
+.btn-p {
+  background: var(--ac);
+  color: #0a0c1b;
+  border-color: var(--ac);
+  font-weight: 600;
+}
+
+.btn.p:hover:not(:disabled),
+.btn-p:hover:not(:disabled) {
+  background: var(--ac2);
+  border-color: var(--ac2);
+}
+
+.btn-s {
+  background: rgba(11, 10, 22, 0.85);
+  color: var(--tx);
+  border-color: var(--bd);
+}
+
+.btn-sm {
+  padding: 7px 13px;
+  font-size: 13px;
+  border-radius: 9px;
+}
+
+/* 3. Chips, Tags y Pastillas de Filtro */
+.chip,
 .tech-chip {
-  background-color: var(--superficie);
-  border: 1px solid var(--borde);
-  color: var(--texto);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
   font-family: var(--font-mono);
   font-weight: 500;
+  font-size: 13px;
+  padding: 7px 12px;
+  border-radius: 9px;
+  border: 1px solid var(--bd);
+  background: var(--bg2);
+  color: var(--tx);
   transition:
+    scale 0.25s cubic-bezier(0.5, 1.8, 0.4, 1),
     transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
-    border-color 0.2s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.chip:hover,
+.tech-chip:hover {
+  border-color: var(--ac);
+  box-shadow: var(--chip-hover-shadow);
+  transform: translateY(-2px);
+}
+
+.tag {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  padding: 4px 9px;
+  border-radius: 6px;
+  background: rgba(var(--ar), 0.16);
+  color: var(--ac2);
+  text-transform: uppercase;
+}
+
+.fbtn {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 14px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: 1px solid var(--bd);
+  background: var(--bg2);
+  color: var(--mut);
+  cursor: pointer;
+  transition:
     background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.fbtn:hover {
+  border-color: var(--ac);
+  color: var(--tx);
+}
+
+.fbtn.on {
+  background: var(--ac);
+  border-color: var(--ac);
+  color: #0a0c1b;
+}
+
+/* 4. Badges de estado con tokens semánticos fijos */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 11px;
+  line-height: 1;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--bd);
+  background: var(--bg2);
+  color: var(--tx);
+}
+
+.badge-ok {
+  color: var(--ok);
+  background: color-mix(in srgb, var(--ok) 14%, transparent);
+  border-color: color-mix(in srgb, var(--ok) 35%, transparent);
+}
+
+.badge-warn {
+  color: var(--warn);
+  background: color-mix(in srgb, var(--warn) 14%, transparent);
+  border-color: color-mix(in srgb, var(--warn) 35%, transparent);
+}
+
+.badge-bad {
+  color: var(--bad);
+  background: color-mix(in srgb, var(--bad) 14%, transparent);
+  border-color: color-mix(in srgb, var(--bad) 35%, transparent);
+}
+
+.badge-info {
+  color: var(--info);
+  background: color-mix(in srgb, var(--info) 14%, transparent);
+  border-color: color-mix(in srgb, var(--info) 35%, transparent);
+}
+
+.badge-accent {
+  color: var(--ac2);
+  background: rgba(var(--ar), 0.16);
+  border-color: rgba(var(--br), 0.38);
+}
+
+/* 5. Toggle / Interruptor (.toggle / .adm-switch) */
+.toggle,
+.adm-switch {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 42px;
+  height: 24px;
+  border-radius: 999px;
+  position: relative;
+  cursor: pointer;
+  background: var(--card);
+  border: 1px solid var(--bd);
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+  flex-shrink: 0;
+}
+
+.toggle::after,
+.adm-switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--mut);
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.toggle:checked,
+.adm-switch:checked {
+  background: var(--ac);
+  border-color: var(--ac);
+}
+
+.toggle:checked::after,
+.adm-switch:checked::after {
+  transform: translateX(18px);
+  background: #0a0c1b;
+}
+
+/* 6. Inputs, Textareas y Selects con flecha SVG propia */
+.f label,
+.field-label {
+  display: block;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 13px;
+  color: var(--tx);
+  margin-bottom: 6px;
+}
+
+.f input,
+.f textarea,
+.f select,
+.ui-input,
+.ui-textarea,
+.ui-select {
+  width: 100%;
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-size: 15px;
+  color: var(--tx);
+  background-color: var(--bg);
+  border: 1px solid var(--bd);
+  border-radius: 12px;
+  padding: 13px 16px;
+  outline: none;
+  transition:
+    border-color 0.2s ease,
     box-shadow 0.2s ease;
 }
 
-.tech-chip:hover {
-  transform: translateY(-3px);
-  border-color: var(--acento);
-  background-color: var(--superficie-alta);
-  box-shadow: var(--chip-hover-shadow);
+.f input::placeholder,
+.f textarea::placeholder,
+.ui-input::placeholder,
+.ui-textarea::placeholder {
+  color: var(--mut);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .tech-chip:hover {
-    transform: none;
-  }
+.f input:focus,
+.f textarea:focus,
+.f select:focus,
+.ui-input:focus,
+.ui-textarea:focus,
+.ui-select:focus {
+  border-color: var(--ac);
+  box-shadow: 0 0 0 4px rgba(var(--ar), 0.22);
+}
+
+.f select,
+.ui-select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 44px;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ea3c7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+}
+
+/* 7. Tabla, Estado Vacío y Paginación Base */
+.adm-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.adm-table th {
+  text-align: left;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--mut);
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--bd);
+  background: rgba(14, 13, 31, 0.7);
+}
+
+.adm-table td {
+  padding: 13px 16px;
+  border-bottom: 1px solid rgba(var(--ar), 0.14);
+  vertical-align: middle;
+  font-size: 14px;
+  color: var(--tx);
+}
+
+.adm-table tr:hover td {
+  background: rgba(var(--ar), 0.06);
+}
+
+.adm-empty {
+  text-align: center;
+  padding: 38px 20px;
+  color: var(--mut);
+}
+
+.adm-pager,
+.adm-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--mut);
+}
+
+/* 8. Selector de Paleta de Acento Compartido (.pal, .pp, .sw2) */
+.pal {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--bd);
+  background: #000000;
+  color: var(--ac2);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition:
+    rotate 0.5s ease,
+    box-shadow 0.3s ease,
+    border-color 0.2s ease;
+}
+
+.pal:hover {
+  rotate: 30deg;
+  border-color: var(--ac);
+  box-shadow: 0 0 18px rgba(var(--ar), 0.5);
+}
+
+.pp {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 60;
+  width: min(290px, calc(100vw - 32px));
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(4, 4, 10, 0.96);
+  border: 1px solid var(--bd);
+  backdrop-filter: blur(16px);
+  box-shadow:
+    0 20px 50px -10px #000000,
+    0 0 30px -10px rgba(var(--ar), 0.5);
+  opacity: 0;
+  translate: 0 -8px;
+  scale: 0.97;
+  transform-origin: top right;
+  pointer-events: none;
+  transition:
+    opacity 0.22s ease,
+    translate 0.22s ease,
+    scale 0.22s ease;
+}
+
+.pp.open {
+  opacity: 1;
+  translate: 0 0;
+  scale: 1;
+  pointer-events: auto;
+}
+
+.pt {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--mut);
+  margin: 0 0 12px;
+}
+
+.ps {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.sw2 {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  background: rgb(var(--c));
+  box-shadow: 0 0 14px rgba(var(--c), 0.5);
+  cursor: pointer;
+  transition:
+    scale 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.sw2:hover {
+  scale: 1.12;
+}
+
+.sw2.on {
+  border-color: #ffffff;
+  scale: 1.1;
+}
+
+.pn {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 13px;
+  margin: 12px 0 0;
+  color: var(--ac2);
 }
 
 /* Cursor de escritura en Hero */
@@ -136,8 +602,32 @@
   display: inline-block;
   width: 2px;
   height: 1.1em;
-  background-color: var(--acento);
+  background-color: var(--ac);
   vertical-align: text-bottom;
   margin-left: 3px;
   animation: cursor-blink 1s infinite;
+}
+
+/* Accesibilidad: Respeto estricto por prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .btn:hover:not(:disabled),
+  .chip:hover,
+  .tech-chip:hover,
+  .pal:hover {
+    translate: none !important;
+    transform: none !important;
+    rotate: none !important;
+  }
 }
