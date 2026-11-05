@@ -3,21 +3,11 @@ import AttitudeCard from '../../../components/ui/AttitudeCard.jsx';
 import TechChip from '../../../components/ui/TechChip.jsx';
 
 /**
- * Sección 01 / SOBRE MÍ.
- * - Padding vertical: 110 px arriba y abajo, márgenes laterales 160 px (1120 px centrado).
- * - Encabezado de sección + dos bloques apilados:
- *   1. Primera fila con 64 px entre columnas:
- *      - Izquierda: columna flexible con 3 párrafos y 20 px entre ellos
- *        (1º párrafo Inter 400 20 px / 32 px --texto; 2º y 3º Inter 400 17 px / 28 px --texto-suave).
- *      - Derecha: columna de 400 px con 3 tarjetas de actitud apiladas, 16 px entre ellas.
- *   2. Segundo bloque ("Stack y herramientas"):
- *      - Tarjeta de ancho completo con padding 40 px, radio 24 px, fondo --superficie al 60 %,
- *        borde 1 px --borde y 28 px entre sus elementos.
- *      - Título (Space Grotesk 700, 28 px, -0.4 px) con subtítulo (Inter 400, 16 px, --texto-suave).
- *      - Cuatro filas de categoría (Frontend, Backend, Base de datos, Herramientas):
- *        cada fila centrada en vertical con nombre de categoría en columna fija de 140 px
- *        (JetBrains Mono 500, 12 px, espaciado 1.5 px, mayúsculas, --acento), 24 px de separación
- *        y a su derecha los chips de tecnología grandes con 12 px de separación entre chips.
+ * Sección 01 / SOBRE MÍ según el prototipo Portfolio_animado_v4.html:
+ * - Eyebrow (.ey), título (h2), subtítulo (.sub)
+ * - Tres párrafos (.p1 de mayor jerarquía y dos .p2 en --mut)
+ * - Grilla de 3 tarjetas de actitudes (.grid .g3)
+ * - Tarjeta de ancho completo para "Stack y herramientas" con filas por categoría
  */
 export default function AboutSection({
   about,
@@ -25,62 +15,54 @@ export default function AboutSection({
   stackCategories = [],
 }) {
   return (
-    <section id="sobre-mi" className="relative z-10 w-full py-[80px] lg:py-[110px]">
-      <div className="mx-auto w-full max-w-[1440px] px-[24px] sm:px-[64px] xl:px-[160px]">
+    <section id="sobre-mi" className="relative z-10 w-full py-[72px] lg:py-[90px]">
+      <div className="mx-auto w-full max-w-[1080px] px-[20px]">
         <SectionHeader
           label={about.sectionLabel}
           title={about.title}
           subtitle={about.subtitle}
         />
 
-        <div className="flex flex-col gap-[64px]">
-          {/* Primera fila: textos a la izquierda y 3 tarjetas de actitud a la derecha (64 px entre columnas) */}
-          <div className="flex flex-col items-start gap-[40px] lg:flex-row lg:gap-[64px]">
-            {/* Columna izquierda flexible: 3 párrafos con 20 px entre ellos */}
-            <div className="flex flex-1 flex-col gap-[20px]">
-              {about.paragraphs?.map((paragraph, index) => (
-                <p
-                  key={index}
-                  className={
-                    index === 0
-                      ? 'font-sans-ui text-[20px] font-normal leading-[32px] text-[var(--texto)]'
-                      : 'font-sans-ui text-[17px] font-normal leading-[28px] text-[var(--texto-suave)]'
-                  }
-                >
-                  {paragraph}
-                </p>
-              ))}
-            </div>
+        {/* Párrafos de biografía */}
+        <div className="flex flex-col">
+          {about.paragraphs?.map((paragraph, index) => (
+            <p
+              key={index}
+              className={
+                index === 0
+                  ? 'mb-[14px] max-w-[62ch] font-sans-ui text-[clamp(18px,2.6vw,22px)] leading-[1.55] text-[var(--tx)]'
+                  : 'mb-[12px] max-w-[62ch] font-sans-ui text-[16px] leading-[1.6] text-[var(--mut)]'
+              }
+            >
+              {paragraph}
+            </p>
+          ))}
+        </div>
 
-            {/* Columna derecha de 400 px: 3 tarjetas de actitud apiladas con 16 px entre ellas */}
-            <div className="flex w-full shrink-0 flex-col gap-[16px] lg:w-[400px]">
-              {about.attitudes?.map((attitude) => (
-                <AttitudeCard
-                  key={attitude.id}
-                  iconId={attitude.id}
-                  title={attitude.title}
-                  description={attitude.description}
-                  iconUrl={attitude.iconUrl}
-                />
-              ))}
-            </div>
-          </div>
+        {/* Grilla de 3 tarjetas de actitud */}
+        <div className="mt-[26px] grid grid-cols-1 gap-[16px] md:grid-cols-3">
+          {about.attitudes?.map((attitude) => (
+            <AttitudeCard
+              key={attitude.id}
+              iconId={attitude.id}
+              title={attitude.title}
+              description={attitude.description}
+              iconUrl={attitude.iconUrl}
+            />
+          ))}
+        </div>
 
-          {/* Segundo bloque: tarjeta Stack y herramientas */}
-          <div
-            data-interactive-card="true"
-            className="flex w-full flex-col gap-[28px] rounded-[24px] border border-[var(--borde)] bg-[var(--stack-bloque-bg)] p-[24px] sm:p-[40px]"
-          >
-            <div className="flex flex-col gap-[6px]">
-              <h3 className="font-heading text-[28px] font-bold leading-[1.2] tracking-[-0.4px] text-[var(--texto)]">
-                {about.stackTitle}
-              </h3>
-              <p className="font-sans-ui text-[16px] font-normal text-[var(--texto-suave)]">
-                {about.stackSubtitle}
-              </p>
-            </div>
+        {/* Tarjeta Stack y herramientas */}
+        <div data-interactive-card="true" className="card mt-[22px]">
+          <div className="cb">
+            <h3 className="mb-[6px] font-heading text-[24px] font-medium text-white">
+              {about.stackTitle}
+            </h3>
+            <p className="font-sans-ui text-[14.5px] text-[#b8bddf]">
+              {about.stackSubtitle}
+            </p>
 
-            <div className="flex flex-col gap-[24px]">
+            <div className="mt-[10px] flex flex-col gap-[12px]">
               {stackCategories.map((cat) => {
                 const categoryTechs = technologies.filter(
                   (t) => t.category === cat.id
@@ -88,12 +70,12 @@ export default function AboutSection({
                 return (
                   <div
                     key={cat.id}
-                    className="flex flex-col items-start gap-[12px] sm:flex-row sm:items-center sm:gap-[24px]"
+                    className="mt-[4px] flex flex-wrap items-center gap-x-[12px] gap-y-[10px]"
                   >
-                    <span className="font-mono-ui w-[140px] shrink-0 text-[12px] font-medium uppercase tracking-[1.5px] text-[var(--acento)]">
+                    <em className="min-w-[120px] font-mono-ui text-[11px] font-medium not-italic uppercase tracking-[0.14em] text-[var(--ac)]">
                       {cat.label}
-                    </span>
-                    <div className="flex flex-wrap items-center gap-[12px]">
+                    </em>
+                    <div className="flex flex-wrap items-center gap-[10px]">
                       {categoryTechs.map((tech) => (
                         <TechChip
                           key={tech.id}

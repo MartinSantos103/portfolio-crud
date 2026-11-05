@@ -16,45 +16,47 @@ export function ServiceCardView({
     : `service-${service.id || 'sitios-landing'}`;
 
   return (
-    <div className="flex h-full flex-col gap-[20px] rounded-[20px] border border-[var(--borde)] bg-[var(--superficie)] p-[32px]">
-      <div className="flex h-[56px] w-[56px] shrink-0 items-center justify-center rounded-[14px] bg-[var(--tile-icono-bg)] text-[var(--acento)]">
-        <IconSlot size={28} name={iconName} iconUrl={service.iconUrl} />
-      </div>
+    <div className="card flex h-full flex-col">
+      <div className="cb flex h-full flex-col">
+        <div className="mb-[12px] flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-[10px] bg-[var(--tile-icono-bg)] text-[var(--ac2)]">
+          <IconSlot size={20} name={iconName} iconUrl={service.iconUrl} />
+        </div>
 
-      <h3 className="font-heading text-[24px] font-bold leading-[1.25] tracking-[-0.3px] text-[var(--texto)]">
-        {service.title || 'Título del servicio'}
-      </h3>
+        <h3 className="mb-[6px] font-heading text-[19px] font-medium leading-[1.2] text-white">
+          {service.title || 'Título del servicio'}
+        </h3>
 
-      <p className="font-sans-ui text-[15px] font-normal leading-[24px] text-[var(--texto-suave)]">
-        {service.description || 'Descripción concisa del servicio profesional.'}
-      </p>
+        <p className="font-sans-ui text-[14.5px] leading-[1.55] text-[#b8bddf]">
+          {service.description || 'Descripción concisa del servicio profesional.'}
+        </p>
 
-      {Array.isArray(service.items) && service.items.filter(Boolean).length > 0 && (
-        <ul className="flex flex-col gap-[10px]">
-          {service.items.filter(Boolean).map((itemText, idx) => (
-            <li
-              key={idx}
-              className="font-sans-ui flex items-center gap-[10px] text-[14px] font-medium text-[var(--texto)]"
-            >
-              <span className="inline-flex text-[var(--acento)]">
-                <IconSlot size={16} name="check" />
-              </span>
-              <span>{itemText}</span>
-            </li>
-          ))}
-        </ul>
-      )}
+        {Array.isArray(service.items) && service.items.filter(Boolean).length > 0 && (
+          <ul className="my-[14px] flex flex-col gap-[6px] p-0">
+            {service.items.filter(Boolean).map((itemText, idx) => (
+              <li
+                key={idx}
+                className="font-sans-ui flex items-center gap-[8px] text-[13.5px] text-[var(--tx)]"
+              >
+                <span className="inline-flex shrink-0 text-[var(--ac)]">
+                  <IconSlot size={14} name="check" />
+                </span>
+                <span>{itemText}</span>
+              </li>
+            ))}
+          </ul>
+        )}
 
-      <div className="mt-auto pt-[4px]">
-        <Button
-          variant="secondary"
-          size="service"
-          fullWidth
-          onClick={() => onRequestQuote?.(service)}
-        >
-          <span>{ctaLabel}</span>
-          <IconSlot size={16} name="arrow-right" />
-        </Button>
+        <div className="mt-auto pt-[6px]">
+          <Button
+            variant="secondary"
+            size="service"
+            fullWidth
+            onClick={() => onRequestQuote?.(service)}
+          >
+            <span>{ctaLabel}</span>
+            <IconSlot size={15} name="arrow-right" />
+          </Button>
+        </div>
       </div>
     </div>
   );

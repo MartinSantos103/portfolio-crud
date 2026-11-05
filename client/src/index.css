@@ -608,6 +608,738 @@
   animation: cursor-blink 1s infinite;
 }
 
+/* ==========================================================
+   PARTE 1 — Sitio Público (Prototipo Portfolio_animado_v4.html)
+   ========================================================== */
+
+/* Barra de progreso superior y Agujero Negro de fondo (.bh) */
+#prog {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  width: 0;
+  z-index: 55;
+  background: linear-gradient(90deg, var(--ac), var(--ac2));
+  box-shadow: 0 0 12px var(--ac);
+  pointer-events: none;
+}
+
+.bh {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 620px;
+  overflow: hidden;
+  z-index: 0;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(#000 55%, transparent);
+  mask-image: linear-gradient(#000 55%, transparent);
+}
+
+.bh .hole {
+  position: absolute;
+  left: 50%;
+  top: -150px;
+  width: 290px;
+  height: 290px;
+  margin-left: -145px;
+  border-radius: 50%;
+  background: #020108;
+  border: 4px solid rgb(var(--lt));
+  box-shadow:
+    0 0 12px 2px rgb(var(--lt)),
+    0 0 50px 14px rgb(var(--ar)),
+    0 0 120px 40px rgba(var(--ar), 0.4),
+    inset 0 0 30px 4px rgb(var(--br));
+}
+
+.bh .hole::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  box-shadow:
+    0 0 60px 20px rgb(var(--ar)),
+    0 0 140px 50px rgba(var(--ar), 0.4);
+  opacity: 0;
+  animation: hpulse 10s ease-in-out infinite;
+  will-change: opacity;
+}
+
+@keyframes hpulse {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+.bh .disk {
+  position: absolute;
+  left: 50%;
+  top: 70px;
+  width: 150%;
+  height: 150px;
+  margin-left: -75%;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse,
+    rgba(var(--lt), 0.7),
+    rgba(var(--ar), 0.35) 32%,
+    transparent 66%
+  );
+  filter: blur(10px);
+  opacity: 0.55;
+  animation: disk2 16s ease-in-out infinite alternate;
+  will-change: scale, opacity;
+}
+
+@keyframes disk2 {
+  from {
+    scale: 1 1;
+    opacity: 0.55;
+  }
+  to {
+    scale: 1.05 1.12;
+    opacity: 0.7;
+  }
+}
+
+/* Agujero Negro alrededor de la foto de perfil (.orb) — sin rotaciones continuas */
+.orb {
+  position: relative;
+  width: min(370px, 82vw);
+  aspect-ratio: 1;
+  margin: auto;
+  display: grid;
+  place-items: center;
+}
+
+.orb::before {
+  content: "";
+  position: absolute;
+  inset: -22%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(var(--ar), 0.38),
+    rgba(var(--br), 0.14) 45%,
+    transparent 70%
+  );
+  filter: blur(8px);
+  pointer-events: none;
+}
+
+.orb::after {
+  content: "";
+  position: absolute;
+  inset: 6%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    transparent 54%,
+    rgba(var(--lt), 0.22) 64%,
+    rgba(var(--ar), 0.28) 70%,
+    transparent 78%
+  );
+  filter: blur(4px);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.orb-disk {
+  position: absolute;
+  left: -28%;
+  right: -28%;
+  top: 36%;
+  height: 28%;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse,
+    rgba(var(--lt), 0.85) 0%,
+    rgba(var(--ar), 0.48) 38%,
+    transparent 70%
+  );
+  filter: blur(9px);
+  transform: rotate(-16deg);
+  animation: disk2 12s ease-in-out infinite alternate;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.orb-disk.d2 {
+  left: -18%;
+  right: -18%;
+  top: 41%;
+  height: 18%;
+  background: none;
+  border: 2px solid rgba(var(--lt), 0.55);
+  box-shadow:
+    0 0 22px rgba(var(--ar), 0.75),
+    inset 0 0 18px rgba(var(--br), 0.5);
+  filter: blur(1px);
+  z-index: 2;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    transparent 44%,
+    #000 54%,
+    #000 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    transparent 44%,
+    #000 54%,
+    #000 100%
+  );
+}
+
+.orb-hole {
+  position: absolute;
+  inset: 12%;
+  border-radius: 50%;
+  background: #020108;
+  border: 3.5px solid rgb(var(--lt));
+  box-shadow:
+    0 0 14px 3px rgb(var(--lt)),
+    0 0 55px 16px rgb(var(--ar)),
+    0 0 130px 45px rgba(var(--ar), 0.48),
+    inset 0 0 36px 8px rgb(var(--br));
+  z-index: 1;
+  pointer-events: none;
+}
+
+.orb-hole::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  box-shadow:
+    0 0 60px 20px rgb(var(--ar)),
+    0 0 140px 50px rgba(var(--ar), 0.4);
+  opacity: 0;
+  animation: hpulse 10s ease-in-out infinite;
+  will-change: opacity;
+}
+
+.av {
+  position: absolute;
+  inset: 17%;
+  z-index: 3;
+  border-radius: 50%;
+  border: 1.5px solid rgba(var(--lt), 0.42);
+  background: radial-gradient(circle at 50% 38%, #110f24, #020108 78%);
+  display: grid;
+  place-items: center;
+  text-align: center;
+  font: 400 10px var(--font-mono);
+  color: var(--mut);
+  box-shadow:
+    inset 0 0 30px rgba(var(--ar), 0.45),
+    0 0 26px #000;
+  overflow: hidden;
+}
+
+/* Indicador de scroll (.scr) y eyebrow con estrella (✦) */
+.scr {
+  width: 22px;
+  height: 36px;
+  border: 2px solid var(--bd);
+  border-radius: 99px;
+  position: relative;
+}
+
+.scr::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 6px;
+  width: 3px;
+  height: 7px;
+  margin-left: -1.5px;
+  border-radius: 2px;
+  background: var(--ac);
+  animation: wheel 1.6s infinite;
+}
+
+@keyframes wheel {
+  to {
+    translate: 0 12px;
+    opacity: 0;
+  }
+}
+
+.ey {
+  font: 500 12px var(--font-mono);
+  letter-spacing: 0.16em;
+  color: var(--ac);
+  text-transform: uppercase;
+}
+
+.ey::before {
+  content: "✦";
+  margin-right: 8px;
+  color: var(--ac2);
+  display: inline-block;
+}
+
+/* Trayectoria: línea central con relleno dinámico, tarjetas alternadas y puntos con halo */
+.tl {
+  position: relative;
+  display: grid;
+  gap: 48px;
+  max-width: none;
+  padding-left: 0;
+}
+
+.tl::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  translate: -50% 0;
+  background: rgba(var(--ar), 0.22);
+}
+
+.tl .fill {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 2px;
+  height: 0;
+  translate: -50% 0;
+  background: linear-gradient(var(--ac2), var(--ac));
+  box-shadow: 0 0 10px var(--ac);
+  transition: height 0.15s ease-out;
+}
+
+.tl .it {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+}
+
+.tl .it .card,
+.tl .it .yr {
+  grid-row: 1;
+  margin: 0;
+}
+
+.tl .it.lf .card {
+  grid-column: 1;
+  margin-right: 52px;
+}
+
+.tl .it.lf .yr {
+  grid-column: 2;
+  padding-left: 52px;
+}
+
+.tl .it.rt .card {
+  grid-column: 2;
+  margin-left: 52px;
+}
+
+.tl .it.rt .yr {
+  grid-column: 1;
+  padding-right: 52px;
+  text-align: right;
+}
+
+.tl .yr {
+  font: 500 15px var(--font-mono);
+  color: var(--ac2);
+}
+
+.tl .it .dot {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 0;
+  background: rgba(var(--ar), 0.1);
+  display: grid;
+  place-items: center;
+  z-index: 2;
+  transition: background-color 0.3s ease;
+}
+
+.tl .it .dot::after {
+  content: "";
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 2px solid rgba(var(--ar), 0.5);
+  transition: all 0.35s ease;
+}
+
+.tl .it.act .dot {
+  background: rgba(var(--ar), 0.18);
+}
+
+.tl .it.act .dot::after {
+  background: var(--ac);
+  border-color: var(--ac);
+  box-shadow: 0 0 16px rgba(var(--ar), 0.8);
+}
+
+@media (max-width: 720px) {
+  .tl {
+    gap: 32px;
+  }
+  .tl::before,
+  .tl .fill {
+    left: 20px;
+  }
+  .tl .it,
+  .tl .it.lf,
+  .tl .it.rt {
+    grid-template-columns: 1fr;
+    padding-left: 54px;
+    row-gap: 12px;
+    align-items: start;
+  }
+  .tl .it .dot {
+    left: 20px;
+    top: 20px;
+  }
+  .tl .it .yr,
+  .tl .it.lf .yr,
+  .tl .it.rt .yr {
+    grid-column: 1;
+    grid-row: 1;
+    padding: 0;
+    text-align: left;
+  }
+  .tl .it .card,
+  .tl .it.lf .card,
+  .tl .it.rt .card {
+    grid-column: 1;
+    grid-row: 2;
+    margin: 0;
+  }
+}
+
+/* Vista previa de tarjetas de proyectos (.pv) — limpia y estática, 16:9 con imagen */
+.pv {
+  height: 112px;
+  background: #07091a;
+  border-bottom: 1px solid var(--bd);
+  padding: 12px 14px;
+  position: relative;
+  overflow: hidden;
+}
+
+.pv .d {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.pv .d i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--bd);
+  display: inline-block;
+}
+
+.pv.has-img {
+  height: auto;
+  aspect-ratio: 16 / 9;
+  padding: 0;
+}
+
+.pv.has-img .d {
+  display: none;
+}
+
+.pv img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.lock {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 3;
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  font: 500 9.5px var(--font-mono);
+  padding: 4px 9px;
+  border-radius: 99px;
+  background: rgba(0, 0, 0, 0.85);
+  border: 1px solid var(--bd);
+  color: var(--mut);
+}
+
+.lock.u {
+  color: var(--ac2);
+  border-color: rgba(var(--br), 0.55);
+}
+
+/* Vista Detalle Técnico de Proyecto (.pd-*) */
+.pd-card {
+  border-radius: 24px;
+  transform: none !important;
+  background:
+    radial-gradient(120% 90% at 95% 0%, rgba(var(--ar), 0.2), transparent 58%),
+    radial-gradient(90% 80% at 5% 100%, rgba(var(--br), 0.12), transparent 55%),
+    linear-gradient(165deg, #14122a, #06060e);
+  border: 1px solid rgba(var(--br), 0.36);
+  box-shadow:
+    0 26px 70px -20px #000,
+    0 0 42px -12px rgba(var(--ar), 0.5);
+}
+
+.pd-stage {
+  position: relative;
+  padding: 42px 28px 38px;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(var(--ar), 0.28), transparent 70%),
+    linear-gradient(180deg, rgba(19, 21, 48, 0.92), rgba(8, 9, 22, 0.96));
+  border-bottom: 1px solid var(--bd);
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+}
+
+.pd-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 12% 22%, #fff 0 1px, transparent 2px),
+    radial-gradient(circle at 88% 18%, rgb(var(--lt)) 0 1.2px, transparent 2.2px),
+    radial-gradient(circle at 82% 76%, #fff 0 1px, transparent 2px),
+    radial-gradient(circle at 18% 82%, rgb(var(--lt)) 0 1px, transparent 2px);
+  opacity: 0.75;
+}
+
+.pd-bh {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  display: grid;
+  place-items: center;
+}
+
+.pd-hole {
+  position: absolute;
+  top: -125px;
+  width: 250px;
+  height: 250px;
+  border-radius: 50%;
+  background: #020108;
+  border: 3.5px solid rgb(var(--lt));
+  box-shadow:
+    0 0 14px 2px rgb(var(--lt)),
+    0 0 52px 16px rgb(var(--ar)),
+    0 0 120px 42px rgba(var(--ar), 0.48),
+    inset 0 0 32px 6px rgb(var(--br));
+}
+
+.pd-disk {
+  position: absolute;
+  top: 14px;
+  width: min(700px, 115%);
+  height: 105px;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse,
+    rgba(var(--lt), 0.8),
+    rgba(var(--ar), 0.4) 36%,
+    transparent 70%
+  );
+  filter: blur(9px);
+  animation: disk2 12s ease-in-out infinite alternate;
+}
+
+.pd-window {
+  position: relative;
+  z-index: 1;
+  width: min(640px, 100%);
+  padding: 18px 20px 22px;
+  border-radius: 16px;
+  background: rgba(8, 10, 24, 0.94);
+  border: 1px solid rgba(var(--br), 0.24);
+  box-shadow: 0 22px 55px -18px #000;
+  overflow: hidden;
+}
+
+.pd-window.has-img {
+  padding: 0;
+  aspect-ratio: 16 / 9;
+}
+
+.pd-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pd-dots {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 14px;
+}
+
+.pd-dots i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(var(--br), 0.32);
+  display: inline-block;
+}
+
+.pd-bar {
+  height: 11px;
+  width: 38%;
+  border-radius: 99px;
+  background: var(--ac);
+  margin-bottom: 18px;
+}
+
+.pd-grid-mock {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.pd-grid-mock i {
+  display: block;
+  height: 146px;
+  border-radius: 11px;
+  border: 1px solid rgba(var(--br), 0.14);
+  background: #131633;
+}
+
+.pd-box {
+  border-radius: 16px;
+  background:
+    radial-gradient(120% 100% at 100% 0%, rgba(var(--ar), 0.18), transparent 60%),
+    rgba(7, 8, 20, 0.88);
+  border: 1px solid rgba(var(--br), 0.28);
+}
+
+@media (max-width: 640px) {
+  .pd-stage {
+    padding: 26px 16px;
+  }
+  .pd-grid-mock {
+    grid-template-columns: 1fr;
+  }
+  .pd-grid-mock i {
+    height: 88px;
+  }
+}
+
+/* Estrellas voladoras (.cf) y spinner (.sp) dentro del botón de Contacto */
+@keyframes rot {
+  to {
+    rotate: 360deg;
+  }
+}
+
+.sp {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  display: inline-block;
+  animation: rot 0.7s linear infinite;
+}
+
+.cf {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  pointer-events: none;
+  color: #ffffff;
+  z-index: 5;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.9);
+  animation: fly 1.4s cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
+}
+
+@keyframes fly {
+  0% {
+    opacity: 1;
+    scale: 0.4;
+  }
+  20% {
+    opacity: 1;
+    scale: 1.1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    translate: var(--dx) var(--dy);
+    opacity: 0;
+    rotate: 300deg;
+    scale: 0.8;
+  }
+}
+
+/* Puntos laterales de sección (.dots) */
+.dots {
+  position: fixed;
+  right: 12px;
+  top: 50%;
+  translate: 0 -50%;
+  z-index: 35;
+  display: grid;
+  gap: 14px;
+}
+
+.dots button {
+  position: relative;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 0;
+  padding: 0;
+  background: rgba(var(--br), 0.35);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.dots button::after {
+  content: "";
+  position: absolute;
+  inset: -9px;
+}
+
+.dots button.on {
+  background: #ffffff;
+  box-shadow: 0 0 12px 3px var(--ac);
+  scale: 1.6;
+}
+
+@media (max-width: 768px) {
+  .dots {
+    display: none;
+  }
+}
+
 /* Accesibilidad: Respeto estricto por prefers-reduced-motion */
 @media (prefers-reduced-motion: reduce) {
   html {
