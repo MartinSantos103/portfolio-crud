@@ -224,31 +224,109 @@ export default function ContactSection({
             required
           />
 
-          <div className="grid grid-cols-1 gap-[14px] sm:grid-cols-2">
-            <FormField
-              as="select"
-              label="Tipo de consulta"
-              name="type"
-              value={formData.type}
-              onChange={onFormChange}
-              options={
-                contact.consultationTypes || [
-                  { value: 'cotizacion', label: 'Cotización' },
-                  { value: 'consulta', label: 'Consulta general' },
-                  { value: 'asesoria', label: 'Asesoría' },
-                ]
-              }
-            />
+          {/* Tipo de consulta */}
+          <FormField
+            as="select"
+            label="Tipo de consulta"
+            name="type"
+            value={formData.type}
+            onChange={onFormChange}
+            options={
+              contact.consultationTypes || [
+                { value: 'cotizacion', label: 'Cotización' },
+                { value: 'consulta', label: 'Consulta general' },
+                { value: 'asesoria', label: 'Asesoría técnica' },
+              ]
+            }
+          />
 
+          {/* Campos dinámicos según el tipo de consulta seleccionado */}
+          {formData.type === 'cotizacion' && (
+            <>
+              <div className="grid grid-cols-1 gap-[14px] sm:grid-cols-2">
+                <FormField
+                  as="select"
+                  label="Servicio de interés"
+                  name="service"
+                  value={formData.service}
+                  onChange={onFormChange}
+                  options={serviceOptions}
+                />
+                <FormField
+                  as="select"
+                  label="Presupuesto estimado"
+                  name="presupuesto"
+                  value={formData.presupuesto || '< $1.000 USD'}
+                  onChange={onFormChange}
+                  options={[
+                    { value: '< $1.000 USD', label: 'Menos de $1.000 USD' },
+                    { value: '$1.000 - $3.000 USD', label: '$1.000 - $3.000 USD' },
+                    { value: '$3.000 - $5.000 USD', label: '$3.000 - $5.000 USD' },
+                    { value: '> $5.000 USD', label: 'Más de $5.000 USD' },
+                    { value: 'A definir', label: 'A definir / A conversar' },
+                  ]}
+                />
+              </div>
+              <FormField
+                as="select"
+                label="Plazo deseado"
+                name="plazo"
+                value={formData.plazo || '1 a 2 meses'}
+                onChange={onFormChange}
+                options={[
+                  { value: 'Urgente (< 2 semanas)', label: 'Urgente (< 2 semanas)' },
+                  { value: '1 mes', label: 'Aprox. 1 mes' },
+                  { value: '1 a 2 meses', label: '1 a 2 meses' },
+                  { value: '2 a 3 meses', label: '2 a 3 meses' },
+                  { value: 'Flexible', label: 'Flexible / Sin apuro' },
+                ]}
+              />
+            </>
+          )}
+
+          {formData.type === 'asesoria' && (
+            <div className="grid grid-cols-1 gap-[14px] sm:grid-cols-2">
+              <FormField
+                as="select"
+                label="Tema técnico"
+                name="tema_tecnico"
+                value={formData.tema_tecnico || 'Arquitectura Frontend & React'}
+                onChange={onFormChange}
+                options={[
+                  { value: 'Arquitectura Frontend & React', label: 'Arquitectura Frontend & React' },
+                  { value: 'APIs REST & Backend Node.js', label: 'APIs REST & Backend Node.js' },
+                  { value: 'Bases de Datos & PostgreSQL', label: 'Bases de Datos & PostgreSQL' },
+                  { value: 'Code Review & Optimización', label: 'Code Review & Optimización' },
+                  { value: 'Despliegue & DevOps', label: 'Despliegue & DevOps' },
+                  { value: 'Otro tema técnico', label: 'Otro tema técnico' },
+                ]}
+              />
+              <FormField
+                as="select"
+                label="Modalidad deseada"
+                name="modalidad"
+                value={formData.modalidad || 'Sesión puntual (1h)'}
+                onChange={onFormChange}
+                options={[
+                  { value: 'Sesión puntual (1h)', label: 'Sesión 1 a 1 puntual (1 hora)' },
+                  { value: 'Acompañamiento semanal', label: 'Acompañamiento semanal' },
+                  { value: 'Auditoría de código', label: 'Auditoría de código' },
+                  { value: 'A coordinar', label: 'A coordinar' },
+                ]}
+              />
+            </div>
+          )}
+
+          {formData.type === 'consulta' && (
             <FormField
-              as="select"
-              label="Servicio de interés"
-              name="service"
-              value={formData.service}
+              as="input"
+              label="Asunto de la consulta"
+              name="asunto"
+              value={formData.asunto || ''}
               onChange={onFormChange}
-              options={serviceOptions}
+              placeholder="Ej: Propuesta laboral, charla técnica o consulta general..."
             />
-          </div>
+          )}
 
           <FormField
             as="textarea"
@@ -256,7 +334,13 @@ export default function ContactSection({
             name="body"
             value={formData.body}
             onChange={onFormChange}
-            placeholder="Contame brevemente qué necesitás…"
+            placeholder={
+              formData.type === 'cotizacion'
+                ? 'Contame sobre los objetivos, alcance y funcionalidades requeridas...'
+                : formData.type === 'asesoria'
+                  ? 'Describí brevemente sobre qué tecnología, problema o proyecto te gustaría que trabajemos...'
+                  : 'Contame brevemente qué necesitás o en qué te puedo ayudar…'
+            }
             required
             rows={4}
           />

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+﻿import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useForm, useFieldArray, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -593,24 +593,8 @@ export default function ProjectFormPage() {
           </div>
         </div>
 
-        {/* Interruptores Destacado y Publicado */}
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <label className="flex cursor-pointer items-center justify-between rounded-[12px] border border-[var(--borde)] bg-[var(--fondo)] px-4 py-3">
-            <div>
-              <p className="font-sans-ui text-[13px] font-semibold text-[var(--texto)]">
-                Proyecto Destacado
-              </p>
-              <p className="font-sans-ui text-[11px] text-[var(--texto-suave)]">
-                Resalta este trabajo en el listado.
-              </p>
-            </div>
-            <input
-              type="checkbox"
-              {...register('featured')}
-              className="h-4 w-4 accent-[var(--acento)]"
-            />
-          </label>
-
+        {/* Interruptor Publicado */}
+        <div>
           <label className="flex cursor-pointer items-center justify-between rounded-[12px] border border-[var(--borde)] bg-[var(--fondo)] px-4 py-3">
             <div>
               <p className="font-sans-ui text-[13px] font-semibold text-[var(--texto)]">

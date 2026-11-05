@@ -14,6 +14,7 @@ export function AuthProvider({ children }) {
     setUser(null);
     setError(null);
     setLoading(false);
+    window.location.replace('/');
   }, []);
 
   useEffect(() => {

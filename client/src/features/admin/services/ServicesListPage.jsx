@@ -1,41 +1,35 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import {
-  Plus,
-  ArrowUp,
-  ArrowDown,
-  Edit3,
-  Trash2,
-} from 'lucide-react';
-import { apiFetch } from '../../../services/api.js';
-import { useToast } from '../../../components/ui/Toast.jsx';
-import DataState from '../../../components/ui/DataState.jsx';
-import Badge from '../../../components/ui/Badge.jsx';
-import Button from '../../../components/ui/Button.jsx';
-import IconSlot from '../../../components/ui/IconSlot.jsx';
-import ConfirmModal from '../../../components/ui/ConfirmModal.jsx';
+import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import { Plus, ArrowUp, ArrowDown, Edit3, Trash2 } from "lucide-react";
+import { apiFetch } from "../../../services/api.js";
+import { useToast } from "../../../components/ui/Toast.jsx";
+import DataState from "../../../components/ui/DataState.jsx";
+import Badge from "../../../components/ui/Badge.jsx";
+import Button from "../../../components/ui/Button.jsx";
+import IconSlot from "../../../components/ui/IconSlot.jsx";
+import ConfirmModal from "../../../components/ui/ConfirmModal.jsx";
 
 export default function ServicesListPage() {
   const navigate = useNavigate();
   const toast = useToast();
 
   const [services, setServices] = useState([]);
-  const [status, setStatus] = useState('cargando');
-  const [errorMsg, setErrorMsg] = useState('');
+  const [status, setStatus] = useState("cargando");
+  const [errorMsg, setErrorMsg] = useState("");
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
   const loadServices = useCallback(async () => {
-    setStatus('cargando');
-    setErrorMsg('');
+    setStatus("cargando");
+    setErrorMsg("");
     try {
-      const res = await apiFetch('/services?admin=true');
+      const res = await apiFetch("/services?admin=true");
       const list = Array.isArray(res?.data) ? res.data : [];
       setServices(list);
-      setStatus(list.length === 0 ? 'sin_datos' : 'con_datos');
+      setStatus(list.length === 0 ? "sin_datos" : "con_datos");
     } catch (err) {
-      setErrorMsg(err.message || 'No se pudieron cargar los servicios.');
-      setStatus('error');
+      setErrorMsg(err.message || "No se pudieron cargar los servicios.");
+      setStatus("error");
     }
   }, []);
 
@@ -48,8 +42,8 @@ export default function ServicesListPage() {
 
   const handleReorder = async (serviceId, direction) => {
     try {
-      const res = await apiFetch('/services/reorder', {
-        method: 'PATCH',
+      const res = await apiFetch("/services/reorder", {
+        method: "PATCH",
         body: JSON.stringify({ serviceId, direction }),
       });
       if (Array.isArray(res?.data)) {
@@ -57,34 +51,34 @@ export default function ServicesListPage() {
       } else {
         await loadServices();
       }
-      toast.success('Orden de servicios actualizado');
+      toast.success("Orden de servicios actualizado");
     } catch (err) {
-      toast.error(err.message || 'No se pudo reordenar el servicio');
+      toast.error(err.message || "No se pudo reordenar el servicio");
     }
   };
 
-  // Toggle optimista Activo / Inactivo con reversión en caso de error
+  // Toggle optimista Visible / Oculto con reversión en caso de error
   const handleOptimisticToggleActive = async (service) => {
     const nextActive = !service.active;
     const prevSnapshot = [...services];
 
     setServices((prev) =>
-      prev.map((s) => (s.id === service.id ? { ...s, active: nextActive } : s))
+      prev.map((s) => (s.id === service.id ? { ...s, active: nextActive } : s)),
     );
 
     try {
       await apiFetch(`/services/${service.id}/status`, {
-        method: 'PATCH',
+        method: "PATCH",
         body: JSON.stringify({ active: nextActive }),
       });
       toast.success(
         nextActive
-          ? `Servicio «${service.title}» activado`
-          : `Servicio «${service.title}» desactivado`
+          ? `Servicio «${service.title}» ahora es visible`
+          : `Servicio «${service.title}» ahora está oculto`,
       );
     } catch (err) {
       setServices(prevSnapshot);
-      toast.error(err.message || 'No se pudo cambiar el estado del servicio');
+      toast.error(err.message || "No se pudo cambiar el estado del servicio");
     }
   };
 
@@ -92,14 +86,14 @@ export default function ServicesListPage() {
     if (!deleteTarget) return;
     setDeleting(true);
     try {
-      await apiFetch(`/services/${deleteTarget.id}`, { method: 'DELETE' });
+      await apiFetch(`/services/${deleteTarget.id}`, { method: "DELETE" });
       const remaining = services.filter((s) => s.id !== deleteTarget.id);
       setServices(remaining);
-      if (remaining.length === 0) setStatus('sin_datos');
+      if (remaining.length === 0) setStatus("sin_datos");
       toast.success(`Servicio «${deleteTarget.title}» eliminado correctamente`);
       setDeleteTarget(null);
     } catch (err) {
-      toast.error(err.message || 'No se pudo eliminar el servicio');
+      toast.error(err.message || "No se pudo eliminar el servicio");
     } finally {
       setDeleting(false);
     }
@@ -114,14 +108,15 @@ export default function ServicesListPage() {
             Gestión de Servicios
           </h1>
           <p className="font-sans-ui mt-1 text-[14px] text-[var(--texto-suave)]">
-            Administrá la oferta de servicios profesionales y el orden en que aparecen en la página principal.
+            Administrá la oferta de servicios profesionales y el orden en que
+            aparecen en la página principal.
           </p>
         </div>
 
         <Button
           type="button"
           variant="primary"
-          onClick={() => navigate('/admin/servicios/nuevo')}
+          onClick={() => navigate("/admin/servicios/nuevo")}
           className="!px-4 !py-2.5 !text-[14px]"
         >
           <Plus size={17} />
@@ -137,7 +132,7 @@ export default function ServicesListPage() {
         emptyTitle="Aún no hay servicios cargados"
         emptyDescription="Agregá tu primer servicio profesional para habilitar las solicitudes de cotización."
         emptyActionLabel="+ Crear el primero"
-        onEmptyAction={() => navigate('/admin/servicios/nuevo')}
+        onEmptyAction={() => navigate("/admin/servicios/nuevo")}
       >
         <div className="overflow-hidden rounded-[16px] border border-[var(--borde)] bg-[var(--superficie)]">
           <div className="overflow-x-auto">
@@ -147,7 +142,9 @@ export default function ServicesListPage() {
                   <th className="font-mono-ui w-[92px] px-4 py-3.5">Orden</th>
                   <th className="font-mono-ui px-4 py-3.5">Servicio</th>
                   <th className="font-mono-ui w-[190px] px-4 py-3.5">Estado</th>
-                  <th className="font-mono-ui w-[160px] px-4 py-3.5 text-right">Acciones</th>
+                  <th className="font-mono-ui w-[160px] px-4 py-3.5 text-right">
+                    Acciones
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--borde)]">
@@ -161,7 +158,7 @@ export default function ServicesListPage() {
                         <button
                           type="button"
                           disabled={index === 0}
-                          onClick={() => handleReorder(service.id, 'up')}
+                          onClick={() => handleReorder(service.id, "up")}
                           aria-label={`Subir ${service.title}`}
                           className="cursor-pointer rounded-md border border-[var(--borde)] bg-[var(--fondo)] p-1.5 text-[var(--texto-suave)] hover:border-[var(--acento)] hover:text-[var(--texto)] disabled:opacity-30"
                         >
@@ -170,7 +167,7 @@ export default function ServicesListPage() {
                         <button
                           type="button"
                           disabled={index === services.length - 1}
-                          onClick={() => handleReorder(service.id, 'down')}
+                          onClick={() => handleReorder(service.id, "down")}
                           aria-label={`Bajar ${service.title}`}
                           className="cursor-pointer rounded-md border border-[var(--borde)] bg-[var(--fondo)] p-1.5 text-[var(--texto-suave)] hover:border-[var(--acento)] hover:text-[var(--texto)] disabled:opacity-30"
                         >
@@ -184,7 +181,7 @@ export default function ServicesListPage() {
                         <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[12px] bg-[var(--tile-icono-bg)] text-[var(--acento-texto)]">
                           <IconSlot
                             size={22}
-                            name={`service-${service.icon || 'sitios-landing'}`}
+                            name={`service-${service.icon || "sitios-landing"}`}
                           />
                         </span>
                         <div>
@@ -206,18 +203,20 @@ export default function ServicesListPage() {
                           aria-checked={service.active}
                           onClick={() => handleOptimisticToggleActive(service)}
                           className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors ${
-                            service.active ? 'bg-emerald-500' : 'bg-[var(--borde)]'
+                            service.active
+                              ? "bg-emerald-500"
+                              : "bg-[var(--borde)]"
                           }`}
                         >
                           <span
                             className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                              service.active ? 'translate-x-6' : 'translate-x-1'
+                              service.active ? "translate-x-6" : "translate-x-1"
                             }`}
                           />
                         </button>
                         <Badge
                           variant="status"
-                          status={service.active ? 'activo' : 'inactivo'}
+                          status={service.active ? "visible" : "oculto"}
                         />
                       </div>
                     </td>
@@ -226,7 +225,9 @@ export default function ServicesListPage() {
                       <div className="inline-flex items-center gap-2">
                         <button
                           type="button"
-                          onClick={() => navigate(`/admin/servicios/${service.id}/editar`)}
+                          onClick={() =>
+                            navigate(`/admin/servicios/${service.id}/editar`)
+                          }
                           className="font-sans-ui inline-flex cursor-pointer items-center gap-1.5 rounded-[9px] border border-[var(--borde)] bg-[var(--fondo)] px-3 py-1.5 text-[12px] font-semibold text-[var(--texto)] hover:border-[var(--acento)]"
                         >
                           <Edit3 size={13} />

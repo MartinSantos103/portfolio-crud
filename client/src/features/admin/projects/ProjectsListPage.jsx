@@ -8,7 +8,6 @@ import {
   Edit3,
   MoreVertical,
   PlaySquare,
-  Star,
   Trash2,
   Image as ImageIcon,
 } from 'lucide-react';
@@ -23,7 +22,6 @@ const STATUS_FILTERS = [
   { id: 'todos', label: 'Todos' },
   { id: 'publicados', label: 'Publicados' },
   { id: 'borradores', label: 'Borradores' },
-  { id: 'destacados', label: 'Destacados' },
 ];
 
 export default function ProjectsListPage() {
@@ -65,7 +63,6 @@ export default function ProjectsListPage() {
     return projects.filter((p) => {
       if (activeFilter === 'publicados' && !p.published) return false;
       if (activeFilter === 'borradores' && p.published) return false;
-      if (activeFilter === 'destacados' && !p.featured) return false;
       if (q) {
         const hayTitle = String(p.title || '').toLowerCase().includes(q);
         const hayDesc = String(p.description || p.summary || '').toLowerCase().includes(q);
@@ -122,33 +119,6 @@ export default function ProjectsListPage() {
     }
   };
 
-  // Alternar Destacado desde el menú desplegable (⋮)
-  const handleToggleFeatured = async (project) => {
-    setOpenMenuId(null);
-    const nextFeatured = !project.featured;
-    const prevSnapshot = [...projects];
-
-    setProjects((prev) =>
-      prev.map((item) =>
-        item.id === project.id ? { ...item, featured: nextFeatured } : item
-      )
-    );
-
-    try {
-      await apiFetch(`/projects/${project.id}/status`, {
-        method: 'PATCH',
-        body: JSON.stringify({ featured: nextFeatured }),
-      });
-      toast.success(
-        nextFeatured
-          ? `«${project.title}» marcado como destacado`
-          : `«${project.title}» ya no es destacado`
-      );
-    } catch (err) {
-      setProjects(prevSnapshot);
-      toast.error(err.message || 'No se pudo cambiar el estado destacado');
-    }
-  };
 
   const handleConfirmDelete = async () => {
     if (!deleteTarget) return;
@@ -297,14 +267,6 @@ export default function ProjectsListPage() {
                             <span className="font-heading text-[15px] font-bold text-[var(--texto)]">
                               {project.title}
                             </span>
-                            {project.featured && (
-                              <Badge
-                                variant="neutral"
-                                icon={<Star size={11} className="fill-current text-[var(--acento-texto)]" />}
-                              >
-                                Destacado
-                              </Badge>
-                            )}
                           </div>
                           <p className="font-sans-ui mt-0.5 line-clamp-1 text-[12px] text-[var(--texto-suave)]">
                             {project.description || project.summary}
@@ -383,17 +345,6 @@ export default function ProjectsListPage() {
                               <span>Gestionar demos</span>
                             </button>
 
-                            <button
-                              type="button"
-                              role="menuitem"
-                              onClick={() => handleToggleFeatured(project)}
-                              className="font-sans-ui flex w-full cursor-pointer items-center gap-2 rounded-[8px] px-3 py-2 text-[12px] text-[var(--texto)] hover:bg-[var(--superficie-alta)]"
-                            >
-                              <Star size={14} className="text-[var(--acento-texto)]" />
-                              <span>
-                                {project.featured ? 'Quitar destacado' : 'Marcar destacado'}
-                              </span>
-                            </button>
 
                             <button
                               type="button"

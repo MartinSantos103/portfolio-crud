@@ -31,9 +31,19 @@ const STATUS_CONFIG = {
     dotStyle: { backgroundColor: 'var(--ok)' },
   },
   activo: {
-    label: 'Activo',
+    label: 'Visible',
     classes: 'badge-ok',
     dotStyle: { backgroundColor: 'var(--ok)' },
+  },
+  visible: {
+    label: 'Visible',
+    classes: 'badge-ok',
+    dotStyle: { backgroundColor: 'var(--ok)' },
+  },
+  oculto: {
+    label: 'Oculto',
+    classes: 'badge-warn',
+    dotStyle: { backgroundColor: 'var(--warn)' },
   },
   borrador: {
     label: 'Borrador',

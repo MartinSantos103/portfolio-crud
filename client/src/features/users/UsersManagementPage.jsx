@@ -311,7 +311,7 @@ export default function UsersManagementPage() {
                       </td>
 
                       <td className="px-4 py-3.5">
-                        <Badge variant="status" status={u.active ? 'activo' : 'inactivo'} />
+                        <Badge variant="status" status={u.active ? 'activo' : 'inactivo'}>{u.active ? 'Activo' : 'Inactivo'}</Badge>
                       </td>
 
                       <td className="px-4 py-3.5 text-right">
