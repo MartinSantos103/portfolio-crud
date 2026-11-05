@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useForm, useFieldArray, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -26,8 +26,9 @@ import {
 } from '../../../services/github.js';
 import { useToast } from '../../../components/ui/Toast.jsx';
 import DataState from '../../../components/ui/DataState.jsx';
-import Button from '../../../components/ui/Button.jsx';
-import DevIcon, { CURATED_TECH_ICONS } from '../../../components/ui/DevIcon.jsx';
+import DevIcon, {
+  CURATED_TECH_ICONS,
+} from '../../../components/ui/DevIcon.jsx';
 import ImageUploader from '../../../components/uploader/ImageUploader.jsx';
 import LivePreviewLayout from '../components/LivePreviewLayout.jsx';
 import {
@@ -39,7 +40,11 @@ import { ProjectDetailView } from '../../projects/public/ProjectDetail.jsx';
 import { resolveTechnologies } from '../../public/data/portfolioData.js';
 
 const projectFormSchema = z.object({
-  title: z.string().trim().min(1, 'El título del proyecto es obligatorio').max(140),
+  title: z
+    .string()
+    .trim()
+    .min(1, 'El título del proyecto es obligatorio')
+    .max(140),
   slug: z.string().trim().min(1, 'El slug es obligatorio').max(160),
   description: z
     .string()
@@ -64,13 +69,19 @@ const projectFormSchema = z.object({
   repo_url: z
     .string()
     .trim()
-    .refine((v) => !v || /^https?:\/\//i.test(v), 'Debe comenzar con http:// o https://')
+    .refine(
+      (v) => !v || /^https?:\/\//i.test(v),
+      'Debe comenzar con http:// o https://'
+    )
     .optional()
     .default(''),
   live_url: z
     .string()
     .trim()
-    .refine((v) => !v || /^https?:\/\//i.test(v), 'Debe comenzar con http:// o https://')
+    .refine(
+      (v) => !v || /^https?:\/\//i.test(v),
+      'Debe comenzar con http:// o https://'
+    )
     .optional()
     .default(''),
 });
@@ -169,7 +180,8 @@ export default function ProjectFormPage() {
       ]);
 
       // Cargar Stack del Perfil como única fuente de verdad de tecnologías sugeridas
-      const stackFromProfile = profileRes?.data?.stack || profileRes?.data?.skills || [];
+      const stackFromProfile =
+        profileRes?.data?.stack || profileRes?.data?.skills || [];
       if (Array.isArray(stackFromProfile) && stackFromProfile.length > 0) {
         setProfileStack(stackFromProfile);
       } else {
@@ -271,8 +283,14 @@ export default function ProjectFormPage() {
         `Repositorio ${formattedTitle} desarrollado y publicado en GitHub.`;
       const shortDescription = rawDesc.slice(0, 220);
 
-      setValue('title', formattedTitle, { shouldDirty: true, shouldValidate: true });
-      setValue('slug', generatedSlug, { shouldDirty: true, shouldValidate: true });
+      setValue('title', formattedTitle, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+      setValue('slug', generatedSlug, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
       setValue('description', shortDescription, {
         shouldDirty: true,
         shouldValidate: true,
@@ -299,7 +317,9 @@ export default function ProjectFormPage() {
 
       setSelectedRepoName(source.full_name || source.name);
       setGithubOpen(false);
-      toast.success(`Campos autocompletados desde el repositorio "${source.name}"`);
+      toast.success(
+        `Campos autocompletados desde el repositorio "${source.name}"`
+      );
     } catch (err) {
       toast.error(err.message || 'No se pudo autocompletar desde GitHub');
     } finally {
@@ -312,7 +332,9 @@ export default function ProjectFormPage() {
       ? watchedValues.technologies
       : [];
     const exists = current.includes(techKey);
-    const next = exists ? current.filter((k) => k !== techKey) : [...current, techKey];
+    const next = exists
+      ? current.filter((k) => k !== techKey)
+      : [...current, techKey];
     setValue('technologies', next, { shouldDirty: true });
   };
 
@@ -333,7 +355,7 @@ export default function ProjectFormPage() {
       reset(DEFAULT_PROJECT_VALUES);
       toast.success(
         isEditing
-          ? (res?.message || 'Proyecto actualizado con éxito')
+          ? res?.message || 'Proyecto actualizado con éxito'
           : 'Proyecto agregado con éxito'
       );
       navigate('/admin/proyectos');
@@ -358,16 +380,16 @@ export default function ProjectFormPage() {
         toast.error('Verificá los campos obligatorios del proyecto.');
       })}
       noValidate
-      className="flex flex-col gap-6"
+      className="flex flex-col gap-5"
     >
       {/* BLOQUE 1 — Previsualización Pública (Tarjeta de Visitante) */}
-      <section className="flex flex-col gap-4 rounded-[18px] border border-[var(--borde)] bg-[var(--superficie)] p-5 sm:p-6">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--borde)] pb-3">
+      <section className="adm-card flex flex-col gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--adm-borde)] pb-3">
           <div>
-            <span className="font-mono-ui text-[11px] font-semibold uppercase tracking-[1.5px] text-[var(--acento-texto)]">
+            <span className="adm-eyebrow !text-[var(--ac2)]">
               BLOQUE 1 — TARJETA PÚBLICA (VISITANTES)
             </span>
-            <h2 className="font-heading mt-0.5 text-[18px] font-bold text-[var(--texto)]">
+            <h2 className="adm-h2 mt-0.5">
               Información principal y tecnologías
             </h2>
           </div>
@@ -375,37 +397,41 @@ export default function ProjectFormPage() {
           <button
             type="button"
             onClick={handleToggleGitHubSelector}
-            className="font-sans-ui inline-flex cursor-pointer items-center gap-2 rounded-[11px] border border-[var(--acento)]/50 bg-[var(--tile-icono-bg)] px-3.5 py-2 text-[12.5px] font-semibold text-[var(--texto)] transition-colors hover:border-[var(--acento)]"
+            className="adm-btn secondary sm"
           >
-            <DevIcon name="github" size={15} colored={false} />
+            <DevIcon name="github" size={14} colored={false} />
             <span>
               {selectedRepoName
                 ? `Repo: ${selectedRepoName}`
                 : 'Autocompletar desde GitHub'}
             </span>
-            {githubOpen ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+            {githubOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
           </button>
         </div>
 
         {/* Panel desplegable de selección de repositorio de GitHub con buscador por nombre */}
         {githubOpen && (
-          <div className="flex flex-col gap-3 rounded-[14px] border border-[var(--acento)]/40 bg-[var(--fondo)] p-4">
+          <div className="flex flex-col gap-3 rounded-[14px] border border-[var(--adm-borde)] bg-[#090b20] p-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
-                <p className="font-sans-ui text-[13px] font-semibold text-[var(--texto)]">
+                <h3 className="adm-h3">
                   Seleccionar repositorio de tu cuenta de GitHub
-                </p>
-                <p className="font-sans-ui text-[11.5px] text-[var(--texto-suave)]">
-                  Elegí un repositorio para rellenar automáticamente título, slug, descripción, URL y tecnologías.
+                </h3>
+                <p className="adm-sub">
+                  Elegí un repositorio para rellenar automáticamente título,
+                  slug, descripción, URL y tecnologías.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={loadGitHubRepositories}
                 disabled={githubLoading}
-                className="font-mono-ui inline-flex cursor-pointer items-center gap-1.5 rounded-[8px] border border-[var(--borde)] bg-[var(--superficie)] px-2.5 py-1.5 text-[11px] text-[var(--texto-suave)] hover:border-[var(--acento)] hover:text-[var(--texto)] disabled:opacity-50"
+                className="adm-btn secondary sm"
               >
-                <RefreshCw size={12} className={githubLoading ? 'animate-spin' : ''} />
+                <RefreshCw
+                  size={12}
+                  className={githubLoading ? 'animate-spin' : ''}
+                />
                 <span>Actualizar</span>
               </button>
             </div>
@@ -414,31 +440,32 @@ export default function ProjectFormPage() {
             <div className="relative">
               <Search
                 size={15}
-                className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-[var(--texto-suave)]"
+                className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-[var(--adm-texto-suave)]"
               />
               <input
                 type="text"
                 value={githubSearch}
                 onChange={(e) => setGithubSearch(e.target.value)}
                 placeholder="Buscar repositorio por nombre..."
-                className="font-sans-ui w-full rounded-[10px] border border-[var(--borde)] bg-[var(--superficie)] py-2 pr-3.5 pl-9 text-[13px] text-[var(--texto)] focus:border-[var(--acento)] focus:outline-none"
+                className="adm-input !pl-9"
               />
             </div>
 
             {githubLoading ? (
-              <div className="py-6 text-center font-mono-ui text-[12px] text-[var(--texto-suave)]">
+              <div className="adm-mono py-6 text-center text-[12px] text-[var(--adm-texto-suave)]">
                 Consultando repositorios de tu perfil de GitHub...
               </div>
             ) : githubError ? (
-              <div className="rounded-[10px] border border-red-500/30 bg-red-500/10 px-3.5 py-2.5 text-[12.5px] text-red-300">
+              <div className="rounded-[10px] border border-[rgba(251,113,133,0.3)] bg-[rgba(251,113,133,0.1)] px-3.5 py-2.5 text-[12.5px] text-[var(--bad)]">
                 {githubError}
               </div>
             ) : filteredGitHubRepos.length === 0 ? (
-              <div className="py-5 text-center font-sans-ui text-[12.5px] text-[var(--texto-suave)]">
-                No se encontraron repositorios que coincidan con "{githubSearch}".
+              <div className="py-5 text-center text-[12.5px] text-[var(--adm-texto-suave)]">
+                No se encontraron repositorios que coincidan con &quot;
+                {githubSearch}&quot;.
               </div>
             ) : (
-              <div className="max-h-64 divide-y divide-[var(--borde)] overflow-y-auto rounded-[10px] border border-[var(--borde)] bg-[var(--superficie)]">
+              <div className="max-h-64 divide-y divide-[var(--adm-borde)] overflow-y-auto rounded-[10px] border border-[var(--adm-borde)] bg-[var(--adm-superficie)]">
                 {filteredGitHubRepos.map((repo) => {
                   const isImportingThis = githubImporting === repo.name;
                   return (
@@ -447,36 +474,42 @@ export default function ProjectFormPage() {
                       type="button"
                       disabled={Boolean(githubImporting)}
                       onClick={() => handleSelectGitHubRepo(repo)}
-                      className="flex w-full cursor-pointer items-start justify-between gap-3 px-3.5 py-2.5 text-left transition-colors hover:bg-[var(--tile-icono-bg)] disabled:opacity-50"
+                      className="flex w-full cursor-pointer items-start justify-between gap-3 px-3.5 py-2.5 text-left transition-colors hover:bg-[var(--adm-superficie-alta)] disabled:opacity-50"
                     >
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className="font-mono-ui text-[13px] font-semibold text-[var(--texto)]">
+                          <span className="adm-mono text-[13px] font-semibold !text-[var(--adm-texto)]">
                             {repo.name}
                           </span>
                           {repo.language && (
-                            <span className="font-mono-ui rounded-full border border-[var(--borde)] bg-[var(--fondo)] px-2 py-0.5 text-[10.5px] text-[var(--acento-texto)]">
+                            <span className="adm-chip accent">
                               {repo.language}
                             </span>
                           )}
                         </div>
                         {repo.description && (
-                          <p className="font-sans-ui mt-0.5 line-clamp-1 text-[12px] text-[var(--texto-suave)]">
+                          <p className="mt-0.5 line-clamp-1 text-[12px] text-[var(--adm-texto-suave)]">
                             {repo.description}
                           </p>
                         )}
                       </div>
 
-                      <div className="flex shrink-0 items-center gap-2.5 pt-0.5 font-mono-ui text-[11px] text-[var(--texto-suave)]">
-                        <span className="inline-flex items-center gap-1" title="Estrellas">
-                          <Star size={12} className="text-amber-400" />
+                      <div className="adm-mono flex shrink-0 items-center gap-2.5 pt-0.5 text-[11px] text-[var(--adm-texto-suave)]">
+                        <span
+                          className="inline-flex items-center gap-1"
+                          title="Estrellas"
+                        >
+                          <Star size={12} className="text-[var(--warn)]" />
                           {repo.stargazers_count ?? 0}
                         </span>
-                        <span className="inline-flex items-center gap-1" title="Forks">
+                        <span
+                          className="inline-flex items-center gap-1"
+                          title="Forks"
+                        >
                           <GitFork size={12} />
                           {repo.forks_count ?? 0}
                         </span>
-                        <span className="rounded-[7px] border border-[var(--acento)]/40 bg-[var(--fondo)] px-2 py-0.5 text-[11px] font-medium text-[var(--acento-texto)]">
+                        <span className="adm-chip accent">
                           {isImportingThis ? 'Cargando...' : 'Elegir'}
                         </span>
                       </div>
@@ -490,55 +523,57 @@ export default function ProjectFormPage() {
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label className="font-sans-ui mb-1.5 block text-[13px] font-medium text-[var(--texto)]">
-              Título del proyecto *
-            </label>
+            <label className="adm-label">Título del proyecto *</label>
             <input
               type="text"
               {...register('title', {
                 onChange: (e) => {
                   if (!isEditing) {
-                    setValue('slug', toSlug(e.target.value), { shouldDirty: true });
+                    setValue('slug', toSlug(e.target.value), {
+                      shouldDirty: true,
+                    });
                   }
                 },
               })}
               placeholder="Ej. Plataforma E-Commerce"
-              className="font-sans-ui w-full rounded-[12px] border border-[var(--borde)] bg-[var(--fondo)] px-3.5 py-2.5 text-[14px] text-[var(--texto)] focus:border-[var(--acento)] focus:outline-none"
+              className="adm-input"
             />
             {errors.title && (
-              <p className="mt-1 text-[12px] text-red-400">{errors.title.message}</p>
+              <p className="mt-1 text-[12px] text-[var(--bad)]">
+                {errors.title.message}
+              </p>
             )}
           </div>
 
           <div>
-            <label className="font-sans-ui mb-1.5 block text-[13px] font-medium text-[var(--texto)]">
-              Slug (identificador URL) *
-            </label>
+            <label className="adm-label">Slug (identificador URL) *</label>
             <input
               type="text"
               {...register('slug')}
               placeholder="plataforma-e-commerce"
-              className="font-mono-ui w-full rounded-[12px] border border-[var(--borde)] bg-[var(--fondo)] px-3.5 py-2.5 text-[13px] text-[var(--texto)] focus:border-[var(--acento)] focus:outline-none"
+              className="adm-input adm-mono"
             />
             {errors.slug && (
-              <p className="mt-1 text-[12px] text-red-400">{errors.slug.message}</p>
+              <p className="mt-1 text-[12px] text-[var(--bad)]">
+                {errors.slug.message}
+              </p>
             )}
           </div>
         </div>
 
         {/* Descripción corta con contador en vivo de 220 caracteres */}
         <div>
-          <div className="mb-1.5 flex items-center justify-between">
-            <label className="font-sans-ui text-[13px] font-medium text-[var(--texto)]">
+          <div className="mb-1 flex items-center justify-between">
+            <label className="adm-label !m-0">
               Descripción corta (Tarjeta de visitante) *
             </label>
             <span
-              className={`font-mono-ui text-[11px] font-medium ${
+              className={`adm-mono text-[11px] font-medium ${
                 descLength > 220
-                  ? 'text-red-400'
+                  ? '!text-[var(--bad)]'
                   : descLength > 190
-                    ? 'text-amber-400'
-                    : 'text-[var(--texto-suave)]'
+                    ? '!text-[var(--warn)]'
+                    : ''
               }`}
             >
               {descLength} / 220 caracteres
@@ -549,10 +584,12 @@ export default function ProjectFormPage() {
             maxLength={220}
             {...register('description')}
             placeholder="Resumen conciso del proyecto visible para todos los visitantes..."
-            className="font-sans-ui w-full rounded-[12px] border border-[var(--borde)] bg-[var(--fondo)] px-3.5 py-2.5 text-[14px] text-[var(--texto)] focus:border-[var(--acento)] focus:outline-none"
+            className="adm-textarea !min-h-[82px]"
           />
           {errors.description && (
-            <p className="mt-1 text-[12px] text-red-400">{errors.description.message}</p>
+            <p className="mt-1 text-[12px] text-[var(--bad)]">
+              {errors.description.message}
+            </p>
           )}
         </div>
 
@@ -560,33 +597,37 @@ export default function ProjectFormPage() {
         <ImageUploader
           label="Imagen de portada principal (Cloudinary)"
           value={watchedValues.cover_image_url}
-          onChange={(url) => setValue('cover_image_url', url, { shouldDirty: true })}
+          onChange={(url) =>
+            setValue('cover_image_url', url, { shouldDirty: true })
+          }
           folder="portfolio/projects"
         />
 
         {/* Selector de Tecnologías sincronizado con el Stack del Perfil */}
         <div>
-          <label className="font-sans-ui mb-1.5 block text-[13px] font-medium text-[var(--texto)]">
+          <label className="adm-label">
             Selector de Tecnologías (sincronizado con el Stack de tu Perfil)
           </label>
-          <div className="flex flex-wrap gap-2 rounded-[12px] border border-[var(--borde)] bg-[var(--fondo)] p-3.5">
+          <div className="flex flex-wrap gap-2 rounded-[12px] border border-[var(--adm-borde)] bg-[#090b20] p-3.5">
             {profileStack.map((tech) => {
               const key = tech.icon_key || tech.id;
-              const isSelected = (watchedValues.technologies || []).includes(key);
+              const isSelected = (watchedValues.technologies || []).includes(
+                key
+              );
               return (
                 <button
                   key={tech.id || key}
                   type="button"
                   onClick={() => handleToggleTechnology(key)}
-                  className={`font-mono-ui inline-flex cursor-pointer items-center gap-2 rounded-[9px] border px-3 py-1.5 text-[12px] font-medium transition-colors ${
-                    isSelected
-                      ? 'border-[var(--acento)] bg-[var(--tile-icono-bg)] text-[var(--texto)]'
-                      : 'border-[var(--borde)] bg-[var(--superficie)] text-[var(--texto-suave)] hover:text-[var(--texto)]'
+                  className={`adm-chip cursor-pointer transition-colors ${
+                    isSelected ? 'accent' : ''
                   }`}
                 >
-                  <DevIcon name={key} size={15} />
+                  <DevIcon name={key} size={14} />
                   <span>{tech.name}</span>
-                  {isSelected && <Check size={13} className="text-[var(--acento-texto)]" />}
+                  {isSelected && (
+                    <Check size={12} className="text-[var(--ac2)]" />
+                  )}
                 </button>
               );
             })}
@@ -595,79 +636,81 @@ export default function ProjectFormPage() {
 
         {/* Interruptor Publicado */}
         <div>
-          <label className="flex cursor-pointer items-center justify-between rounded-[12px] border border-[var(--borde)] bg-[var(--fondo)] px-4 py-3">
+          <label className="adm-check cursor-pointer">
             <div>
-              <p className="font-sans-ui text-[13px] font-semibold text-[var(--texto)]">
+              <b className="block font-semibold text-[var(--adm-texto)]">
                 Publicado
-              </p>
-              <p className="font-sans-ui text-[11px] text-[var(--texto-suave)]">
+              </b>
+              <small className="adm-sub-line">
                 Si se desactiva, queda guardado como Borrador.
-              </p>
+              </small>
             </div>
             <input
               type="checkbox"
               {...register('published')}
-              className="h-4 w-4 accent-[var(--acento)]"
+              className="adm-switch"
             />
           </label>
         </div>
       </section>
 
       {/* BLOQUE 2 — Detalle Completo (Exclusivo Usuarios Registrados) */}
-      <section className="flex flex-col gap-4 rounded-[18px] border border-[var(--borde)] bg-[var(--superficie)] p-5 sm:p-6">
-        <div className="border-b border-[var(--borde)] pb-3">
-          <span className="font-mono-ui text-[11px] font-semibold uppercase tracking-[1.5px] text-[var(--acento-texto)]">
+      <section className="adm-card flex flex-col gap-4">
+        <div className="border-b border-[var(--adm-borde)] pb-3">
+          <span className="adm-eyebrow !text-[var(--ac2)]">
             BLOQUE 2 — DETALLE TÉCNICO (USUARIOS REGISTRADOS)
           </span>
-          <h2 className="font-heading mt-0.5 text-[18px] font-bold text-[var(--texto)]">
+          <h2 className="adm-h2 mt-0.5">
             Caso de estudio en Markdown simple, galería y enlaces
           </h2>
         </div>
 
         <div>
-          <label className="font-sans-ui mb-1.5 block text-[13px] font-medium text-[var(--texto)]">
-            1. El Problema (Markdown simple: soporta **negrita**, `código` y listas con -)
+          <label className="adm-label">
+            1. El Problema (Markdown simple: soporta **negrita**, `código` y
+            listas con -)
           </label>
           <textarea
             rows={4}
             {...register('problem')}
             placeholder="¿Qué necesidad o cuello de botella resolvía este proyecto?"
-            className="font-sans-ui w-full rounded-[12px] border border-[var(--borde)] bg-[var(--fondo)] px-3.5 py-2.5 text-[14px] leading-relaxed text-[var(--texto)] focus:border-[var(--acento)] focus:outline-none"
+            className="adm-textarea"
           />
         </div>
 
         <div>
-          <label className="font-sans-ui mb-1.5 block text-[13px] font-medium text-[var(--texto)]">
-            2. La Solución (Markdown simple)
-          </label>
+          <label className="adm-label">2. La Solución (Markdown simple)</label>
           <textarea
             rows={4}
             {...register('solution')}
             placeholder="¿Qué arquitectura y funcionalidades se implementaron?"
-            className="font-sans-ui w-full rounded-[12px] border border-[var(--borde)] bg-[var(--fondo)] px-3.5 py-2.5 text-[14px] leading-relaxed text-[var(--texto)] focus:border-[var(--acento)] focus:outline-none"
+            className="adm-textarea"
           />
         </div>
 
         <div>
-          <label className="font-sans-ui mb-1.5 block text-[13px] font-medium text-[var(--texto)]">
+          <label className="adm-label">
             3. Decisiones Técnicas (Markdown simple)
           </label>
           <textarea
             rows={4}
             {...register('tech_decisions')}
             placeholder="¿Por qué elegiste estas herramientas, patrones o estructura de datos?"
-            className="font-sans-ui w-full rounded-[12px] border border-[var(--borde)] bg-[var(--fondo)] px-3.5 py-2.5 text-[14px] leading-relaxed text-[var(--texto)] focus:border-[var(--acento)] focus:outline-none"
+            className="adm-textarea"
           />
         </div>
 
         {/* Galería de imágenes secundarias */}
-        <div className="flex flex-col gap-3 rounded-[14px] border border-[var(--borde)] bg-[var(--fondo)] p-4">
+        <div className="flex flex-col gap-3 rounded-[14px] border border-[var(--adm-borde)] bg-[#090b20] p-4">
           <ImageUploader
             label="Agregar imagen a la galería secundaria (project_images)"
             value={newGalleryUrl}
             onChange={(url) => {
               if (url) {
-                appendImage({ url, alt: watchedValues.title || 'Captura del proyecto' });
+                appendImage({
+                  url,
+                  alt: watchedValues.title || 'Captura del proyecto',
+                });
                 setNewGalleryUrl('');
               }
             }}
@@ -679,7 +722,7 @@ export default function ProjectFormPage() {
               {imageFields.map((img, idx) => (
                 <div
                   key={img.id}
-                  className="group relative overflow-hidden rounded-[10px] border border-[var(--borde)] bg-[var(--superficie)]"
+                  className="group relative overflow-hidden rounded-[10px] border border-[var(--adm-borde)] bg-[var(--adm-superficie)]"
                 >
                   <img
                     src={img.url}
@@ -687,35 +730,33 @@ export default function ProjectFormPage() {
                     className="h-28 w-full object-cover"
                   />
                   <div className="flex items-center justify-between px-2 py-1.5">
-                    <span className="font-mono-ui text-[10px] text-[var(--texto-suave)]">
-                      #{idx + 1}
-                    </span>
-                    <div className="flex items-center gap-1">
+                    <span className="adm-mono text-[10px]">#{idx + 1}</span>
+                    <div className="adm-order">
                       <button
                         type="button"
                         disabled={idx === 0}
                         onClick={() => swapImage(idx, idx - 1)}
                         aria-label="Mover antes"
-                        className="cursor-pointer rounded p-1 text-[var(--texto-suave)] hover:bg-[var(--superficie-alta)] disabled:opacity-30"
+                        className="adm-iconbtn !h-6 !min-w-[24px] !px-1"
                       >
-                        <ArrowUp size={13} />
+                        <ArrowUp size={12} />
                       </button>
                       <button
                         type="button"
                         disabled={idx === imageFields.length - 1}
                         onClick={() => swapImage(idx, idx + 1)}
                         aria-label="Mover después"
-                        className="cursor-pointer rounded p-1 text-[var(--texto-suave)] hover:bg-[var(--superficie-alta)] disabled:opacity-30"
+                        className="adm-iconbtn !h-6 !min-w-[24px] !px-1"
                       >
-                        <ArrowDown size={13} />
+                        <ArrowDown size={12} />
                       </button>
                       <button
                         type="button"
                         onClick={() => removeImage(idx)}
                         aria-label="Eliminar imagen"
-                        className="cursor-pointer rounded p-1 text-red-400 hover:bg-red-500/10"
+                        className="adm-iconbtn danger !h-6 !min-w-[24px] !px-1"
                       >
-                        <Trash2 size={13} />
+                        <Trash2 size={12} />
                       </button>
                     </div>
                   </div>
@@ -728,53 +769,51 @@ export default function ProjectFormPage() {
         {/* Enlaces opcionales validados */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label className="font-sans-ui mb-1.5 block text-[13px] font-medium text-[var(--texto)]">
-              URL del repositorio (GitHub)
-            </label>
+            <label className="adm-label">URL del repositorio (GitHub)</label>
             <input
               type="url"
               {...register('repo_url')}
               placeholder="https://github.com/usuario/proyecto"
-              className="font-sans-ui w-full rounded-[12px] border border-[var(--borde)] bg-[var(--fondo)] px-3.5 py-2.5 text-[14px] text-[var(--texto)] focus:border-[var(--acento)] focus:outline-none"
+              className="adm-input"
             />
             {errors.repo_url && (
-              <p className="mt-1 text-[12px] text-red-400">{errors.repo_url.message}</p>
+              <p className="mt-1 text-[12px] text-[var(--bad)]">
+                {errors.repo_url.message}
+              </p>
             )}
           </div>
 
           <div>
-            <label className="font-sans-ui mb-1.5 block text-[13px] font-medium text-[var(--texto)]">
-              URL de despliegue en vivo
-            </label>
+            <label className="adm-label">URL de despliegue en vivo</label>
             <input
               type="url"
               {...register('live_url')}
               placeholder="https://mi-proyecto.vercel.app"
-              className="font-sans-ui w-full rounded-[12px] border border-[var(--borde)] bg-[var(--fondo)] px-3.5 py-2.5 text-[14px] text-[var(--texto)] focus:border-[var(--acento)] focus:outline-none"
+              className="adm-input"
             />
             {errors.live_url && (
-              <p className="mt-1 text-[12px] text-red-400">{errors.live_url.message}</p>
+              <p className="mt-1 text-[12px] text-[var(--bad)]">
+                {errors.live_url.message}
+              </p>
             )}
           </div>
         </div>
 
         {/* Botones de acción */}
-        <div className="flex items-center justify-end gap-3 border-t border-[var(--borde)] pt-4">
-          <Button
+        <div className="flex items-center justify-end gap-3 border-t border-[var(--adm-borde)] pt-4">
+          <button
             type="button"
-            variant="secondary"
             onClick={() => navigate('/admin/proyectos')}
-            className="!px-4 !py-2.5 !text-[14px]"
+            className="adm-btn secondary"
           >
             Cancelar
-          </Button>
-          <Button
+          </button>
+          <button
             type="submit"
-            variant="primary"
             disabled={isSubmitting}
-            className="!px-5 !py-2.5 !text-[14px]"
+            className="adm-btn primary"
           >
-            <Save size={16} />
+            <Save size={15} />
             <span>
               {isSubmitting
                 ? 'Guardando...'
@@ -782,7 +821,7 @@ export default function ProjectFormPage() {
                   ? 'Guardar cambios'
                   : 'Crear proyecto'}
             </span>
-          </Button>
+          </button>
         </div>
       </section>
     </form>
@@ -812,23 +851,24 @@ export default function ProjectFormPage() {
     );
 
   return (
-    <div className="flex flex-col gap-6">
+    <div id="v-proyectos" className="adm-view is-on flex flex-col gap-5">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={() => navigate('/admin/proyectos')}
             aria-label="Volver al listado de proyectos"
-            className="cursor-pointer rounded-[10px] border border-[var(--borde)] bg-[var(--superficie)] p-2 text-[var(--texto-suave)] hover:border-[var(--acento)] hover:text-[var(--texto)]"
+            className="adm-iconbtn !h-9 !w-9"
           >
-            <ArrowLeft size={18} />
+            <ArrowLeft size={17} />
           </button>
           <div>
-            <h1 className="font-heading text-[24px] font-bold tracking-tight text-[var(--texto)]">
+            <h1 className="adm-h1 !text-[24px]">
               {isEditing ? 'Editar Proyecto' : 'Nuevo Proyecto'}
             </h1>
-            <p className="font-sans-ui text-[13px] text-[var(--texto-suave)]">
-              Alterná el rol en el cabezal derecho para previsualizar la Tarjeta de Visitante o el Detalle Técnico.
+            <p className="adm-sub">
+              Alterná el rol en el cabezal derecho para previsualizar la Tarjeta
+              de Visitante o el Detalle Técnico.
             </p>
           </div>
         </div>
