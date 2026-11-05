@@ -1,62 +1,54 @@
 /**
- * Badge - Sistema de insignias del Panel de Administración (Regla 1.1).
+ * Badge - Sistema de insignias con tokens semánticos fijos y paleta de acento (Parte 0).
  * - variant="neutral": Etiquetas de categorización (tipo de consulta, tecnologías, origen, rol).
- *   Usa borde sutil, fondo de superficie secundaria, ícono opcional y texto.
- * - variant="status": Color semántico EXCLUSIVO para estados:
- *   - 'nuevo': azul/violeta claro (text-violet-300 en oscuro, WCAG AA >= 4.5:1)
- *   - 'leido': gris neutro
- *   - 'respondido' | 'publicado' | 'activo': esmeralda
- *   - 'inactivo' | 'cerrado' | 'borrador': ámbar / rojo
+ * - variant="status": Color semántico para estados:
+ *   - 'nuevo': acento de la paleta activa (--ac2 / --ar)
+ *   - 'leido': neutro (--mut / --bd)
+ *   - 'respondido' | 'publicado' | 'activo': semántico fijo --ok (#34d399)
+ *   - 'borrador' | 'inactivo': semántico fijo --warn (#fbbf24) / --info (#22d3ee)
+ *   - 'cerrado': semántico fijo --bad (#fb7185)
  */
 
 const STATUS_CONFIG = {
   nuevo: {
     label: 'Nuevo',
-    classes:
-      'border-violet-500/40 bg-violet-500/15 text-violet-700 dark:text-violet-300 [html[data-theme="dark"]_&]:text-violet-300',
-    dot: 'bg-violet-400',
+    classes: 'badge-accent',
+    dotStyle: { backgroundColor: 'var(--ac2)' },
   },
   leido: {
     label: 'Leído',
-    classes:
-      'border-[var(--borde)] bg-[var(--superficie-alta)] text-[var(--texto-suave)]',
-    dot: 'bg-slate-400',
+    classes: 'border-[var(--bd)] bg-[var(--bg2)] text-[var(--mut)]',
+    dotStyle: { backgroundColor: 'var(--mut)' },
   },
   respondido: {
     label: 'Respondido',
-    classes:
-      'border-emerald-500/40 bg-emerald-500/15 text-emerald-700 [html[data-theme="dark"]_&]:text-emerald-300',
-    dot: 'bg-emerald-400',
+    classes: 'badge-ok',
+    dotStyle: { backgroundColor: 'var(--ok)' },
   },
   publicado: {
     label: 'Publicado',
-    classes:
-      'border-emerald-500/40 bg-emerald-500/15 text-emerald-700 [html[data-theme="dark"]_&]:text-emerald-300',
-    dot: 'bg-emerald-400',
+    classes: 'badge-ok',
+    dotStyle: { backgroundColor: 'var(--ok)' },
   },
   activo: {
     label: 'Activo',
-    classes:
-      'border-emerald-500/40 bg-emerald-500/15 text-emerald-700 [html[data-theme="dark"]_&]:text-emerald-300',
-    dot: 'bg-emerald-400',
+    classes: 'badge-ok',
+    dotStyle: { backgroundColor: 'var(--ok)' },
   },
   borrador: {
     label: 'Borrador',
-    classes:
-      'border-amber-500/40 bg-amber-500/15 text-amber-800 [html[data-theme="dark"]_&]:text-amber-300',
-    dot: 'bg-amber-400',
+    classes: 'badge-warn',
+    dotStyle: { backgroundColor: 'var(--warn)' },
   },
   inactivo: {
     label: 'Inactivo',
-    classes:
-      'border-amber-500/40 bg-amber-500/15 text-amber-800 [html[data-theme="dark"]_&]:text-amber-300',
-    dot: 'bg-amber-400',
+    classes: 'badge-warn',
+    dotStyle: { backgroundColor: 'var(--warn)' },
   },
   cerrado: {
     label: 'Cerrado',
-    classes:
-      'border-red-500/40 bg-red-500/15 text-red-700 [html[data-theme="dark"]_&]:text-red-300',
-    dot: 'bg-red-400',
+    classes: 'badge-bad',
+    dotStyle: { backgroundColor: 'var(--bad)' },
   },
 };
 
@@ -72,9 +64,13 @@ export default function Badge({
     const cfg = STATUS_CONFIG[key] || STATUS_CONFIG.leido;
     return (
       <span
-        className={`font-mono-ui inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium leading-none ${cfg.classes} ${className}`}
+        className={`badge ${cfg.classes} ${className}`}
       >
-        <span className={`h-1.5 w-1.5 rounded-full ${cfg.dot}`} aria-hidden="true" />
+        <span
+          className="h-1.5 w-1.5 rounded-full"
+          style={cfg.dotStyle}
+          aria-hidden="true"
+        />
         <span>{children || cfg.label}</span>
       </span>
     );
@@ -82,9 +78,9 @@ export default function Badge({
 
   return (
     <span
-      className={`font-mono-ui inline-flex items-center gap-1.5 rounded-[8px] border border-[var(--borde)] bg-[var(--superficie-alta)] px-2.5 py-1 text-[11px] font-medium leading-none text-[var(--texto)] ${className}`}
+      className={`font-mono-ui inline-flex items-center gap-1.5 rounded-[8px] border border-[var(--bd)] bg-[var(--bg2)] px-2.5 py-1 text-[11px] font-medium leading-none text-[var(--tx)] ${className}`}
     >
-      {icon && <span className="shrink-0 text-[var(--texto-suave)]">{icon}</span>}
+      {icon && <span className="shrink-0 text-[var(--mut)]">{icon}</span>}
       <span>{children}</span>
     </span>
   );

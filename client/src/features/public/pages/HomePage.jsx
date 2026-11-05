@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import StarfieldCanvas from '../../../components/ui/StarfieldCanvas.jsx';
 import Navbar from '../../../components/layout/Navbar.jsx';
@@ -15,11 +15,20 @@ import { useAuth } from '../../auth/index.js';
 import { apiFetch } from '../../../services/api.js';
 import { trackPortfolioEvent } from '../../../services/analytics.js';
 
+const SECTION_DOTS = [
+  { id: 'inicio', label: 'Inicio' },
+  { id: 'sobre-mi', label: 'Sobre mí' },
+  { id: 'trayectoria', label: 'Trayectoria' },
+  { id: 'proyectos', label: 'Proyectos' },
+  { id: 'servicios', label: 'Servicios' },
+  { id: 'contacto', label: 'Contacto' },
+];
+
 /**
- * Página principal del Portfolio ("Landing — Oscuro").
- * Estructura vertical de 1440 px con orden:
- * Header, Inicio, Sobre mí, Trayectoria, Proyectos, Servicios, Contacto y Pie de página,
- * sobre una capa fija de estrellas en Canvas.
+ * Página principal del Portfolio según el prototipo Portfolio_animado_v4.html:
+ * - Incluye barra de progreso superior (#prog), Agujero Negro de fondo (.bh con .disk y .hole),
+ *   puntos laterales de navegación (.dots) y las 6 secciones públicas.
+ * - Conserva intacta toda la lógica de negocio, llamadas a la API, rutas y validaciones.
  */
 export default function HomePage({ initialSection = null }) {
   const {
@@ -42,6 +51,8 @@ export default function HomePage({ initialSection = null }) {
   const [authModalMode, setAuthModalMode] = useState('login');
   const [authModalContext, setAuthModalContext] = useState('');
   const [pendingAction, setPendingAction] = useState(null);
+  const [activeSectionIdx, setActiveSectionIdx] = useState(0);
+  const progRef = useRef(null);
 
   const [contactForm, setContactForm] = useState({
     name: '',
@@ -53,7 +64,6 @@ export default function HomePage({ initialSection = null }) {
   const [contactSending, setContactSending] = useState(false);
   const [contactFeedback, setContactFeedback] = useState(null);
 
-  // Al cargar y recargar, situarse siempre en Inicio (top: 0) y limpiar cualquier hash que fuerce el salto
   useEffect(() => {
     trackPortfolioEvent({ type: 'visit', path: window.location.pathname || '/' });
     if ('scrollRestoration' in window.history) {
@@ -65,7 +75,36 @@ export default function HomePage({ initialSection = null }) {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   }, []);
 
-  // Solo si se accede expresamente a una ruta dedicada (/proyectos o /contacto)
+  useEffect(() => {
+    const handleScroll = () => {
+      const docEl = document.documentElement;
+      const totalScroll = Math.max(docEl.scrollHeight - window.innerHeight, 1);
+      const pct = Math.min(100, Math.max(0, (window.scrollY / totalScroll) * 100));
+      if (progRef.current) {
+        progRef.current.style.width = `${pct}%`;
+      }
+
+      let currentIdx = 0;
+      SECTION_DOTS.forEach((sec, idx) => {
+        const el = document.getElementById(sec.id);
+        if (el) {
+          const rect = el.getBoundingClientRect();
+          if (rect.top < window.innerHeight * 0.45) {
+            currentIdx = idx;
+          }
+        }
+      });
+      if (window.innerHeight + window.scrollY >= docEl.scrollHeight - 8) {
+        currentIdx = SECTION_DOTS.length - 1;
+      }
+      setActiveSectionIdx(currentIdx);
+    };
+
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   useEffect(() => {
     if (initialSection && initialSection !== 'inicio' && initialSection !== 'sobre-mi') {
       const timer = setTimeout(() => {
@@ -192,7 +231,6 @@ export default function HomePage({ initialSection = null }) {
       return;
     }
 
-    // Permite el envío tanto a usuarios con sesión activa como a visitantes anónimos
     await sendContactMessage(user);
   };
 
@@ -215,10 +253,30 @@ export default function HomePage({ initialSection = null }) {
     }
   };
 
+  const scrollToSection = (sectionId) => {
+    if (sectionId === 'inicio') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    const el = document.getElementById(sectionId);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
-    <div className="relative min-h-screen w-full bg-[var(--fondo)] text-[var(--texto)]">
+    <div className="relative min-h-screen w-full bg-[var(--bg)] text-[var(--tx)]">
       {/* Capa de estrellas fija detrás de todo el contenido */}
       <StarfieldCanvas />
+
+      {/* Barra de progreso superior (#prog) */}
+      <div id="prog" ref={progRef} aria-hidden="true" />
+
+      {/* Agujero negro suave del fondo superior (.bh) */}
+      <div className="bh" aria-hidden="true">
+        <div className="disk" />
+        <div className="hole" />
+      </div>
 
       {/* Header fijo superpuesto */}
       <Navbar
@@ -227,9 +285,23 @@ export default function HomePage({ initialSection = null }) {
         onOpenAuthModal={handleOpenAuthModal}
       />
 
+      {/* Puntos laterales de sección (.dots) */}
+      <div className="dots" aria-label="Secciones de la página">
+        {SECTION_DOTS.map((sec, idx) => (
+          <button
+            key={sec.id}
+            type="button"
+            aria-label={sec.label}
+            title={sec.label}
+            onClick={() => scrollToSection(sec.id)}
+            className={activeSectionIdx === idx ? 'on' : ''}
+          />
+        ))}
+      </div>
+
       {/* Columna principal de secciones */}
-      <main className="relative z-10 flex flex-col">
-        <HeroSection profile={profile} />
+      <main id="home-content" className="relative z-10 flex flex-col">
+        <HeroSection profile={profile} technologies={technologies} />
 
         <AboutSection
           about={about}

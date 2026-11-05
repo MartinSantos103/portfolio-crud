@@ -26,28 +26,32 @@ export default function ConfirmModal({
 
   if (!isOpen) return null;
 
+  const isDanger = tone === 'danger';
+  const toneColor = isDanger ? 'var(--bad)' : 'var(--warn)';
+
   return (
     <div
       role="dialog"
       aria-modal="true"
       aria-labelledby="confirm-modal-title"
-      className="fixed inset-0 z-[90] flex items-center justify-center bg-black/65 p-4 backdrop-blur-xs"
+      className="fixed inset-0 z-[90] flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm"
     >
-      <div className="w-full max-w-[440px] rounded-[20px] border border-[var(--borde)] bg-[var(--superficie)] p-6 shadow-2xl">
+      <div className="card w-full max-w-[440px] rounded-[20px] p-6">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-3">
             <span
-              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] border ${
-                tone === 'danger'
-                  ? 'border-red-500/35 bg-red-500/15 text-red-400'
-                  : 'border-amber-500/35 bg-amber-500/15 text-amber-400'
-              }`}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] border"
+              style={{
+                borderColor: `color-mix(in srgb, ${toneColor} 38%, transparent)`,
+                backgroundColor: `color-mix(in srgb, ${toneColor} 15%, transparent)`,
+                color: toneColor,
+              }}
             >
               <AlertTriangle size={20} />
             </span>
             <h2
               id="confirm-modal-title"
-              className="font-heading text-[18px] font-bold text-[var(--texto)]"
+              className="font-heading text-[18px] font-bold text-[var(--tx)]"
             >
               {title}
             </h2>
@@ -58,13 +62,13 @@ export default function ConfirmModal({
             onClick={onCancel}
             disabled={loading}
             aria-label="Cerrar modal"
-            className="cursor-pointer rounded-lg p-1 text-[var(--texto-suave)] hover:bg-[var(--superficie-alta)] hover:text-[var(--texto)]"
+            className="cursor-pointer rounded-lg p-1 text-[var(--mut)] hover:bg-[var(--bg2)] hover:text-[var(--tx)]"
           >
             <X size={18} />
           </button>
         </div>
 
-        <p className="font-sans-ui mt-3 text-[14px] leading-relaxed text-[var(--texto-suave)]">
+        <p className="font-sans-ui mt-3 text-[14px] leading-relaxed text-[var(--mut)]">
           {description}
         </p>
 
@@ -72,9 +76,9 @@ export default function ConfirmModal({
           <Button
             type="button"
             variant="secondary"
+            size="sm"
             onClick={onCancel}
             disabled={loading}
-            className="!px-4 !py-2.5 !text-[14px]"
           >
             {cancelLabel}
           </Button>
@@ -82,10 +86,17 @@ export default function ConfirmModal({
             type="button"
             onClick={onConfirm}
             disabled={loading}
-            className={`font-sans-ui inline-flex cursor-pointer items-center justify-center rounded-[12px] px-4 py-2.5 text-[14px] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
-              tone === 'danger'
-                ? 'bg-red-500 text-white hover:bg-red-600'
-                : 'bg-[var(--acento)] text-[var(--sobre-acento)] hover:bg-[var(--acento-hover)]'
+            style={
+              isDanger
+                ? {
+                    backgroundColor: 'var(--bad)',
+                    borderColor: 'var(--bad)',
+                    color: '#0a0c1b',
+                  }
+                : undefined
+            }
+            className={`btn btn-sm font-semibold ${
+              isDanger ? '' : 'p'
             }`}
           >
             {loading ? 'Procesando...' : confirmLabel}

@@ -28,7 +28,7 @@ export function SimpleMarkdownBlock({ text }) {
     return parts.map((part, i) => {
       if (part.startsWith('**') && part.endsWith('**')) {
         return (
-          <strong key={i} className="font-semibold text-[var(--texto)]">
+          <strong key={i} className="font-semibold text-white">
             {part.slice(2, -2)}
           </strong>
         );
@@ -37,7 +37,7 @@ export function SimpleMarkdownBlock({ text }) {
         return (
           <code
             key={i}
-            className="font-mono-ui rounded bg-[var(--superficie-alta)] px-1.5 py-0.5 text-[13px] text-[var(--acento-texto)]"
+            className="font-mono-ui rounded bg-[var(--bg2)] px-1.5 py-0.5 text-[13px] text-[var(--ac2)]"
           >
             {part.slice(1, -1)}
           </code>
@@ -73,12 +73,12 @@ export function SimpleMarkdownBlock({ text }) {
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-2.5">
       {blocks.map((b) =>
         b.type === 'ul' ? (
           <ul
             key={b.key}
-            className="font-sans-ui list-disc space-y-1.5 pl-5 text-[15px] leading-[24px] text-[var(--texto-suave)]"
+            className="font-sans-ui list-disc space-y-1.5 pl-5 text-[14.5px] leading-[1.6] text-[#c5cae9]"
           >
             {b.items.map((item, i) => (
               <li key={i}>{renderInline(item)}</li>
@@ -87,7 +87,7 @@ export function SimpleMarkdownBlock({ text }) {
         ) : (
           <p
             key={b.key}
-            className="font-sans-ui text-[15px] font-normal leading-[25px] text-[var(--texto-suave)]"
+            className="font-sans-ui text-[14.5px] font-normal leading-[1.6] text-[#c5cae9]"
           >
             {renderInline(b.content)}
           </p>
@@ -99,8 +99,11 @@ export function SimpleMarkdownBlock({ text }) {
 
 /**
  * ProjectDetailView - Componente Presentacional Puro (Sección 4.2.3).
- * Recibe absolutamente todos sus datos por props. No llama a la API, no monta
- * el fondo de estrellas ni dispara eventos de analítica.
+ * Implementa el diseño exacto de #pd-section de Portfolio_animado_v4.html:
+ * - Escenario superior (.pd-stage) con agujero negro (.pd-bh, .pd-disk, .pd-hole)
+ * - Ventana (.pd-window) con imagen 16:9 (.has-img) o maqueta estática (.pd-dots, .pd-bar, .pd-grid-mock)
+ * - 3 cajas (.pd-box): 01 / EL PROBLEMA, 02 / LA SOLUCIÓN, 03 / DECISIONES TÉCNICAS
+ * - Tecnologías utilizadas, galería, demos y botones de acción.
  */
 export function ProjectDetailView({
   project = {},
@@ -108,94 +111,105 @@ export function ProjectDetailView({
   demos = [],
 }) {
   const images = Array.isArray(project.images) ? project.images : [];
-  const hasTechSections =
-    Boolean(project.problem?.trim()) ||
-    Boolean(project.solution?.trim()) ||
-    Boolean(project.tech_decisions?.trim());
+  const hasImage = Boolean(project.cover_image_url);
+  const slugLabel = (project.slug || project.title || 'PROYECTO')
+    .toString()
+    .toUpperCase();
 
   return (
     <article
       data-interactive-card="true"
-      className="overflow-hidden rounded-[24px] border border-[var(--borde)] bg-[var(--superficie)]"
+      className="card pd-card overflow-hidden"
     >
-      {/* Zona de portada / imagen Cloudinary */}
-      <div className="relative flex h-[240px] w-full items-center justify-center bg-[var(--superficie-alta)] p-[24px] sm:h-[340px]">
-        {project.cover_image_url ? (
-          <img
-            src={project.cover_image_url}
-            alt={project.title || 'Portada del proyecto'}
-            className="absolute inset-0 h-full w-full object-cover"
-          />
-        ) : (
-          <div className="flex h-full w-full max-w-[760px] flex-col rounded-[16px] border border-[var(--borde)] bg-[var(--fondo)] p-[24px]">
-            <div className="mb-[20px] flex items-center gap-[6px]">
-              <span className="h-[8px] w-[8px] rounded-full bg-[var(--borde)]" />
-              <span className="h-[8px] w-[8px] rounded-full bg-[var(--borde)]" />
-              <span className="h-[8px] w-[8px] rounded-full bg-[var(--borde)]" />
-            </div>
-            <div className="flex flex-1 flex-col justify-between gap-[16px]">
-              <div className="h-[16px] w-[40%] rounded-[6px] bg-[var(--acento)] opacity-85" />
-              <div className="grid flex-1 grid-cols-3 gap-[16px]">
-                <div className="rounded-[8px] bg-[var(--superficie-alta)]" />
-                <div className="rounded-[8px] bg-[var(--superficie-alta)]" />
-                <div className="rounded-[8px] bg-[var(--superficie-alta)]" />
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="flex flex-col gap-[24px] p-[24px] sm:p-[36px]">
-        <div className="flex flex-col gap-[10px]">
-          <span className="font-mono-ui text-[12px] font-medium uppercase tracking-[2px] text-[var(--acento-texto)]">
-            DETALLE TÉCNICO DE PROYECTO {project.slug ? `/ ${project.slug}` : ''}
-          </span>
-          <h1 className="font-heading text-[28px] font-bold tracking-[-0.8px] text-[var(--texto)] sm:text-[38px]">
-            {project.title || 'Título del proyecto'}
-          </h1>
+      {/* Escenario superior con Agujero Negro y Mockup estático / Imagen */}
+      <div className="pd-stage">
+        <div className="pd-bh" aria-hidden="true">
+          <div className="pd-disk" />
+          <div className="pd-hole" />
         </div>
 
-        <p className="font-sans-ui max-w-[820px] text-[17px] font-normal leading-[27px] text-[var(--texto)]">
+        <div className={`pd-window ${hasImage ? 'has-img' : ''}`}>
+          {hasImage ? (
+            <img
+              src={project.cover_image_url}
+              alt={project.title || 'Portada del proyecto'}
+              className="pd-img"
+              loading="lazy"
+              decoding="async"
+            />
+          ) : (
+            <>
+              <div className="pd-dots">
+                <i />
+                <i />
+                <i />
+              </div>
+              <div className="pd-bar" />
+              <div className="pd-grid-mock">
+                <i />
+                <i />
+                <i />
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Cuerpo del detalle técnico (.pd-body) */}
+      <div className="cb px-[20px] py-[26px] sm:px-[34px] sm:py-[36px]">
+        <p className="ey mb-[10px] tracking-[0.18em]">
+          DETALLE TÉCNICO DE PROYECTO / {slugLabel}
+        </p>
+
+        <h1 className="mb-[12px] font-heading text-[clamp(30px,4.6vw,46px)] font-bold leading-[1.1] tracking-[-0.02em] text-white">
+          {project.title || 'Título del proyecto'}
+        </h1>
+
+        <p className="mb-[28px] max-w-[68ch] font-sans-ui text-[clamp(16px,2vw,18.5px)] leading-[1.6] text-[#d6daf0]">
           {project.description || project.summary || 'Resumen general del proyecto.'}
         </p>
 
-        {/* Tres secciones de detalle exclusivo para usuarios registrados */}
-        {hasTechSections && (
-          <div className="grid grid-cols-1 gap-4 pt-2 lg:grid-cols-3">
-            <div className="rounded-[16px] border border-[var(--borde)] bg-[var(--fondo)] p-5">
-              <span className="font-mono-ui mb-2 block text-[11px] font-semibold uppercase tracking-[1.5px] text-[var(--acento-texto)]">
+        {/* Tarjetas 01 / 02 / 03 */}
+        <div className="mb-[30px] grid grid-cols-1 gap-[16px] md:grid-cols-3">
+          <div className="card pd-box">
+            <div className="cb !p-[22px]">
+              <p className="ey mb-[10px] !text-[11px] !tracking-[0.15em] !text-[var(--ac2)]">
                 01 / EL PROBLEMA
-              </span>
+              </p>
               <SimpleMarkdownBlock
                 text={project.problem || 'Sin especificación cargada.'}
               />
             </div>
+          </div>
 
-            <div className="rounded-[16px] border border-[var(--borde)] bg-[var(--fondo)] p-5">
-              <span className="font-mono-ui mb-2 block text-[11px] font-semibold uppercase tracking-[1.5px] text-[var(--acento-texto)]">
+          <div className="card pd-box">
+            <div className="cb !p-[22px]">
+              <p className="ey mb-[10px] !text-[11px] !tracking-[0.15em] !text-[var(--ac2)]">
                 02 / LA SOLUCIÓN
-              </span>
+              </p>
               <SimpleMarkdownBlock
                 text={project.solution || 'Sin especificación cargada.'}
               />
             </div>
+          </div>
 
-            <div className="rounded-[16px] border border-[var(--borde)] bg-[var(--fondo)] p-5">
-              <span className="font-mono-ui mb-2 block text-[11px] font-semibold uppercase tracking-[1.5px] text-[var(--acento-texto)]">
+          <div className="card pd-box">
+            <div className="cb !p-[22px]">
+              <p className="ey mb-[10px] !text-[11px] !tracking-[0.15em] !text-[var(--ac2)]">
                 03 / DECISIONES TÉCNICAS
-              </span>
+              </p>
               <SimpleMarkdownBlock
                 text={project.tech_decisions || 'Sin especificación cargada.'}
               />
             </div>
           </div>
-        )}
+        </div>
 
         {/* Tecnologías utilizadas */}
-        <div className="flex flex-col gap-[12px]">
-          <span className="font-mono-ui text-[12px] font-medium uppercase tracking-[1.5px] text-[var(--acento-texto)]">
+        <div className="mb-[28px]">
+          <p className="mb-[14px] font-mono-ui text-[11.5px] font-medium uppercase tracking-[0.16em] text-[var(--mut)]">
             TECNOLOGÍAS UTILIZADAS
-          </span>
+          </p>
           <div className="flex flex-wrap gap-[10px]">
             {technologies.map((tech) => (
               <TechChip
@@ -211,15 +225,15 @@ export function ProjectDetailView({
 
         {/* Galería de imágenes secundarias */}
         {images.length > 0 && (
-          <div className="flex flex-col gap-3 pt-2">
-            <span className="font-mono-ui text-[12px] font-medium uppercase tracking-[1.5px] text-[var(--acento-texto)]">
+          <div className="mb-[28px] flex flex-col gap-3">
+            <p className="font-mono-ui text-[11.5px] font-medium uppercase tracking-[0.16em] text-[var(--mut)]">
               GALERÍA DEL PROYECTO
-            </span>
+            </p>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {images.map((img, idx) => (
                 <div
                   key={img.id || idx}
-                  className="overflow-hidden rounded-[14px] border border-[var(--borde)] bg-[var(--fondo)]"
+                  className="overflow-hidden rounded-[14px] border border-[var(--bd)] bg-[var(--bg)]"
                 >
                   <img
                     src={img.url}
@@ -234,10 +248,10 @@ export function ProjectDetailView({
 
         {/* Demos interactivas asociadas */}
         {Array.isArray(demos) && demos.length > 0 && (
-          <div className="flex flex-col gap-4 pt-2">
-            <span className="font-mono-ui text-[12px] font-medium uppercase tracking-[1.5px] text-[var(--acento-texto)]">
+          <div className="mb-[28px] flex flex-col gap-4">
+            <p className="font-mono-ui text-[11.5px] font-medium uppercase tracking-[0.16em] text-[var(--mut)]">
               DEMOSTRACIONES INTERACTIVAS
-            </span>
+            </p>
             <div className="flex flex-col gap-6">
               {demos.map((demo, idx) => (
                 <DemoViewer key={demo.id || idx} demo={demo} />
@@ -246,22 +260,28 @@ export function ProjectDetailView({
           </div>
         )}
 
-        {/* Enlaces al repositorio y despliegue */}
-        <div className="flex flex-wrap items-center gap-[16px] pt-[8px]">
+        {/* Acciones inferiores (.pd-actions) */}
+        <div className="mt-[8px] flex flex-wrap items-center gap-[12px] border-t border-[var(--bd)] pt-[22px]">
           {project.live_url && (
-            <a href={project.live_url} target="_blank" rel="noreferrer">
-              <Button variant="primary">
-                <span>Ver demo en vivo</span>
-                <IconSlot size={18} name="external-demo" />
-              </Button>
+            <a
+              href={project.live_url}
+              target="_blank"
+              rel="noreferrer"
+              className="btn p"
+            >
+              <span>Ver demo en vivo</span>
+              <IconSlot size={16} name="external-demo" />
             </a>
           )}
           {project.repo_url && (
-            <a href={project.repo_url} target="_blank" rel="noreferrer">
-              <Button variant="secondary">
-                <span>Repositorio GitHub</span>
-                <IconSlot size={18} name="repo-github" />
-              </Button>
+            <a
+              href={project.repo_url}
+              target="_blank"
+              rel="noreferrer"
+              className="btn"
+            >
+              <span>Repositorio GitHub</span>
+              <IconSlot size={17} name="repo-github" />
             </a>
           )}
         </div>
@@ -272,12 +292,17 @@ export function ProjectDetailView({
 
 /**
  * Contenedor de página pública (/proyectos/:id) para usuarios con sesión activa.
+ * Soporta el botón atrás del navegador y el botón "Volver a Proyectos".
  */
 export default function ProjectDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { navLinks, profile, projectsSection, technologies, footer } = usePortfolioData();
   const [remoteProject, setRemoteProject] = useState(null);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [id]);
 
   useEffect(() => {
     let isMounted = true;
@@ -306,7 +331,9 @@ export default function ProjectDetail() {
 
   const project =
     remoteProject ||
-    projectsSection.items?.find((item) => String(item.id) === String(id)) ||
+    projectsSection.items?.find(
+      (item) => String(item.id) === String(id) || String(item.slug) === String(id)
+    ) ||
     projectsSection.items?.[0];
 
   if (!project) {
@@ -318,24 +345,38 @@ export default function ProjectDetail() {
     technologies
   );
 
+  const handleBackToProjects = () => {
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate('/proyectos');
+    }
+  };
+
   return (
-    <div className="relative min-h-screen bg-[var(--fondo)] text-[var(--texto)]">
+    <div className="relative min-h-screen bg-[var(--bg)] text-[var(--tx)]">
       <StarfieldCanvas />
       <Navbar developerName={profile.fullName} navLinks={navLinks} />
 
-      <main className="relative z-10 mx-auto w-full max-w-[1440px] px-[24px] pt-[128px] pb-[110px] sm:px-[64px] xl:px-[160px]">
-        <div className="mb-[32px]">
-          <Button variant="secondary" onClick={() => navigate('/#proyectos')}>
-            <IconSlot size={16} name="arrow-left" />
-            <span>Volver a Proyectos</span>
-          </Button>
-        </div>
+      <main className="relative z-10 mx-auto w-full max-w-[980px] px-[20px] pt-[104px] pb-[60px]">
+        <section id="pd-section" aria-live="polite" className="!p-0">
+          <div className="mb-[22px] flex items-center justify-start">
+            <Button
+              variant="secondary"
+              onClick={handleBackToProjects}
+              className="!rounded-[12px] !bg-[rgba(10,12,27,0.78)] !px-[18px] !py-[10px] !text-[14.5px] backdrop-blur-md"
+            >
+              <IconSlot size={16} name="arrow-left" />
+              <span>Volver a Proyectos</span>
+            </Button>
+          </div>
 
-        <ProjectDetailView
-          project={project}
-          technologies={projectTechs}
-          demos={project.demos || []}
-        />
+          <ProjectDetailView
+            project={project}
+            technologies={projectTechs}
+            demos={project.demos || []}
+          />
+        </section>
       </main>
 
       <Footer copyright={footer.copyright} socialLinks={profile.socialLinks} />

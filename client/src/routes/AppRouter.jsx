@@ -10,6 +10,7 @@ import {
   PublicOnlyRoute,
 } from '../features/auth/index.js';
 import { ToastProvider } from '../components/ui/Toast.jsx';
+import CustomCursor from '../components/ui/CustomCursor.jsx';
 import AdminLayout from '../components/layout/AdminLayout.jsx';
 import AdminDashboardPage from '../features/admin/dashboard/AdminDashboardPage.jsx';
 import ProfileEditPage from '../features/admin/profile/ProfileEditPage.jsx';
@@ -33,28 +34,46 @@ function RootProvidersLayout() {
   );
 }
 
+/**
+ * PublicShellLayout — Envoltorio exclusivo del sitio público (fuera de /admin/*).
+ * Monta una sola vez el cursor luminoso (y ASTRO en Parte 4) sin desmontarlos al navegar entre secciones.
+ */
+function PublicShellLayout() {
+  return (
+    <>
+      <CustomCursor />
+      <Outlet />
+    </>
+  );
+}
+
 const router = createBrowserRouter([
   {
     element: <RootProvidersLayout />,
     children: [
-      /* Rutas Públicas: accesibles para cualquier visitante */
-      { path: '/', element: <HomePage /> },
-      { path: '/proyectos', element: <HomePage initialSection="proyectos" /> },
-      { path: '/contacto', element: <HomePage initialSection="contacto" /> },
-
-      /* Rutas de Invitados: no accesibles si ya se tiene sesión activa (redirige según rol) */
       {
-        element: <PublicOnlyRoute />,
+        element: <PublicShellLayout />,
         children: [
-          { path: '/login', element: <Login /> },
-          { path: '/registro', element: <Register /> },
-        ],
-      },
+          /* Rutas Públicas: accesibles para cualquier visitante */
+          { path: '/', element: <HomePage /> },
+          { path: '/proyectos', element: <HomePage initialSection="proyectos" /> },
+          { path: '/contacto', element: <HomePage initialSection="contacto" /> },
 
-      /* Rutas Protegidas de Usuario Autenticado (admin o user) */
-      {
-        element: <ProtectedRoute allowedRoles={['admin', 'user']} />,
-        children: [{ path: '/proyectos/:id', element: <ProjectDetail /> }],
+          /* Rutas de Invitados: no accesibles si ya se tiene sesión activa (redirige según rol) */
+          {
+            element: <PublicOnlyRoute />,
+            children: [
+              { path: '/login', element: <Login /> },
+              { path: '/registro', element: <Register /> },
+            ],
+          },
+
+          /* Rutas Protegidas de Usuario Autenticado (admin o user) */
+          {
+            element: <ProtectedRoute allowedRoles={['admin', 'user']} />,
+            children: [{ path: '/proyectos/:id', element: <ProjectDetail /> }],
+          },
+        ],
       },
 
       /* Rutas Protegidas Exclusivas de Administrador (solo admin) — 15 rutas del CMS v2 */

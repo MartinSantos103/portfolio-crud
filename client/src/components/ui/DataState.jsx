@@ -3,9 +3,9 @@ import Button from './Button.jsx';
 
 /**
  * DataState - Implementa los 4 estados visuales obligatorios (Sección 4.3):
- * 1. 'cargando': Esqueletos (skeletons) con proporciones de tabla o formulario.
- * 2. 'error': Alerta descriptiva con botón «Reintentar consulta».
- * 3. 'sin_datos': Estado vacío ilustrado con acción directa.
+ * 1. 'cargando': Esqueletos (skeletons) con proporciones de tabla, formulario o tarjetas.
+ * 2. 'error': Alerta descriptiva con botón «Reintentar consulta» y token semántico --bad.
+ * 3. 'sin_datos': Estado vacío ilustrado (.adm-empty) con acción directa.
  * 4. 'con_datos': Renderizado normal (children).
  */
 export default function DataState({
@@ -27,11 +27,11 @@ export default function DataState({
           {Array.from({ length: 4 }).map((_, idx) => (
             <div
               key={idx}
-              className="h-[118px] animate-pulse rounded-[16px] border border-[var(--borde)] bg-[var(--superficie)] p-5"
+              className="card h-[118px] animate-pulse p-5"
             >
-              <div className="h-3 w-24 rounded bg-[var(--superficie-alta)]" />
-              <div className="mt-4 h-7 w-16 rounded bg-[var(--superficie-alta)]" />
-              <div className="mt-3 h-2.5 w-32 rounded bg-[var(--superficie-alta)]" />
+              <div className="h-3 w-24 rounded bg-[var(--bg2)]" />
+              <div className="mt-4 h-7 w-16 rounded bg-[var(--bg2)]" />
+              <div className="mt-3 h-2.5 w-32 rounded bg-[var(--bg2)]" />
             </div>
           ))}
         </div>
@@ -42,15 +42,15 @@ export default function DataState({
       return (
         <div
           aria-busy="true"
-          className="flex flex-col gap-5 rounded-[16px] border border-[var(--borde)] bg-[var(--superficie)] p-6"
+          className="card flex flex-col gap-5 p-6"
         >
-          <div className="h-5 w-48 animate-pulse rounded bg-[var(--superficie-alta)]" />
+          <div className="h-5 w-48 animate-pulse rounded bg-[var(--bg2)]" />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="h-12 animate-pulse rounded-[12px] bg-[var(--superficie-alta)]" />
-            <div className="h-12 animate-pulse rounded-[12px] bg-[var(--superficie-alta)]" />
+            <div className="h-12 animate-pulse rounded-[12px] bg-[var(--bg2)]" />
+            <div className="h-12 animate-pulse rounded-[12px] bg-[var(--bg2)]" />
           </div>
-          <div className="h-28 animate-pulse rounded-[12px] bg-[var(--superficie-alta)]" />
-          <div className="h-28 animate-pulse rounded-[12px] bg-[var(--superficie-alta)]" />
+          <div className="h-28 animate-pulse rounded-[12px] bg-[var(--bg2)]" />
+          <div className="h-28 animate-pulse rounded-[12px] bg-[var(--bg2)]" />
         </div>
       );
     }
@@ -58,22 +58,22 @@ export default function DataState({
     return (
       <div
         aria-busy="true"
-        className="overflow-hidden rounded-[16px] border border-[var(--borde)] bg-[var(--superficie)]"
+        className="card overflow-hidden"
       >
-        <div className="border-b border-[var(--borde)] bg-[var(--superficie-alta)] px-5 py-3.5">
-          <div className="h-3.5 w-44 animate-pulse rounded bg-[var(--borde)]" />
+        <div className="border-b border-[var(--bd)] bg-[var(--bg2)] px-5 py-3.5">
+          <div className="h-3.5 w-44 animate-pulse rounded bg-[var(--bd)]" />
         </div>
-        <div className="divide-y divide-[var(--borde)]">
+        <div className="divide-y divide-[var(--bd)]">
           {Array.from({ length: skeletonRows }).map((_, idx) => (
             <div key={idx} className="flex items-center justify-between gap-4 px-5 py-4">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 animate-pulse rounded-[10px] bg-[var(--superficie-alta)]" />
+                <div className="h-10 w-10 animate-pulse rounded-[10px] bg-[var(--bg2)]" />
                 <div className="flex flex-col gap-2">
-                  <div className="h-3.5 w-40 animate-pulse rounded bg-[var(--superficie-alta)]" />
-                  <div className="h-2.5 w-24 animate-pulse rounded bg-[var(--superficie-alta)]" />
+                  <div className="h-3.5 w-40 animate-pulse rounded bg-[var(--bg2)]" />
+                  <div className="h-2.5 w-24 animate-pulse rounded bg-[var(--bg2)]" />
                 </div>
               </div>
-              <div className="h-6 w-20 animate-pulse rounded-full bg-[var(--superficie-alta)]" />
+              <div className="h-6 w-20 animate-pulse rounded-full bg-[var(--bg2)]" />
             </div>
           ))}
         </div>
@@ -85,16 +85,23 @@ export default function DataState({
     return (
       <div
         role="alert"
-        className="flex flex-col items-center justify-center gap-4 rounded-[16px] border border-red-500/35 bg-[var(--superficie)] p-8 text-center"
+        className="card flex flex-col items-center justify-center gap-4 p-8 text-center"
+        style={{ borderColor: 'color-mix(in srgb, var(--bad) 40%, transparent)' }}
       >
-        <span className="flex h-12 w-12 items-center justify-center rounded-full bg-red-500/15 text-red-400">
+        <span
+          className="flex h-12 w-12 items-center justify-center rounded-full"
+          style={{
+            backgroundColor: 'color-mix(in srgb, var(--bad) 15%, transparent)',
+            color: 'var(--bad)',
+          }}
+        >
           <AlertCircle size={24} />
         </span>
         <div className="max-w-md">
-          <h3 className="font-heading text-[18px] font-bold text-[var(--texto)]">
+          <h3 className="font-heading text-[18px] font-bold text-[var(--tx)]">
             Ocurrió un problema al consultar los datos
           </h3>
-          <p className="font-sans-ui mt-1 text-[14px] text-[var(--texto-suave)]">
+          <p className="font-sans-ui mt-1 text-[14px] text-[var(--mut)]">
             {errorMessage}
           </p>
         </div>
@@ -102,8 +109,8 @@ export default function DataState({
           <Button
             type="button"
             variant="secondary"
+            size="sm"
             onClick={onRetry}
-            className="!px-4 !py-2.5 !text-[14px]"
           >
             <RefreshCw size={16} />
             <span>Reintentar consulta</span>
@@ -115,15 +122,15 @@ export default function DataState({
 
   if (status === 'sin_datos') {
     return (
-      <div className="flex flex-col items-center justify-center gap-4 rounded-[16px] border border-dashed border-[var(--borde)] bg-[var(--superficie)] px-6 py-12 text-center">
-        <span className="flex h-14 w-14 items-center justify-center rounded-[16px] border border-[var(--borde)] bg-[var(--superficie-alta)] text-[var(--acento-texto)]">
+      <div className="adm-empty card flex flex-col items-center justify-center gap-4 border-dashed px-6 py-12 text-center">
+        <span className="flex h-14 w-14 items-center justify-center rounded-[16px] border border-[var(--bd)] bg-[var(--bg2)] text-[var(--ac2)]">
           <FolderOpen size={26} />
         </span>
         <div className="max-w-md">
-          <h3 className="font-heading text-[18px] font-bold text-[var(--texto)]">
+          <h3 className="font-heading text-[18px] font-bold text-[var(--tx)]">
             {emptyTitle}
           </h3>
-          <p className="font-sans-ui mt-1 text-[14px] text-[var(--texto-suave)]">
+          <p className="font-sans-ui mt-1 text-[14px] text-[var(--mut)]">
             {emptyDescription}
           </p>
         </div>
@@ -131,8 +138,8 @@ export default function DataState({
           <Button
             type="button"
             variant="primary"
+            size="sm"
             onClick={onEmptyAction}
-            className="!px-5 !py-2.5 !text-[14px]"
           >
             <Plus size={16} />
             <span>{emptyActionLabel}</span>

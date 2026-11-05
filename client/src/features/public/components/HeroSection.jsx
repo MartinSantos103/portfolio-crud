@@ -1,27 +1,19 @@
 import { useState, useEffect, useMemo } from 'react';
 import IconSlot from '../../../components/ui/IconSlot.jsx';
 import Button from '../../../components/ui/Button.jsx';
+import TechChip from '../../../components/ui/TechChip.jsx';
 
 const DEFAULT_PREFIX = 'Construyo aplicaciones web';
 const DEFAULT_WORDS = ['rápidas', 'escalables', 'intuitivas', 'modernas'];
 
 /**
- * Sección Inicio (Hero).
- * - Altura fija de 820 px en escritorio, padding 72 px arriba, 24 px abajo y 160 px a los lados.
- * - Fila con dos bloques separados a los extremos y centrados en vertical.
- * - Columna izquierda de 640 px con 22 px entre elementos:
- *   1. Saludo "Hola, soy" en Inter 500, 20 px, --texto-suave
- *   2. Nombre grande en Space Grotesk 700, 76 px, interlineado 80 px, -1.5 px
- *   3. Rol en Space Grotesk 500, 32 px, --acento
- *   4. Descripción breve con efecto de ciclo de escritura y borrado (rápidas → escalables → intuitivas → modernas) y cursor en --acento
- *   5. Fila de dos botones con 16 px de separación: "Ver proyectos" (primario con flecha de 18 px) y "Contactar" (secundario)
- *   6. Fila de redes con 24 px de separación: GitHub (22 px), LinkedIn (22 px) y "Descargar CV" (JetBrains Mono 500, 13 px + icono descarga 16 px)
- * - Bloque derecho de 440 x 440 px:
- *   - Halo difuso de 380 px (--acento al 35 %, blur 60 px)
- *   - Anillo punteado de 440 px (--acento al 40 %, 1.5 px, trazo 6 px y hueco 10 px)
- *   - Disco de 360 px (--superficie-alta, borde --acento de 3 px) con icono de persona de 150 px y etiqueta
+ * Sección Inicio (Hero) según el prototipo Portfolio_animado_v4.html:
+ * - Izquierda: saludo, nombre grande, rol en acento, texto máquina de escribir (que
+ *   respeta prefers-reduced-motion y se pausa si la pestaña está oculta), botones y enlaces.
+ * - Derecha: foto de perfil rodeada del Agujero Negro (.orb con .orb-disk, .orb-disk.d2,
+ *   .orb-hole y .av) y etiquetas de tecnologías principales, SIN rotaciones continuas.
  */
-export default function HeroSection({ profile }) {
+export default function HeroSection({ profile, technologies = [] }) {
   const rawPrefix =
     profile?.typewriterPrefix ??
     profile?.shortDescriptionPrefix ??
@@ -67,8 +59,17 @@ export default function HeroSection({ profile }) {
     const PAUSE_BEFORE_DELETE = 1800;
     const PAUSE_BEFORE_NEXT_WORD = 350;
 
+    function scheduleNext(delay) {
+      if (isCancelled) return;
+      if (timerId) clearTimeout(timerId);
+      // Si la pestaña está oculta, no avanzamos el temporizador hasta que vuelva a ser visible
+      if (typeof document !== 'undefined' && document.hidden) return;
+      timerId = setTimeout(step, delay);
+    }
+
     function step() {
       if (isCancelled) return;
+      if (typeof document !== 'undefined' && document.hidden) return;
 
       // Fase 1: Escribir el prefijo base ("Construyo aplicaciones web")
       if (prefixIndex < cleanPrefix.length) {
@@ -77,7 +78,7 @@ export default function HeroSection({ profile }) {
         }
         prefixIndex += 1;
         setTypedPrefix(cleanPrefix.slice(0, prefixIndex));
-        timerId = setTimeout(step, TYPE_PREFIX_SPEED);
+        scheduleNext(TYPE_PREFIX_SPEED);
         return;
       }
 
@@ -85,36 +86,46 @@ export default function HeroSection({ profile }) {
       const currentFullWord = words[wordIndex] || '';
 
       if (!isDeleting) {
-        // Escribiendo la palabra actual
         if (charIndex < currentFullWord.length) {
           charIndex += 1;
           setTypedWord(currentFullWord.slice(0, charIndex));
-          timerId = setTimeout(step, TYPE_WORD_SPEED);
+          scheduleNext(TYPE_WORD_SPEED);
         } else if (words.length > 1) {
-          // Palabra completada: pausa para lectura antes de borrar
           isDeleting = true;
-          timerId = setTimeout(step, PAUSE_BEFORE_DELETE);
+          scheduleNext(PAUSE_BEFORE_DELETE);
         }
       } else {
-        // Borrando la palabra actual
         if (charIndex > 0) {
           charIndex -= 1;
           setTypedWord(currentFullWord.slice(0, charIndex));
-          timerId = setTimeout(step, DELETE_SPEED);
+          scheduleNext(DELETE_SPEED);
         } else {
-          // Palabra borrada: pasar a la siguiente palabra y pausar brevemente
           isDeleting = false;
           wordIndex = (wordIndex + 1) % words.length;
-          timerId = setTimeout(step, PAUSE_BEFORE_NEXT_WORD);
+          scheduleNext(PAUSE_BEFORE_NEXT_WORD);
         }
       }
     }
 
-    timerId = setTimeout(step, 250);
+    const handleVisibilityChange = () => {
+      if (isCancelled) return;
+      if (document.hidden) {
+        if (timerId) {
+          clearTimeout(timerId);
+          timerId = null;
+        }
+      } else {
+        scheduleNext(120);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    scheduleNext(250);
 
     return () => {
       isCancelled = true;
       if (timerId) clearTimeout(timerId);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [cleanPrefix, words, wordsKey, prefersReducedMotion]);
 
@@ -125,47 +136,59 @@ export default function HeroSection({ profile }) {
     }
   };
 
+  const featuredTechs = useMemo(() => {
+    const list = Array.isArray(technologies) && technologies.length > 0
+      ? technologies.slice(0, 4)
+      : [
+          { id: 'react', name: 'React' },
+          { id: 'nodejs', name: 'Node.js' },
+          { id: 'postgresql', name: 'PostgreSQL' },
+          { id: 'tailwind', name: 'Tailwind CSS' },
+        ];
+    return list;
+  }, [technologies]);
+
   return (
     <section
       id="inicio"
-      className="relative z-10 w-full pt-[72px] pb-[24px] lg:h-[820px]"
+      className="relative z-10 flex min-h-[100svh] w-full items-center pt-[110px] pb-[48px]"
     >
-      <div className="mx-auto flex h-full w-full max-w-[1440px] flex-col items-center justify-between gap-[48px] px-[24px] py-[40px] sm:px-[64px] lg:flex-row lg:gap-0 lg:py-0 xl:px-[160px]">
-        {/* Columna izquierda: 640 px de ancho, 22 px entre elementos */}
-        <div className="flex w-full max-w-[640px] flex-col items-start gap-[22px]">
+      <div className="mx-auto grid w-full max-w-[1080px] grid-cols-1 items-center gap-[38px] px-[20px] md:grid-cols-[1.1fr_0.9fr]">
+        {/* Columna izquierda */}
+        <div className="flex flex-col items-start">
           {/* 1. Saludo */}
-          <p className="font-sans-ui text-[20px] font-medium leading-none text-[var(--texto-suave)]">
+          <p className="font-sans-ui text-[19px] text-[var(--mut)]">
             {profile.greeting}
           </p>
 
-          {/* 2. Nombre grande: Space Grotesk 700, 76 px, interlineado 80 px, -1.5 px */}
-          <h1 className="font-heading text-[46px] font-bold leading-[1.08] tracking-[-1.5px] text-[var(--texto)] sm:text-[62px] lg:text-[76px] lg:leading-[80px]">
+          {/* 2. Nombre grande en Bricolage Grotesque */}
+          <h1 className="font-heading text-[clamp(46px,9vw,80px)] font-bold leading-[1.06] tracking-[-0.02em] text-[var(--tx)]">
             {profile.fullName}
           </h1>
 
-          {/* 3. Rol: Space Grotesk 500, 32 px, --acento */}
-          <p className="font-heading text-[24px] font-medium leading-[1.2] text-[var(--acento)] sm:text-[32px]">
+          {/* 3. Rol en color de acento */}
+          <p className="role my-[10px] min-h-[1.4em] font-heading text-[clamp(22px,3.8vw,30px)] font-medium text-[var(--ac)]">
             {profile.role}
           </p>
 
-          {/* 4. Descripción breve con efecto de escritura y borrado en ciclo */}
+          {/* 4. Descripción breve con efecto máquina de escribir */}
           <p
             aria-label={`${cleanPrefix} ${words.join(', ')}.`}
-            className="font-sans-ui min-h-[56px] max-w-[540px] text-[18px] font-normal leading-[28px] text-[var(--texto-suave)]"
+            className="font-sans-ui min-h-[32px] max-w-[540px] text-[17px] leading-[1.6] text-[var(--mut)]"
           >
             <span aria-hidden="true">
               <span>{typedPrefix}</span>
               {typedPrefix.length >= cleanPrefix.length && <span>&nbsp;</span>}
-              <span className="text-[var(--acento)] font-semibold">{typedWord}</span>
+              <b className="font-medium text-[var(--ac)]">{typedWord}</b>
             </span>
             <span aria-hidden="true" className="typing-cursor" />
           </p>
 
-          {/* 5. Fila de dos botones con 16 px de separación */}
-          <div className="flex flex-wrap items-center gap-[16px]">
+          {/* 5. Botones principales */}
+          <div className="my-[26px] mb-[18px] flex flex-wrap items-center gap-[12px]">
             <Button variant="primary" onClick={() => scrollTo('proyectos')}>
               <span>{profile.primaryCtaLabel}</span>
-              <IconSlot size={18} name="hero-arrow-right" />
+              <IconSlot size={16} name="hero-arrow-right" />
             </Button>
 
             <Button variant="secondary" onClick={() => scrollTo('contacto')}>
@@ -173,8 +196,8 @@ export default function HeroSection({ profile }) {
             </Button>
           </div>
 
-          {/* 6. Fila de redes con 24 px de separación */}
-          <div className="flex items-center gap-[24px]">
+          {/* 6. Enlaces de redes y descarga de CV */}
+          <div className="flex flex-wrap items-center gap-[18px] text-[var(--mut)]">
             {profile.socialLinks?.map((social) => (
               <a
                 key={social.id}
@@ -182,10 +205,10 @@ export default function HeroSection({ profile }) {
                 target="_blank"
                 rel="noreferrer"
                 aria-label={social.name}
-                className="inline-flex text-[var(--texto-suave)] transition-colors duration-150 hover:text-[var(--texto)]"
+                className="inline-flex items-center gap-[6px] font-mono-ui text-[12px] text-[var(--mut)] transition-all duration-200 hover:-translate-y-[3px] hover:text-[var(--ac2)]"
               >
                 <IconSlot
-                  size={22}
+                  size={20}
                   name={`hero-${social.id}`}
                   iconUrl={social.iconUrl}
                 />
@@ -196,63 +219,61 @@ export default function HeroSection({ profile }) {
               href={profile.cvUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="font-mono-ui inline-flex items-center gap-[8px] text-[13px] font-medium text-[var(--texto-suave)] transition-colors duration-150 hover:text-[var(--texto)]"
+              className="inline-flex items-center gap-[6px] font-mono-ui text-[12px] text-[var(--mut)] no-underline transition-all duration-200 hover:-translate-y-[3px] hover:text-[var(--ac2)]"
             >
-              <IconSlot size={16} name="download-cv" />
+              <IconSlot size={14} name="download-cv" />
               <span>{profile.cvLabel}</span>
             </a>
           </div>
         </div>
 
-        {/* Bloque derecho: 440 x 440 px con la foto */}
-        <div className="relative flex h-[320px] w-[320px] shrink-0 items-center justify-center sm:h-[440px] sm:w-[440px]">
-          {/* 1. Halo difuso detrás de la foto: 380 px, --acento al 35 %, desenfoque 60 px */}
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute h-[280px] w-[280px] rounded-full bg-[var(--foto-halo-bg)] blur-[60px] sm:h-[380px] sm:w-[380px]"
-          />
-
-          {/* 2. Anillo punteado de 440 px: borde --acento al 40 %, 1.5 px, trazo 6 px y hueco 10 px */}
-          <svg
-            aria-hidden="true"
-            viewBox="0 0 440 440"
-            className="pointer-events-none absolute inset-0 h-full w-full"
-          >
-            <circle
-              cx="220"
-              cy="220"
-              r="218.5"
-              fill="none"
-              stroke="var(--acento)"
-              strokeOpacity="0.4"
-              strokeWidth="1.5"
-              strokeDasharray="6 10"
-            />
-          </svg>
-
-          {/* 3. Disco de 360 px con relleno --superficie-alta y borde --acento de 3 px */}
-          <div className="relative z-10 flex h-[260px] w-[260px] flex-col items-center justify-center overflow-hidden rounded-full border-[3px] border-[var(--acento)] bg-[var(--superficie-alta)] sm:h-[360px] sm:w-[360px]">
-            {profile.photoUrl ? (
-              <img
-                src={profile.photoUrl}
-                alt={profile.fullName}
-                className="h-full w-full rounded-full object-cover"
-              />
-            ) : (
-              <div className="flex flex-col items-center justify-center gap-[16px] text-[var(--texto-suave)]">
-                <IconSlot
-                  size={150}
-                  name="profile-photo-placeholder"
-                  className="max-h-[110px] max-w-[110px] sm:max-h-[150px] sm:max-w-[150px]"
+        {/* Columna derecha: Agujero negro (.orb) + foto de perfil + etiquetas de tecnologías */}
+        <div className="flex flex-col items-center gap-[18px]">
+          <div className="orb">
+            <div className="orb-disk" aria-hidden="true" />
+            <div className="orb-disk d2" aria-hidden="true" />
+            <div className="orb-hole" aria-hidden="true" />
+            <div className="av">
+              {profile.photoUrl ? (
+                <img
+                  src={profile.photoUrl}
+                  alt={profile.fullName}
+                  className="h-full w-full rounded-full object-cover"
                 />
-                <span className="font-mono-ui text-[12px] font-normal text-[var(--texto-suave)]">
-                  {profile.photoPlaceholderLabel}
-                </span>
-              </div>
-            )}
+              ) : (
+                <div className="flex flex-col items-center justify-center gap-[8px] px-3 text-[var(--mut)]">
+                  <IconSlot size={56} name="profile-photo-placeholder" />
+                  <span className="font-mono-ui text-[10px] text-[var(--mut)]">
+                    {profile.photoPlaceholderLabel || 'Foto del profesional'}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Etiquetas estáticas de tecnologías debajo del horizonte de sucesos (sin rotación continua) */}
+          <div
+            aria-label="Tecnologías principales"
+            className="relative z-10 flex flex-wrap items-center justify-center gap-[8px]"
+          >
+            {featuredTechs.map((tech) => (
+              <TechChip
+                key={tech.id || tech.name}
+                name={tech.name}
+                iconId={tech.icon_key || tech.id || tech.name}
+                iconUrl={tech.iconUrl}
+                size="sm"
+              />
+            ))}
           </div>
         </div>
       </div>
+
+      {/* Indicador de scroll (.scr) */}
+      <div
+        aria-hidden="true"
+        className="scr pointer-events-none absolute bottom-[20px] left-1/2 -translate-x-1/2"
+      />
     </section>
   );
 }

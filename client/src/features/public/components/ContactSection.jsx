@@ -1,20 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Check } from 'lucide-react';
 import IconSlot from '../../../components/ui/IconSlot.jsx';
-import Button from '../../../components/ui/Button.jsx';
 import FormField from '../../../components/ui/FormField.jsx';
 
 /**
- * Sección 05 / CONTACTO.
- * - Una sola fila de dos bloques separados 80 px, alineados arriba (apilados debajo de 1024px).
- * - Izquierda (columna flexible con 24 px entre elementos):
- *   - Etiqueta 05 / CONTACTO (JetBrains Mono 500, 13 px, 2 px, --acento)
- *   - Título de dos líneas (Space Grotesk 700, 60 px, interlineado 64 px, -1.2 px)
- *   - Párrafo (Inter 400, 18 px, interlineado 28 px, --texto-suave)
- *   - Fila de botones cuadrados de 44 px con borde 1 px y radio 12 px para Correo (con copiado al portapapeles),
- *     GitHub y LinkedIn, con iconos de 20 px y 12 px entre botones.
- * - Derecha (formulario):
- *   - 520 px de ancho, padding 32 px, 18 px entre elementos, radio 20 px, fondo --superficie, borde 1 px --borde.
+ * Sección 05 / CONTACTO según el prototipo Portfolio_animado_v4.html + Ajuste 1:
+ * - Dos columnas (texto y redes a la izquierda, formulario a la derecha) con los mismos campos del proyecto.
+ * - Conserva el onSubmit y las validaciones actuales (también funciona Enter).
+ * - El botón pasa a "Enviando…" al iniciar la petición real; pasa a "Mensaje enviado" con estrellas
+ *   voladoras (.cf) DENTRO del botón SOLO si el servidor responde OK (feedback?.type === 'success').
+ *   Si falla, muestra el error y vuelve el botón a su estado normal.
  */
 export default function ContactSection({
   contact,
@@ -28,6 +23,67 @@ export default function ContactSection({
   feedback = null,
 }) {
   const [copied, setCopied] = useState(false);
+  const [sentVisual, setSentVisual] = useState(false);
+  const [stars, setStars] = useState([]);
+  const btnRef = useRef(null);
+  const prevFeedbackRef = useRef(null);
+
+  useEffect(() => {
+    if (
+      feedback?.type === 'success' &&
+      prevFeedbackRef.current !== feedback
+    ) {
+      prevFeedbackRef.current = feedback;
+      const btnEl = btnRef.current;
+      const halfW = btnEl ? btnEl.offsetWidth / 2 : 180;
+      const halfH = btnEl ? btnEl.offsetHeight / 2 : 29;
+
+      const generated = Array.from({ length: 22 }, (_, i) => {
+        const angle = Math.random() * 6.28;
+        const k = 0.35 + Math.random() * 0.65;
+        return {
+          id: `${Date.now()}-${i}`,
+          symbol: i % 3 ? '✦' : '★',
+          dx: `${Math.cos(angle) * (halfW - 24) * k}px`,
+          dy: `${Math.sin(angle) * (halfH - 10) * k}px`,
+          fontSize: `${12 + Math.random() * 12}px`,
+          color: i % 4 === 0 ? '#0a0c1b' : '#ffffff',
+        };
+      });
+
+      const showTimer = setTimeout(() => {
+        setSentVisual(true);
+        setStars(generated);
+      }, 0);
+
+      const clearStarsTimer = setTimeout(() => {
+        setStars([]);
+      }, 1500);
+
+      const resetBtnTimer = setTimeout(() => {
+        setSentVisual(false);
+      }, 3000);
+
+      return () => {
+        clearTimeout(showTimer);
+        clearTimeout(clearStarsTimer);
+        clearTimeout(resetBtnTimer);
+      };
+    }
+
+    if (feedback?.type === 'error') {
+      prevFeedbackRef.current = feedback;
+      const errTimer = setTimeout(() => {
+        setSentVisual(false);
+        setStars([]);
+      }, 0);
+      return () => clearTimeout(errTimer);
+    }
+
+    if (!feedback) {
+      prevFeedbackRef.current = null;
+    }
+  }, [feedback]);
 
   const serviceOptions =
     contact.serviceOptions?.length > 0
@@ -53,7 +109,6 @@ export default function ContactSection({
       if (navigator?.clipboard?.writeText) {
         await navigator.clipboard.writeText(emailToCopy);
       } else {
-        // Fallback para entornos donde Clipboard API no esté disponible
         const textArea = document.createElement('textarea');
         textArea.value = emailToCopy;
         textArea.style.position = 'fixed';
@@ -73,51 +128,47 @@ export default function ContactSection({
   };
 
   return (
-    <section id="contacto" className="relative z-10 w-full py-[80px] lg:py-[110px]">
-      <div className="mx-auto flex w-full max-w-[1440px] flex-col items-start justify-between gap-[48px] px-[24px] sm:px-[64px] lg:flex-row lg:gap-[80px] xl:px-[160px]">
-        {/* Columna izquierda flexible con 24 px entre elementos */}
-        <div className="flex flex-1 flex-col items-start gap-[24px]">
-          <span className="font-mono-ui text-[13px] font-medium uppercase tracking-[2px] text-[var(--acento)]">
-            {contact.sectionLabel}
-          </span>
+    <section id="contacto" className="relative z-10 w-full py-[72px] lg:py-[90px]">
+      <div className="mx-auto grid w-full max-w-[1080px] grid-cols-1 items-start gap-[40px] px-[20px] lg:grid-cols-2 lg:gap-[56px]">
+        {/* Columna izquierda (.ct-l) */}
+        <div className="flex flex-col items-start lg:sticky lg:top-[110px]">
+          <p className="ey">{contact.sectionLabel}</p>
 
-          <h2 className="font-heading text-[40px] font-bold leading-[1.08] tracking-[-1.2px] text-[var(--texto)] sm:text-[52px] lg:text-[60px] lg:leading-[64px]">
+          <h2 className="mt-[14px] mb-[24px] font-heading text-[clamp(40px,6vw,68px)] font-bold leading-[1.02] tracking-[-0.02em] text-[var(--tx)]">
             {contact.titleLines?.[0] || '¿Tenés una idea?'}
             <br />
             {contact.titleLines?.[1] || 'Hablemos.'}
           </h2>
 
-          <p className="font-sans-ui max-w-[480px] text-[18px] font-normal leading-[28px] text-[var(--texto-suave)]">
+          <p className="font-sans-ui max-w-[34ch] text-[18px] leading-[1.6] text-[var(--mut)]">
             {contact.description}
           </p>
 
-          {/* Fila de botones de contacto: Correo (copiar al portapapeles), GitHub y LinkedIn */}
-          <div className="flex items-center gap-[12px]">
-            {/* Botón con icono de correo que copia el correo del dueño del repo */}
+          {/* Fila de redes sociales (.soc) */}
+          <div className="mt-[32px] flex items-center gap-[10px]">
             <div className="relative">
               <button
                 type="button"
                 onClick={handleCopyEmail}
                 aria-label="Copiar correo electrónico del desarrollador"
                 title={copied ? '¡Correo copiado!' : 'Copiar correo electrónico'}
-                className={`flex h-[44px] w-[44px] cursor-pointer items-center justify-center rounded-[12px] border transition-all duration-150 ${
+                className={`grid h-[54px] w-[54px] cursor-pointer place-items-center rounded-[14px] border transition-all duration-300 hover:-translate-y-[6px] ${
                   copied
-                    ? 'border-[var(--disponible)] bg-[var(--disponible)]/15 text-[var(--disponible)]'
-                    : 'border-[var(--borde)] bg-[var(--superficie)] text-[var(--texto-suave)] hover:border-[var(--acento)] hover:bg-[var(--superficie-alta)] hover:text-[var(--texto)]'
+                    ? 'border-[var(--ok)] bg-[rgba(52,211,153,0.14)] text-[var(--ok)]'
+                    : 'border-[var(--bd)] bg-[var(--card)] text-[var(--tx)] hover:border-[var(--ac)]'
                 }`}
               >
                 {copied ? (
-                  <Check size={20} className="text-[var(--disponible)]" />
+                  <Check size={20} className="text-[var(--ok)]" />
                 ) : (
                   <IconSlot size={20} name="contact-mail" />
                 )}
               </button>
 
-              {/* Aviso flotante de confirmación */}
               {copied && (
                 <span
                   role="status"
-                  className="font-mono-ui pointer-events-none absolute -top-[34px] left-1/2 -translate-x-1/2 whitespace-nowrap rounded-[8px] border border-[var(--borde)] bg-[var(--superficie-alta)] px-[8px] py-[3px] text-[11px] font-medium text-[var(--disponible)] shadow-lg"
+                  className="font-mono-ui pointer-events-none absolute -top-[34px] left-1/2 -translate-x-1/2 whitespace-nowrap rounded-[8px] border border-[var(--bd)] bg-[var(--bg2)] px-[8px] py-[3px] text-[11px] font-medium text-[var(--ok)] shadow-lg"
                 >
                   ¡Copiado!
                 </span>
@@ -132,7 +183,7 @@ export default function ContactSection({
                 rel="noreferrer"
                 aria-label={social.name}
                 title={social.name}
-                className="flex h-[44px] w-[44px] items-center justify-center rounded-[12px] border border-[var(--borde)] bg-[var(--superficie)] text-[var(--texto-suave)] transition-colors duration-150 hover:border-[var(--acento)] hover:bg-[var(--superficie-alta)] hover:text-[var(--texto)]"
+                className="grid h-[54px] w-[54px] place-items-center rounded-[14px] border border-[var(--bd)] bg-[var(--card)] text-[var(--tx)] transition-all duration-300 hover:-translate-y-[6px] hover:border-[var(--ac)]"
               >
                 <IconSlot
                   size={20}
@@ -144,12 +195,13 @@ export default function ContactSection({
           </div>
         </div>
 
-        {/* Columna derecha: formulario de 520 px de ancho, padding 32 px y 18 px entre elementos */}
+        {/* Columna derecha: Formulario (.card) */}
         <form
+          id="fm"
           onSubmit={onSubmitForm}
           noValidate
           data-interactive-card="true"
-          className="flex w-full shrink-0 flex-col gap-[18px] rounded-[20px] border border-[var(--borde)] bg-[var(--superficie)] p-[24px] sm:p-[32px] lg:w-[520px]"
+          className="card flex w-full flex-col gap-[20px] rounded-[24px] p-[22px] sm:p-[32px]"
         >
           <FormField
             as="input"
@@ -172,8 +224,7 @@ export default function ContactSection({
             required
           />
 
-          {/* Fila de dos selectores con 16 px de separación */}
-          <div className="grid grid-cols-1 gap-[16px] sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-[14px] sm:grid-cols-2">
             <FormField
               as="select"
               label="Tipo de consulta"
@@ -205,37 +256,100 @@ export default function ContactSection({
             name="body"
             value={formData.body}
             onChange={onFormChange}
-            placeholder="Contame brevemente qué necesitás..."
+            placeholder="Contame brevemente qué necesitás…"
             required
+            rows={4}
           />
 
           {feedback && (
             <div
               role="status"
-              className={`font-sans-ui rounded-[12px] border px-[14px] py-[10px] text-[13px] ${
+              style={
                 feedback.type === 'success'
-                  ? 'border-[var(--disponible)]/40 bg-[var(--disponible)]/10 text-[var(--disponible)]'
-                  : 'border-red-400/40 bg-red-500/10 text-red-300'
-              }`}
+                  ? {
+                      borderColor: 'color-mix(in srgb, var(--ok) 40%, transparent)',
+                      backgroundColor: 'color-mix(in srgb, var(--ok) 12%, transparent)',
+                      color: 'var(--ok)',
+                    }
+                  : {
+                      borderColor: 'color-mix(in srgb, var(--bad) 40%, transparent)',
+                      backgroundColor: 'color-mix(in srgb, var(--bad) 12%, transparent)',
+                      color: 'var(--bad)',
+                    }
+              }
+              className="font-sans-ui rounded-[12px] border px-[14px] py-[10px] text-[13.5px]"
             >
               {feedback.message}
             </div>
           )}
 
-          <Button type="submit" variant="primary" fullWidth disabled={sending}>
-            <span>{sending ? 'Enviando...' : contact.submitLabel}</span>
-            <IconSlot size={18} name="send-arrow-right" />
-          </Button>
+          {/* Botón de envío con estados Enviando… / Mensaje enviado + estrellas (.cf) */}
+          <button
+            ref={btnRef}
+            id="sd"
+            type="submit"
+            disabled={sending}
+            className="btn p h-[58px] w-full rounded-[14px] text-[17px] font-semibold"
+          >
+            {sending ? (
+              <>
+                <i className="sp" aria-hidden="true" />
+                <span>Enviando…</span>
+              </>
+            ) : sentVisual ? (
+              <>
+                <svg
+                  className="ok"
+                  width="22"
+                  height="22"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  aria-hidden="true"
+                >
+                  <path d="M5 13l4 4 10-10" />
+                </svg>
+                <span>Mensaje enviado</span>
+              </>
+            ) : (
+              <>
+                <span>{contact.submitLabel || 'Enviar mensaje'}</span>
+                <IconSlot size={16} name="send-arrow-right" />
+              </>
+            )}
 
-          {/* Línea con candado de 14 px y aviso de inicio de sesión */}
-          <div className="flex items-center gap-[8px] text-[var(--texto-suave)]">
-            <IconSlot size={14} name="contact-lock" />
-            <span className="font-sans-ui text-[13px] font-normal text-[var(--texto-suave)]">
+            {stars.map((s) => (
+              <span
+                key={s.id}
+                aria-hidden="true"
+                className="cf"
+                style={{
+                  '--dx': s.dx,
+                  '--dy': s.dy,
+                  fontSize: s.fontSize,
+                  color: s.color,
+                }}
+              >
+                {s.symbol}
+              </span>
+            ))}
+          </button>
+
+          {/* Aviso de sesión / privacidad */}
+          <p className="flex items-center gap-[8px] font-sans-ui text-[13px] text-[var(--mut)]">
+            <IconSlot
+              size={14}
+              name={isAuthenticated ? 'check' : 'contact-lock'}
+            />
+            <span>
               {isAuthenticated
-                ? `Enviando con sesión activa (${user?.email})`
-                : (contact.authNotice || 'Mensaje directo a mi casilla de correo (o iniciá sesión si querés vincular tu cuenta)')}
+                ? `Sesión iniciada: tu mensaje queda vinculado a tu cuenta (${user?.email})`
+                : (contact.authNotice ||
+                    'Mensaje directo a mi casilla de correo (o iniciá sesión si querés vincular tu cuenta)')}
             </span>
-          </div>
+          </p>
         </form>
       </div>
     </section>
