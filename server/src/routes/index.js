@@ -11,6 +11,7 @@ import messages from './messages.js';
 import users from './users.js';
 import metrics from './metrics.js';
 import uploads from './uploads.js';
+import github from './github.js';
 
 const router = Router();
 
@@ -41,5 +42,6 @@ router.use('/messages', messages);
 router.use('/users', users);
 router.use('/metrics', metrics);
 router.use('/uploads', uploads);
+router.use('/github', github);
 
 export default router;

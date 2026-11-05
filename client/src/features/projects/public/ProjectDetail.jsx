@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { Star, GitFork } from 'lucide-react';
 import StarfieldCanvas from '../../../components/ui/StarfieldCanvas.jsx';
 import Navbar from '../../../components/layout/Navbar.jsx';
 import Footer from '../../../components/layout/Footer.jsx';
@@ -10,6 +11,10 @@ import DemoViewer from '../../demos/DemoViewer.jsx';
 import { usePortfolioData } from '../../public/hooks/usePortfolioData.js';
 import { resolveTechnologies } from '../../public/data/portfolioData.js';
 import { apiFetch } from '../../../services/api.js';
+import {
+  parseGitHubRepoUrl,
+  fetchGitHubRepoDetails,
+} from '../../../services/github.js';
 import { trackPortfolioEvent } from '../../../services/analytics.js';
 
 /**
@@ -98,12 +103,135 @@ export function SimpleMarkdownBlock({ text }) {
 }
 
 /**
+ * Tarjeta de métricas en vivo del repositorio de GitHub:
+ * Muestra únicamente Estrellas, Forks y la barra porcentual de Lenguajes al estilo GitHub.
+ */
+function GitHubRepoStatsCard({ repoUrl }) {
+  const [repoDetails, setRepoDetails] = useState(null);
+  const parsed = parseGitHubRepoUrl(repoUrl);
+  const owner = parsed?.owner || '';
+  const repo = parsed?.repo || '';
+
+  useEffect(() => {
+    let active = true;
+    if (!owner || !repo) {
+      setRepoDetails(null);
+      return undefined;
+    }
+
+    fetchGitHubRepoDetails(owner, repo)
+      .then((data) => {
+        if (active && data) {
+          setRepoDetails(data);
+        }
+      })
+      .catch(() => {
+        if (active) setRepoDetails(null);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [owner, repo]);
+
+  if (!repoDetails) return null;
+
+  const languages = Array.isArray(repoDetails.languages) ? repoDetails.languages : [];
+
+  return (
+    <div className="mb-[28px] rounded-[16px] border border-[var(--bd)] bg-[rgba(10,12,27,0.65)] p-[20px]">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <IconSlot size={18} name="repo-github" />
+          <a
+            href={repoDetails.html_url || repoUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="font-mono-ui text-[13px] font-semibold tracking-wide text-white hover:text-[var(--ac2)]"
+          >
+            {repoDetails.full_name || `${owner}/${repo}`}
+          </a>
+        </div>
+
+        {/* Estadísticas de Estrellas y Forks */}
+        <div className="flex items-center gap-2.5">
+          <span
+            className="font-mono-ui inline-flex items-center gap-1.5 rounded-full border border-[var(--bd)] bg-[var(--bg2)] px-3 py-1 text-[12px] font-medium text-[#e2e6ff]"
+            title="Estrellas en GitHub"
+          >
+            <Star size={13} className="text-amber-400" />
+            <span>{repoDetails.stargazers_count ?? 0}</span>
+            <span className="text-[var(--mut)]">Estrellas</span>
+          </span>
+
+          <span
+            className="font-mono-ui inline-flex items-center gap-1.5 rounded-full border border-[var(--bd)] bg-[var(--bg2)] px-3 py-1 text-[12px] font-medium text-[#e2e6ff]"
+            title="Forks en GitHub"
+          >
+            <GitFork size={13} className="text-[var(--ac2)]" />
+            <span>{repoDetails.forks_count ?? 0}</span>
+            <span className="text-[var(--mut)]">Forks</span>
+          </span>
+        </div>
+      </div>
+
+      {/* Desglose de Lenguajes con barra porcentual al estilo GitHub */}
+      {languages.length > 0 && (
+        <div className="mt-4 border-t border-[var(--bd)] pt-3.5">
+          <p className="mb-2 font-mono-ui text-[10.5px] font-medium uppercase tracking-[0.15em] text-[var(--mut)]">
+            LENGUAJES DEL REPOSITORIO
+          </p>
+
+          <div
+            className="flex h-2.5 w-full overflow-hidden rounded-full bg-[var(--bg2)]"
+            role="img"
+            aria-label="Distribución de lenguajes del repositorio"
+          >
+            {languages.map((lang) => (
+              <div
+                key={lang.name}
+                style={{
+                  width: `${Math.max(lang.percentage, 1)}%`,
+                  backgroundColor: lang.color || '#8b949e',
+                }}
+                title={`${lang.name}: ${lang.percentage}%`}
+                className="h-full transition-all first:rounded-l-full last:rounded-r-full"
+              />
+            ))}
+          </div>
+
+          <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1.5">
+            {languages.map((lang) => (
+              <div
+                key={lang.name}
+                className="inline-flex items-center gap-1.5 text-[12px]"
+              >
+                <span
+                  className="h-2.5 w-2.5 rounded-full"
+                  style={{ backgroundColor: lang.color || '#8b949e' }}
+                />
+                <span className="font-sans-ui font-medium text-white">
+                  {lang.name}
+                </span>
+                <span className="font-mono-ui text-[11.5px] text-[var(--mut)]">
+                  {lang.percentage}%
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
  * ProjectDetailView - Componente Presentacional Puro (Sección 4.2.3).
  * Implementa el diseño exacto de #pd-section de Portfolio_animado_v4.html:
  * - Escenario superior (.pd-stage) con agujero negro (.pd-bh, .pd-disk, .pd-hole)
  * - Ventana (.pd-window) con imagen 16:9 (.has-img) o maqueta estática (.pd-dots, .pd-bar, .pd-grid-mock)
  * - 3 cajas (.pd-box): 01 / EL PROBLEMA, 02 / LA SOLUCIÓN, 03 / DECISIONES TÉCNICAS
- * - Tecnologías utilizadas, galería, demos y botones de acción.
+ * - Tecnologías utilizadas, métricas de GitHub (estrellas, forks y % de lenguajes), galería, demos y botones de acción.
  */
 export function ProjectDetailView({
   project = {},
@@ -222,6 +350,9 @@ export function ProjectDetailView({
             ))}
           </div>
         </div>
+
+        {/* Métricas en vivo de GitHub: Estrellas, Forks y Lenguajes con % */}
+        {project.repo_url && <GitHubRepoStatsCard repoUrl={project.repo_url} />}
 
         {/* Galería de imágenes secundarias */}
         {images.length > 0 && (

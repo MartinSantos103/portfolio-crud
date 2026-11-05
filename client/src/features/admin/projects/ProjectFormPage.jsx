@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useForm, useFieldArray, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -10,8 +10,20 @@ import {
   ArrowDown,
   Trash2,
   Check,
+  Search,
+  Star,
+  GitFork,
+  ChevronDown,
+  ChevronUp,
+  RefreshCw,
 } from 'lucide-react';
 import { apiFetch } from '../../../services/api.js';
+import {
+  fetchGitHubRepos,
+  fetchGitHubRepoDetails,
+  formatRepoTitle,
+  matchRepoTechnologies,
+} from '../../../services/github.js';
 import { useToast } from '../../../components/ui/Toast.jsx';
 import DataState from '../../../components/ui/DataState.jsx';
 import Button from '../../../components/ui/Button.jsx';
@@ -101,6 +113,15 @@ export default function ProjectFormPage() {
   const [profileStack, setProfileStack] = useState([]);
   const [projectDemos, setProjectDemos] = useState([]);
   const [newGalleryUrl, setNewGalleryUrl] = useState('');
+
+  // Estados para el selector de repositorios de GitHub
+  const [githubOpen, setGithubOpen] = useState(false);
+  const [githubRepos, setGithubRepos] = useState([]);
+  const [githubLoading, setGithubLoading] = useState(false);
+  const [githubImporting, setGithubImporting] = useState(null);
+  const [githubError, setGithubError] = useState('');
+  const [githubSearch, setGithubSearch] = useState('');
+  const [selectedRepoName, setSelectedRepoName] = useState('');
 
   const {
     register,
@@ -198,8 +219,93 @@ export default function ProjectFormPage() {
     return () => clearTimeout(timer);
   }, [loadInitialData]);
 
+  const loadGitHubRepositories = useCallback(async () => {
+    setGithubLoading(true);
+    setGithubError('');
+    try {
+      const list = await fetchGitHubRepos();
+      setGithubRepos(list);
+    } catch (err) {
+      setGithubError(
+        err.message || 'No se pudieron obtener los repositorios desde GitHub.'
+      );
+    } finally {
+      setGithubLoading(false);
+    }
+  }, []);
+
+  const handleToggleGitHubSelector = () => {
+    const nextOpen = !githubOpen;
+    setGithubOpen(nextOpen);
+    if (nextOpen && githubRepos.length === 0 && !githubLoading) {
+      loadGitHubRepositories();
+    }
+  };
+
+  const filteredGitHubRepos = useMemo(() => {
+    const q = githubSearch.trim().toLowerCase();
+    if (!q) return githubRepos;
+    return githubRepos.filter(
+      (repo) =>
+        repo.name.toLowerCase().includes(q) ||
+        (repo.description && repo.description.toLowerCase().includes(q)) ||
+        (repo.language && repo.language.toLowerCase().includes(q))
+    );
+  }, [githubRepos, githubSearch]);
+
   const watchedValues = useWatch({ control });
   const descLength = (watchedValues.description || '').length;
+
+  const handleSelectGitHubRepo = async (repo) => {
+    setGithubImporting(repo.name);
+    try {
+      const details = await fetchGitHubRepoDetails(repo.owner, repo.name).catch(
+        () => repo
+      );
+      const source = details || repo;
+
+      const formattedTitle = formatRepoTitle(source.name);
+      const generatedSlug = toSlug(source.name);
+      const rawDesc =
+        (source.description || '').trim() ||
+        `Repositorio ${formattedTitle} desarrollado y publicado en GitHub.`;
+      const shortDescription = rawDesc.slice(0, 220);
+
+      setValue('title', formattedTitle, { shouldDirty: true, shouldValidate: true });
+      setValue('slug', generatedSlug, { shouldDirty: true, shouldValidate: true });
+      setValue('description', shortDescription, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+      setValue('repo_url', source.html_url || '', {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+
+      if (source.homepage && /^https?:\/\//i.test(source.homepage.trim())) {
+        setValue('live_url', source.homepage.trim(), {
+          shouldDirty: true,
+          shouldValidate: true,
+        });
+      }
+
+      const matchedTechs = matchRepoTechnologies(source, profileStack);
+      if (matchedTechs.length > 0) {
+        setValue('technologies', matchedTechs, {
+          shouldDirty: true,
+          shouldValidate: true,
+        });
+      }
+
+      setSelectedRepoName(source.full_name || source.name);
+      setGithubOpen(false);
+      toast.success(`Campos autocompletados desde el repositorio "${source.name}"`);
+    } catch (err) {
+      toast.error(err.message || 'No se pudo autocompletar desde GitHub');
+    } finally {
+      setGithubImporting(null);
+    }
+  };
 
   const handleToggleTechnology = (techKey) => {
     const current = Array.isArray(watchedValues.technologies)
@@ -256,14 +362,131 @@ export default function ProjectFormPage() {
     >
       {/* BLOQUE 1 — Previsualización Pública (Tarjeta de Visitante) */}
       <section className="flex flex-col gap-4 rounded-[18px] border border-[var(--borde)] bg-[var(--superficie)] p-5 sm:p-6">
-        <div className="border-b border-[var(--borde)] pb-3">
-          <span className="font-mono-ui text-[11px] font-semibold uppercase tracking-[1.5px] text-[var(--acento-texto)]">
-            BLOQUE 1 — TARJETA PÚBLICA (VISITANTES)
-          </span>
-          <h2 className="font-heading mt-0.5 text-[18px] font-bold text-[var(--texto)]">
-            Información principal y tecnologías
-          </h2>
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--borde)] pb-3">
+          <div>
+            <span className="font-mono-ui text-[11px] font-semibold uppercase tracking-[1.5px] text-[var(--acento-texto)]">
+              BLOQUE 1 — TARJETA PÚBLICA (VISITANTES)
+            </span>
+            <h2 className="font-heading mt-0.5 text-[18px] font-bold text-[var(--texto)]">
+              Información principal y tecnologías
+            </h2>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleToggleGitHubSelector}
+            className="font-sans-ui inline-flex cursor-pointer items-center gap-2 rounded-[11px] border border-[var(--acento)]/50 bg-[var(--tile-icono-bg)] px-3.5 py-2 text-[12.5px] font-semibold text-[var(--texto)] transition-colors hover:border-[var(--acento)]"
+          >
+            <DevIcon name="github" size={15} colored={false} />
+            <span>
+              {selectedRepoName
+                ? `Repo: ${selectedRepoName}`
+                : 'Autocompletar desde GitHub'}
+            </span>
+            {githubOpen ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+          </button>
         </div>
+
+        {/* Panel desplegable de selección de repositorio de GitHub con buscador por nombre */}
+        {githubOpen && (
+          <div className="flex flex-col gap-3 rounded-[14px] border border-[var(--acento)]/40 bg-[var(--fondo)] p-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <p className="font-sans-ui text-[13px] font-semibold text-[var(--texto)]">
+                  Seleccionar repositorio de tu cuenta de GitHub
+                </p>
+                <p className="font-sans-ui text-[11.5px] text-[var(--texto-suave)]">
+                  Elegí un repositorio para rellenar automáticamente título, slug, descripción, URL y tecnologías.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={loadGitHubRepositories}
+                disabled={githubLoading}
+                className="font-mono-ui inline-flex cursor-pointer items-center gap-1.5 rounded-[8px] border border-[var(--borde)] bg-[var(--superficie)] px-2.5 py-1.5 text-[11px] text-[var(--texto-suave)] hover:border-[var(--acento)] hover:text-[var(--texto)] disabled:opacity-50"
+              >
+                <RefreshCw size={12} className={githubLoading ? 'animate-spin' : ''} />
+                <span>Actualizar</span>
+              </button>
+            </div>
+
+            {/* Buscador de repositorios por nombre */}
+            <div className="relative">
+              <Search
+                size={15}
+                className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-[var(--texto-suave)]"
+              />
+              <input
+                type="text"
+                value={githubSearch}
+                onChange={(e) => setGithubSearch(e.target.value)}
+                placeholder="Buscar repositorio por nombre..."
+                className="font-sans-ui w-full rounded-[10px] border border-[var(--borde)] bg-[var(--superficie)] py-2 pr-3.5 pl-9 text-[13px] text-[var(--texto)] focus:border-[var(--acento)] focus:outline-none"
+              />
+            </div>
+
+            {githubLoading ? (
+              <div className="py-6 text-center font-mono-ui text-[12px] text-[var(--texto-suave)]">
+                Consultando repositorios de tu perfil de GitHub...
+              </div>
+            ) : githubError ? (
+              <div className="rounded-[10px] border border-red-500/30 bg-red-500/10 px-3.5 py-2.5 text-[12.5px] text-red-300">
+                {githubError}
+              </div>
+            ) : filteredGitHubRepos.length === 0 ? (
+              <div className="py-5 text-center font-sans-ui text-[12.5px] text-[var(--texto-suave)]">
+                No se encontraron repositorios que coincidan con "{githubSearch}".
+              </div>
+            ) : (
+              <div className="max-h-64 divide-y divide-[var(--borde)] overflow-y-auto rounded-[10px] border border-[var(--borde)] bg-[var(--superficie)]">
+                {filteredGitHubRepos.map((repo) => {
+                  const isImportingThis = githubImporting === repo.name;
+                  return (
+                    <button
+                      key={repo.id || repo.name}
+                      type="button"
+                      disabled={Boolean(githubImporting)}
+                      onClick={() => handleSelectGitHubRepo(repo)}
+                      className="flex w-full cursor-pointer items-start justify-between gap-3 px-3.5 py-2.5 text-left transition-colors hover:bg-[var(--tile-icono-bg)] disabled:opacity-50"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="font-mono-ui text-[13px] font-semibold text-[var(--texto)]">
+                            {repo.name}
+                          </span>
+                          {repo.language && (
+                            <span className="font-mono-ui rounded-full border border-[var(--borde)] bg-[var(--fondo)] px-2 py-0.5 text-[10.5px] text-[var(--acento-texto)]">
+                              {repo.language}
+                            </span>
+                          )}
+                        </div>
+                        {repo.description && (
+                          <p className="font-sans-ui mt-0.5 line-clamp-1 text-[12px] text-[var(--texto-suave)]">
+                            {repo.description}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="flex shrink-0 items-center gap-2.5 pt-0.5 font-mono-ui text-[11px] text-[var(--texto-suave)]">
+                        <span className="inline-flex items-center gap-1" title="Estrellas">
+                          <Star size={12} className="text-amber-400" />
+                          {repo.stargazers_count ?? 0}
+                        </span>
+                        <span className="inline-flex items-center gap-1" title="Forks">
+                          <GitFork size={12} />
+                          {repo.forks_count ?? 0}
+                        </span>
+                        <span className="rounded-[7px] border border-[var(--acento)]/40 bg-[var(--fondo)] px-2 py-0.5 text-[11px] font-medium text-[var(--acento-texto)]">
+                          {isImportingThis ? 'Cargando...' : 'Elegir'}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>

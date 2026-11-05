@@ -9,6 +9,8 @@ export const config = {
   nodeEnv: process.env.NODE_ENV || 'development',
   googleClientId: process.env.GOOGLE_CLIENT_ID,
   googleClientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  githubUsername: process.env.GITHUB_USERNAME || '',
+  githubToken: process.env.GITHUB_TOKEN || '',
 };
 
 export default config;
