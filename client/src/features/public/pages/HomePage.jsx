@@ -59,6 +59,11 @@ export default function HomePage({ initialSection = null }) {
     email: '',
     type: contact.consultationTypes?.[0]?.value || 'cotizacion',
     service: contact.defaultServiceOption || 'Sitios y landing pages',
+    presupuesto: '< $1.000 USD',
+    plazo: '1 a 2 meses',
+    tema_tecnico: 'Arquitectura Frontend & React',
+    modalidad: 'Sesión puntual (1h)',
+    asunto: '',
     body: '',
   });
   const [contactSending, setContactSending] = useState(false);
@@ -171,7 +176,13 @@ export default function HomePage({ initialSection = null }) {
     setContactSending(true);
     setContactFeedback(null);
     try {
-      const subject = `${contactForm.type.toUpperCase()} — ${contactForm.service}`;
+      const subject =
+        contactForm.type === 'cotizacion'
+          ? `COTIZACIÓN — ${contactForm.service || 'Servicio'}`
+          : contactForm.type === 'asesoria'
+            ? `ASESORÍA — ${contactForm.tema_tecnico || 'Técnica'}`
+            : `CONSULTA — ${contactForm.asunto?.trim() || 'Consulta general'}`;
+
       await apiFetch('/messages', {
         method: 'POST',
         body: JSON.stringify({
@@ -181,13 +192,19 @@ export default function HomePage({ initialSection = null }) {
           subject,
           body: contactForm.body.trim(),
           servicio_interes: contactForm.service,
+          tipo_proyecto: contactForm.service,
+          presupuesto: contactForm.presupuesto,
+          plazo: contactForm.plazo,
+          tema_tecnico: contactForm.tema_tecnico,
+          modalidad: contactForm.modalidad,
+          asunto_consulta: contactForm.asunto,
         }),
       });
       setContactFeedback({
         type: 'success',
         message: '¡Mensaje enviado con éxito! Te responderé a la brevedad.',
       });
-      setContactForm((prev) => ({ ...prev, body: '' }));
+      setContactForm((prev) => ({ ...prev, asunto: '', body: '' }));
     } catch (err) {
       setContactFeedback({
         type: 'error',

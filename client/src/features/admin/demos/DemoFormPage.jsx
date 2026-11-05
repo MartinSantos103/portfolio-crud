@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+﻿import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -60,6 +60,15 @@ const demoFormSchema = z
     }
   });
 
+const DEFAULT_DEMO_VALUES = {
+  project_id: '',
+  title: '',
+  description: '',
+  type: 'iframe',
+  url: '',
+  urls: [],
+};
+
 export default function DemoFormPage() {
   const { id } = useParams();
   const isEditing = Boolean(id);
@@ -94,7 +103,7 @@ export default function DemoFormPage() {
     },
   });
 
-  const { blocker } = useUnsavedChanges(isDirty);
+  const { blocker, bypassBlocker } = useUnsavedChanges(isDirty);
 
   const loadInitialData = useCallback(async () => {
     setStatus('cargando');
@@ -174,10 +183,10 @@ export default function DemoFormPage() {
         body: JSON.stringify(payload),
       });
 
-      reset(formValues);
+      bypassBlocker();
+      reset(DEFAULT_DEMO_VALUES);
       toast.success(
-        res?.message ||
-          (isEditing ? 'Demo actualizada correctamente' : 'Demo creada correctamente')
+        isEditing ? (res?.message || 'Demo actualizada con \u00e9xito') : 'Demo creada con \u00e9xito'
       );
       navigate('/admin/demos');
     } catch (err) {

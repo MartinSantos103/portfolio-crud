@@ -15,80 +15,23 @@ import {
 
 function parseShortBioToTypewriter(rawShortBio, prevProfile = PROFILE_DATA) {
   const defaultPrefix = prevProfile.typewriterPrefix || 'Construyo aplicaciones web';
-  const defaultWords =
-    Array.isArray(prevProfile.typewriterWords) && prevProfile.typewriterWords.length > 0
-      ? prevProfile.typewriterWords
-      : ['rápidas', 'escalables', 'intuitivas', 'modernas'];
+  const defaultWords = Array.isArray(prevProfile.typewriterWords) && prevProfile.typewriterWords.length > 0
+    ? prevProfile.typewriterWords
+    : ['rápidas', 'escalables', 'intuitivas', 'modernas'];
 
   if (!rawShortBio || typeof rawShortBio !== 'string' || !rawShortBio.trim()) {
-    return {
-      typewriterPrefix: defaultPrefix,
-      typewriterWords: defaultWords,
-    };
+    return { typewriterPrefix: defaultPrefix, typewriterWords: defaultWords };
   }
 
   const withoutTrailingDots = rawShortBio.trim().replace(/\.+$/, '').trim();
-  const normalizedLower = withoutTrailingDots.toLowerCase();
-
-  // Caso canónico de Lucas Andrade: preserva exactamente el prefijo y las 4 palabras animadas
-  if (
-    normalizedLower === 'construyo aplicaciones web rápidas, escalables, intuitivas y modernas' ||
-    normalizedLower === 'construyo aplicaciones web rapidas, escalables, intuitivas y modernas'
-  ) {
-    return {
-      typewriterPrefix: 'Construyo aplicaciones web',
-      typewriterWords: ['rápidas', 'escalables', 'intuitivas', 'modernas'],
-    };
-  }
-
-  // Si comienza con el prefijo base seguido de palabras separadas por comas o "y"
-  if (normalizedLower.startsWith(defaultPrefix.toLowerCase() + ' ')) {
-    const remainder = withoutTrailingDots.slice(defaultPrefix.length).trim();
-    const parts = remainder
-      .split(/\s*(?:,|\by\b|\be\b)\s*/i)
-      .map((w) => w.trim())
-      .filter(Boolean);
-    if (parts.length > 0) {
-      return {
-        typewriterPrefix: defaultPrefix,
-        typewriterWords: parts,
-      };
-    }
-  }
-
-  // Si el usuario escribió en /admin/perfil una frase con enumeración por comas (ej. "Creo plataformas veloces, seguras y modernas")
-  if (withoutTrailingDots.includes(',')) {
-    const commaSegments = withoutTrailingDots
-      .split(/\s*(?:,|\by\b|\be\b)\s*/i)
-      .map((s) => s.trim())
-      .filter(Boolean);
-    if (commaSegments.length >= 2) {
-      const firstSegmentTokens = commaSegments[0].split(/\s+/);
-      if (firstSegmentTokens.length >= 2) {
-        const firstWord = firstSegmentTokens.pop();
-        const prefix = firstSegmentTokens.join(' ');
-        return {
-          typewriterPrefix: prefix,
-          typewriterWords: [firstWord, ...commaSegments.slice(1)],
-        };
-      }
-    }
-  }
-
-  // Frase libre sin comas: resaltar la última palabra en color acento sin romper el bucle
   const tokens = withoutTrailingDots.split(/\s+/).filter(Boolean);
   if (tokens.length >= 2) {
     const lastWord = tokens.pop();
-    return {
-      typewriterPrefix: tokens.join(' '),
-      typewriterWords: [lastWord],
-    };
+    const prefix = tokens.join(' ');
+    return { typewriterPrefix: prefix, typewriterWords: [lastWord] };
   }
 
-  return {
-    typewriterPrefix: withoutTrailingDots,
-    typewriterWords: defaultWords,
-  };
+  return { typewriterPrefix: withoutTrailingDots, typewriterWords: defaultWords };
 }
 
 export function mapRemoteProfileToPublic(remoteProfile, prevProfile = PROFILE_DATA, prevAbout = ABOUT_DATA, prevTrajectory = TRAJECTORY_DATA) {
