@@ -26,8 +26,8 @@ const SECTION_DOTS = [
 
 /**
  * Página principal del Portfolio según el prototipo Portfolio_animado_v4.html:
- * - Incluye barra de progreso superior (#prog), Agujero Negro de fondo (.bh con .disk y .hole),
- *   puntos laterales de navegación (.dots) y las 6 secciones públicas.
+ * - Incluye barra de progreso superior (#prog), puntos laterales de navegación (.dots)
+ *   y las 6 secciones públicas.
  * - Conserva intacta toda la lógica de negocio, llamadas a la API, rutas y validaciones.
  */
 export default function HomePage({ initialSection = null }) {
@@ -272,12 +272,6 @@ export default function HomePage({ initialSection = null }) {
       {/* Barra de progreso superior (#prog) */}
       <div id="prog" ref={progRef} aria-hidden="true" />
 
-      {/* Agujero negro suave del fondo superior (.bh) */}
-      <div className="bh" aria-hidden="true">
-        <div className="disk" />
-        <div className="hole" />
-      </div>
-
       {/* Header fijo superpuesto */}
       <Navbar
         developerName={profile.fullName}
@@ -301,7 +295,7 @@ export default function HomePage({ initialSection = null }) {
 
       {/* Columna principal de secciones */}
       <main id="home-content" className="relative z-10 flex flex-col">
-        <HeroSection profile={profile} technologies={technologies} />
+        <HeroSection profile={profile} />
 
         <AboutSection
           about={about}

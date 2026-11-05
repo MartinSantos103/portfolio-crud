@@ -4,9 +4,15 @@ import IconSlot from '../ui/IconSlot.jsx';
 import { useAuth } from '../../features/auth/index.js';
 import { useTheme } from '../../hooks/useTheme.js';
 
+function isDesktopHover() {
+  if (typeof window === 'undefined') return false;
+  return window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+}
+
 /**
  * Header fijo del sitio público con selector de paleta de acento (7 paletas),
- * menú de usuario y navegación responsive. Exclusivamente oscuro.
+ * menú de usuario y navegación responsive. Despliegue por hover en escritorio
+ * y por click en móviles/táctiles.
  */
 export default function Navbar({
   developerName = 'Lucas Andrade',
@@ -20,6 +26,9 @@ export default function Navbar({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const menuRef = useRef(null);
   const paletteRef = useRef(null);
+  const paletteTimeoutRef = useRef(null);
+  const userMenuTimeoutRef = useRef(null);
+  const mobileMenuTimeoutRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -44,8 +53,63 @@ export default function Navbar({
     return () => {
       document.removeEventListener('pointerdown', handlePointerDown);
       document.removeEventListener('keydown', handleKeyDown);
+      if (paletteTimeoutRef.current) clearTimeout(paletteTimeoutRef.current);
+      if (userMenuTimeoutRef.current) clearTimeout(userMenuTimeoutRef.current);
+      if (mobileMenuTimeoutRef.current) clearTimeout(mobileMenuTimeoutRef.current);
     };
   }, []);
+
+  const handlePaletteMouseEnter = () => {
+    if (!isDesktopHover()) return;
+    if (paletteTimeoutRef.current) {
+      clearTimeout(paletteTimeoutRef.current);
+      paletteTimeoutRef.current = null;
+    }
+    setPaletteOpen(true);
+    setUserMenuOpen(false);
+  };
+
+  const handlePaletteMouseLeave = () => {
+    if (!isDesktopHover()) return;
+    paletteTimeoutRef.current = setTimeout(() => {
+      setPaletteOpen(false);
+    }, 180);
+  };
+
+  const handleUserMouseEnter = () => {
+    if (!isDesktopHover() || !isAuthenticated) return;
+    if (userMenuTimeoutRef.current) {
+      clearTimeout(userMenuTimeoutRef.current);
+      userMenuTimeoutRef.current = null;
+    }
+    setUserMenuOpen(true);
+    setPaletteOpen(false);
+  };
+
+  const handleUserMouseLeave = () => {
+    if (!isDesktopHover() || !isAuthenticated) return;
+    userMenuTimeoutRef.current = setTimeout(() => {
+      setUserMenuOpen(false);
+    }, 180);
+  };
+
+  const handleMobileMenuMouseEnter = () => {
+    if (!isDesktopHover()) return;
+    if (mobileMenuTimeoutRef.current) {
+      clearTimeout(mobileMenuTimeoutRef.current);
+      mobileMenuTimeoutRef.current = null;
+    }
+    setMobileMenuOpen(true);
+    setPaletteOpen(false);
+    setUserMenuOpen(false);
+  };
+
+  const handleMobileMenuMouseLeave = () => {
+    if (!isDesktopHover()) return;
+    mobileMenuTimeoutRef.current = setTimeout(() => {
+      setMobileMenuOpen(false);
+    }, 220);
+  };
 
   const handleScrollToSection = (e, href) => {
     e.preventDefault();
@@ -116,8 +180,13 @@ export default function Navbar({
 
         {/* Derecha: Selector de Paleta de Acento + Usuario + Menú móvil */}
         <div className="flex items-center gap-[10px]">
-          {/* Selector de color de acento (.pal + .pp) */}
-          <div ref={paletteRef} className="relative">
+          {/* Selector de color de acento (.pal + .pp) con hover en escritorio */}
+          <div
+            ref={paletteRef}
+            className="relative"
+            onMouseEnter={handlePaletteMouseEnter}
+            onMouseLeave={handlePaletteMouseLeave}
+          >
             <button
               type="button"
               onClick={() => {
@@ -133,7 +202,13 @@ export default function Navbar({
               <IconSlot size={18} name="palette" />
             </button>
 
-            <div className={`pp ${paletteOpen ? 'open' : ''}`} role="dialog" aria-label="Selector de color de acento">
+            <div
+              className={`pp ${paletteOpen ? 'open' : ''}`}
+              role="dialog"
+              aria-label="Selector de color de acento"
+              onMouseEnter={handlePaletteMouseEnter}
+              onMouseLeave={handlePaletteMouseLeave}
+            >
               <p className="pt">Color de acento</p>
               <div className="ps">
                 {palettes.map((p, idx) => (
@@ -153,8 +228,13 @@ export default function Navbar({
             </div>
           </div>
 
-          {/* Botón circular de usuario / login */}
-          <div ref={menuRef} className="relative">
+          {/* Botón circular de usuario / perfil registrado con hover en escritorio */}
+          <div
+            ref={menuRef}
+            className="relative"
+            onMouseEnter={handleUserMouseEnter}
+            onMouseLeave={handleUserMouseLeave}
+          >
             <button
               type="button"
               onClick={handleUserButtonClick}
@@ -177,6 +257,8 @@ export default function Navbar({
             {isAuthenticated && userMenuOpen && (
               <div
                 role="menu"
+                onMouseEnter={handleUserMouseEnter}
+                onMouseLeave={handleUserMouseLeave}
                 className="absolute top-[48px] right-0 z-50 min-w-[220px] rounded-[14px] border border-[var(--bd)] bg-[#04040af2] p-[8px] shadow-[0_20px_50px_-10px_#000,0_0_30px_-10px_rgba(var(--ar),0.5)] backdrop-blur-md"
               >
                 <div className="mb-[6px] border-b border-[var(--bd)] px-[12px] py-[8px]">
@@ -219,40 +301,50 @@ export default function Navbar({
             )}
           </div>
 
-          {/* Botón hamburguesa móvil */}
-          <button
-            type="button"
-            onClick={() => {
-              setMobileMenuOpen((prev) => !prev);
-              setPaletteOpen(false);
-              setUserMenuOpen(false);
-            }}
-            aria-label="Abrir menú de navegación"
-            aria-expanded={mobileMenuOpen}
-            className="flex h-[40px] w-[40px] cursor-pointer flex-col items-center justify-center gap-[5px] rounded-[10px] border border-[var(--bd)] bg-black/60 text-[var(--tx)] lg:hidden"
+          {/* Botón sándwich (pantalla acortada) con hover en escritorio */}
+          <div
+            className="flex items-center lg:hidden"
+            onMouseEnter={handleMobileMenuMouseEnter}
+            onMouseLeave={handleMobileMenuMouseLeave}
           >
-            <span
-              className={`block h-[2px] w-[18px] bg-current transition-transform ${
-                mobileMenuOpen ? 'translate-y-[7px] rotate-45' : ''
-              }`}
-            />
-            <span
-              className={`block h-[2px] w-[18px] bg-current transition-opacity ${
-                mobileMenuOpen ? 'opacity-0' : 'opacity-100'
-              }`}
-            />
-            <span
-              className={`block h-[2px] w-[18px] bg-current transition-transform ${
-                mobileMenuOpen ? '-translate-y-[7px] -rotate-45' : ''
-              }`}
-            />
-          </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMobileMenuOpen((prev) => !prev);
+                setPaletteOpen(false);
+                setUserMenuOpen(false);
+              }}
+              aria-label="Abrir menú de navegación"
+              aria-expanded={mobileMenuOpen}
+              className="flex h-[40px] w-[40px] cursor-pointer flex-col items-center justify-center gap-[5px] rounded-[10px] border border-[var(--bd)] bg-black/60 text-[var(--tx)]"
+            >
+              <span
+                className={`block h-[2px] w-[18px] bg-current transition-transform ${
+                  mobileMenuOpen ? 'translate-y-[7px] rotate-45' : ''
+                }`}
+              />
+              <span
+                className={`block h-[2px] w-[18px] bg-current transition-opacity ${
+                  mobileMenuOpen ? 'opacity-0' : 'opacity-100'
+                }`}
+              />
+              <span
+                className={`block h-[2px] w-[18px] bg-current transition-transform ${
+                  mobileMenuOpen ? '-translate-y-[7px] -rotate-45' : ''
+                }`}
+              />
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Menú móvil desplegable */}
+      {/* Menú móvil desplegable con soporte de hover para escritorio cuando la pantalla está acortada */}
       {mobileMenuOpen && (
-        <div className="border-b border-[var(--bd)] bg-[#04040af2] px-[24px] py-[20px] backdrop-blur-md lg:hidden">
+        <div
+          onMouseEnter={handleMobileMenuMouseEnter}
+          onMouseLeave={handleMobileMenuMouseLeave}
+          className="border-b border-[var(--bd)] bg-[#04040af2] px-[24px] py-[20px] backdrop-blur-md lg:hidden"
+        >
           <nav className="flex flex-col gap-[16px]">
             {navLinks.map((link) => (
               <a

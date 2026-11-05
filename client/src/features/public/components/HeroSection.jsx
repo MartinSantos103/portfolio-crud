@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import IconSlot from '../../../components/ui/IconSlot.jsx';
 import Button from '../../../components/ui/Button.jsx';
-import TechChip from '../../../components/ui/TechChip.jsx';
 
 const DEFAULT_PREFIX = 'Construyo aplicaciones web';
 const DEFAULT_WORDS = ['rápidas', 'escalables', 'intuitivas', 'modernas'];
@@ -10,10 +9,9 @@ const DEFAULT_WORDS = ['rápidas', 'escalables', 'intuitivas', 'modernas'];
  * Sección Inicio (Hero) según el prototipo Portfolio_animado_v4.html:
  * - Izquierda: saludo, nombre grande, rol en acento, texto máquina de escribir (que
  *   respeta prefers-reduced-motion y se pausa si la pestaña está oculta), botones y enlaces.
- * - Derecha: foto de perfil rodeada del Agujero Negro (.orb con .orb-disk, .orb-disk.d2,
- *   .orb-hole y .av) y etiquetas de tecnologías principales, SIN rotaciones continuas.
+ * - Derecha: foto de perfil en orbe (.orb con .orb-disk, .orb-disk.d2, .orb-hole y .av).
  */
-export default function HeroSection({ profile, technologies = [] }) {
+export default function HeroSection({ profile }) {
   const rawPrefix =
     profile?.typewriterPrefix ??
     profile?.shortDescriptionPrefix ??
@@ -136,18 +134,6 @@ export default function HeroSection({ profile, technologies = [] }) {
     }
   };
 
-  const featuredTechs = useMemo(() => {
-    const list = Array.isArray(technologies) && technologies.length > 0
-      ? technologies.slice(0, 4)
-      : [
-          { id: 'react', name: 'React' },
-          { id: 'nodejs', name: 'Node.js' },
-          { id: 'postgresql', name: 'PostgreSQL' },
-          { id: 'tailwind', name: 'Tailwind CSS' },
-        ];
-    return list;
-  }, [technologies]);
-
   return (
     <section
       id="inicio"
@@ -227,8 +213,8 @@ export default function HeroSection({ profile, technologies = [] }) {
           </div>
         </div>
 
-        {/* Columna derecha: Agujero negro (.orb) + foto de perfil + etiquetas de tecnologías */}
-        <div className="flex flex-col items-center gap-[18px]">
+        {/* Columna derecha: Foto de perfil (.orb con .av) */}
+        <div className="flex flex-col items-center justify-center">
           <div className="orb">
             <div className="orb-disk" aria-hidden="true" />
             <div className="orb-disk d2" aria-hidden="true" />
@@ -249,22 +235,6 @@ export default function HeroSection({ profile, technologies = [] }) {
                 </div>
               )}
             </div>
-          </div>
-
-          {/* Etiquetas estáticas de tecnologías debajo del horizonte de sucesos (sin rotación continua) */}
-          <div
-            aria-label="Tecnologías principales"
-            className="relative z-10 flex flex-wrap items-center justify-center gap-[8px]"
-          >
-            {featuredTechs.map((tech) => (
-              <TechChip
-                key={tech.id || tech.name}
-                name={tech.name}
-                iconId={tech.icon_key || tech.id || tech.name}
-                iconUrl={tech.iconUrl}
-                size="sm"
-              />
-            ))}
           </div>
         </div>
       </div>
