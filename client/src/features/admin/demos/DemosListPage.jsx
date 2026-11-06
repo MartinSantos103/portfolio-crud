@@ -12,8 +12,6 @@ import {
 import { apiFetch } from '../../../services/api.js';
 import { useToast } from '../../../components/ui/Toast.jsx';
 import DataState from '../../../components/ui/DataState.jsx';
-import Badge from '../../../components/ui/Badge.jsx';
-import Button from '../../../components/ui/Button.jsx';
 import ConfirmModal from '../../../components/ui/ConfirmModal.jsx';
 
 const TYPE_LABELS = {
@@ -34,7 +32,8 @@ export default function DemosListPage() {
   const [projects, setProjects] = useState([]);
   const [status, setStatus] = useState('cargando');
   const [errorMsg, setErrorMsg] = useState('');
-  const [selectedProjectId, setSelectedProjectId] = useState(initialProjectFilter);
+  const [selectedProjectId, setSelectedProjectId] =
+    useState(initialProjectFilter);
   const [selectedType, setSelectedType] = useState('todos');
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
@@ -48,7 +47,9 @@ export default function DemosListPage() {
         apiFetch('/projects?admin=true'),
       ]);
       const demosList = Array.isArray(demosRes?.data) ? demosRes.data : [];
-      const projectsList = Array.isArray(projectsRes?.data) ? projectsRes.data : [];
+      const projectsList = Array.isArray(projectsRes?.data)
+        ? projectsRes.data
+        : [];
       setDemos(demosList);
       setProjects(projectsList);
       setStatus(demosList.length === 0 ? 'sin_datos' : 'con_datos');
@@ -67,7 +68,10 @@ export default function DemosListPage() {
 
   const filteredDemos = useMemo(() => {
     return demos.filter((d) => {
-      if (selectedProjectId && String(d.project_id) !== String(selectedProjectId)) {
+      if (
+        selectedProjectId &&
+        String(d.project_id) !== String(selectedProjectId)
+      ) {
         return false;
       }
       const normType = d.type === 'images' ? 'imagenes' : d.type;
@@ -96,41 +100,42 @@ export default function DemosListPage() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Cabecera */}
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <div>
-          <h1 className="font-heading text-[26px] font-bold tracking-tight text-[var(--texto)]">
-            Demostraciones Interactivas (Demos)
-          </h1>
-          <p className="font-sans-ui mt-1 text-[14px] text-[var(--texto-suave)]">
-            Administrá entornos en vivo (iframe), videos demostrativos y galerías interactivas por proyecto.
-          </p>
+    <div id="v-demos" className="adm-view is-on flex flex-col gap-5">
+      {/* Cabecera estelar */}
+      <div className="adm-pagehead">
+        <div className="adm-pagehead-left">
+          <span className="adm-planet-orb" aria-hidden="true" />
+          <div>
+            <h1 className="adm-h1">Demostraciones Interactivas (Demos)</h1>
+            <p className="adm-sub">
+              Administrá entornos en vivo (iframe), videos demostrativos y
+              galerías interactivas por proyecto.
+            </p>
+          </div>
         </div>
 
-        <Button
-          type="button"
-          variant="primary"
-          onClick={() =>
-            navigate(
-              selectedProjectId
-                ? `/admin/demos/nuevo?project_id=${selectedProjectId}`
-                : '/admin/demos/nuevo'
-            )
-          }
-          className="!px-4 !py-2.5 !text-[14px]"
-        >
-          <Plus size={17} />
-          <span>Nueva demo</span>
-        </Button>
+        <div className="adm-actions">
+          <button
+            type="button"
+            onClick={() =>
+              navigate(
+                selectedProjectId
+                  ? `/admin/demos/nuevo?project_id=${selectedProjectId}`
+                  : '/admin/demos/nuevo'
+              )
+            }
+            className="adm-btn primary"
+          >
+            <Plus size={16} />
+            <span>Nueva demo</span>
+          </button>
+        </div>
       </div>
 
       {/* Filtros */}
-      <div className="flex flex-col justify-between gap-3 rounded-[16px] border border-[var(--borde)] bg-[var(--superficie)] p-4 sm:flex-row sm:items-center">
-        <div className="flex flex-wrap items-center gap-3">
-          <label className="font-sans-ui text-[13px] font-medium text-[var(--texto-suave)]">
-            Proyecto:
-          </label>
+      <section className="adm-card adm-toolbar">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <span className="adm-mono">Proyecto:</span>
           <select
             value={selectedProjectId}
             onChange={(e) => {
@@ -142,7 +147,7 @@ export default function DemosListPage() {
                 setSearchParams({});
               }
             }}
-            className="font-sans-ui rounded-[10px] border border-[var(--borde)] bg-[var(--fondo)] px-3 py-2 text-[13px] text-[var(--texto)] focus:border-[var(--acento)] focus:outline-none"
+            className="adm-select !w-auto"
           >
             <option value="">Todos los proyectos</option>
             {projects.map((p) => (
@@ -153,7 +158,7 @@ export default function DemosListPage() {
           </select>
         </div>
 
-        <div className="flex flex-wrap items-center gap-1.5">
+        <div className="push">
           {[
             { id: 'todos', label: 'Todos los tipos' },
             { id: 'iframe', label: 'Iframe' },
@@ -164,17 +169,13 @@ export default function DemosListPage() {
               key={t.id}
               type="button"
               onClick={() => setSelectedType(t.id)}
-              className={`font-sans-ui cursor-pointer rounded-[9px] px-3 py-1.5 text-[12px] font-medium transition-colors ${
-                selectedType === t.id
-                  ? 'bg-[var(--acento)] text-[var(--sobre-acento)]'
-                  : 'bg-[var(--fondo)] text-[var(--texto-suave)] hover:bg-[var(--superficie-alta)] hover:text-[var(--texto)]'
-              }`}
+              className={`adm-tab ${selectedType === t.id ? 'is-active' : ''}`}
             >
               {t.label}
             </button>
           ))}
         </div>
-      </div>
+      </section>
 
       {/* Listado */}
       <DataState
@@ -187,21 +188,22 @@ export default function DemosListPage() {
         emptyActionLabel="+ Crear la primera demo"
         onEmptyAction={() => navigate('/admin/demos/nuevo')}
       >
-        <div className="overflow-hidden rounded-[16px] border border-[var(--borde)] bg-[var(--superficie)]">
+        <section className="adm-card flush">
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse text-left">
+            <table className="adm-table flush">
               <thead>
-                <tr className="border-b border-[var(--borde)] bg-[var(--superficie-alta)] text-[11px] font-semibold uppercase tracking-[1px] text-[var(--texto-suave)]">
-                  <th className="font-mono-ui px-5 py-3.5">Demostración</th>
-                  <th className="font-mono-ui px-4 py-3.5">Proyecto asociado</th>
-                  <th className="font-mono-ui px-4 py-3.5">Tipo</th>
-                  <th className="font-mono-ui px-4 py-3.5">Recurso / URL</th>
-                  <th className="font-mono-ui px-5 py-3.5 text-right">Acciones</th>
+                <tr>
+                  <th>Demostración</th>
+                  <th>Proyecto asociado</th>
+                  <th>Tipo</th>
+                  <th>Recurso / URL</th>
+                  <th className="r">Acciones</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[var(--borde)]">
+              <tbody>
                 {filteredDemos.map((demo) => {
-                  const normType = demo.type === 'images' ? 'imagenes' : demo.type;
+                  const normType =
+                    demo.type === 'images' ? 'imagenes' : demo.type;
                   const TypeIcon =
                     normType === 'iframe'
                       ? Monitor
@@ -210,39 +212,34 @@ export default function DemosListPage() {
                         : ImageIcon;
 
                   return (
-                    <tr
-                      key={demo.id}
-                      className="transition-colors hover:bg-[var(--superficie-alta)]/40"
-                    >
-                      <td className="px-5 py-4">
-                        <p className="font-heading text-[15px] font-bold text-[var(--texto)]">
+                    <tr key={demo.id}>
+                      <td>
+                        <b className="font-heading text-[15px] font-bold text-[var(--adm-texto)]">
                           {demo.title}
-                        </p>
+                        </b>
                         {demo.description && (
-                          <p className="font-sans-ui mt-0.5 line-clamp-1 text-[12px] text-[var(--texto-suave)]">
+                          <small className="mt-0.5 line-clamp-1">
                             {demo.description}
-                          </p>
+                          </small>
                         )}
                       </td>
 
-                      <td className="px-4 py-4">
-                        <Badge variant="neutral">
+                      <td>
+                        <span className="adm-chip">
                           {demo.project_title || `Proyecto #${demo.project_id}`}
-                        </Badge>
+                        </span>
                       </td>
 
-                      <td className="px-4 py-4">
-                        <Badge
-                          variant="neutral"
-                          icon={<TypeIcon size={12} className="text-[var(--acento-texto)]" />}
-                        >
-                          {TYPE_LABELS[normType] || normType}
-                        </Badge>
+                      <td>
+                        <span className="adm-chip">
+                          <TypeIcon size={12} className="text-[var(--ac2)]" />
+                          <span>{TYPE_LABELS[normType] || normType}</span>
+                        </span>
                       </td>
 
-                      <td className="px-4 py-4">
+                      <td>
                         {normType === 'imagenes' ? (
-                          <span className="font-mono-ui text-[12px] text-[var(--texto-suave)]">
+                          <span className="adm-mono">
                             {(demo.urls || []).length} imagen(es) cargada(s)
                           </span>
                         ) : demo.url ? (
@@ -250,22 +247,24 @@ export default function DemosListPage() {
                             href={demo.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="font-mono-ui inline-flex max-w-[240px] items-center gap-1 truncate text-[12px] text-[var(--acento-texto)] hover:underline"
+                            className="adm-link adm-mono inline-flex max-w-[240px] items-center gap-1 truncate"
                           >
                             <span className="truncate">{demo.url}</span>
                             <ExternalLink size={12} className="shrink-0" />
                           </a>
                         ) : (
-                          <span className="text-[12px] text-[var(--texto-suave)]">—</span>
+                          <span className="adm-mono">—</span>
                         )}
                       </td>
 
-                      <td className="px-5 py-4 text-right">
-                        <div className="inline-flex items-center gap-2">
+                      <td className="r">
+                        <div className="adm-row-actions">
                           <button
                             type="button"
-                            onClick={() => navigate(`/admin/demos/${demo.id}/editar`)}
-                            className="font-sans-ui inline-flex cursor-pointer items-center gap-1.5 rounded-[9px] border border-[var(--borde)] bg-[var(--fondo)] px-3 py-1.5 text-[12px] font-semibold text-[var(--texto)] hover:border-[var(--acento)]"
+                            onClick={() =>
+                              navigate(`/admin/demos/${demo.id}/editar`)
+                            }
+                            className="adm-btn secondary sm"
                           >
                             <Edit3 size={13} />
                             <span>Editar</span>
@@ -275,7 +274,7 @@ export default function DemosListPage() {
                             type="button"
                             onClick={() => setDeleteTarget(demo)}
                             aria-label={`Eliminar ${demo.title}`}
-                            className="cursor-pointer rounded-[9px] border border-[var(--borde)] bg-[var(--fondo)] p-1.5 text-red-400 hover:border-red-500/40 hover:bg-red-500/10"
+                            className="adm-iconbtn danger"
                           >
                             <Trash2 size={14} />
                           </button>
@@ -287,7 +286,7 @@ export default function DemosListPage() {
               </tbody>
             </table>
           </div>
-        </div>
+        </section>
       </DataState>
 
       <ConfirmModal
