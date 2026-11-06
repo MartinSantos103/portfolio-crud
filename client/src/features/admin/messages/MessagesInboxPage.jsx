@@ -23,7 +23,10 @@ import { useToast } from '../../../components/ui/Toast.jsx';
 import Badge from '../../../components/ui/Badge.jsx';
 import DataState from '../../../components/ui/DataState.jsx';
 import { useAdminFormContext } from '../context/AdminFormContext.jsx';
-import { useUnsavedChanges, UnsavedChangesModal } from '../hooks/useUnsavedChanges.jsx';
+import {
+  useUnsavedChanges,
+  UnsavedChangesModal,
+} from '../hooks/useUnsavedChanges.jsx';
 
 const replySchema = z.object({
   body: z
@@ -65,12 +68,19 @@ export default function MessagesInboxPage() {
   const [listStatus, setListStatus] = useState('cargando');
   const [listError, setListError] = useState('');
   const [messages, setMessages] = useState([]);
-  const [pagination, setPagination] = useState({ page: 1, limit: 15, total: 0, totalPages: 1 });
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 15,
+    total: 0,
+    totalPages: 1,
+  });
   const [unreadCount, setUnreadCount] = useState(0);
 
   // Filters
   const [typeFilter, setTypeFilter] = useState(searchParams.get('type') || '');
-  const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || '');
+  const [statusFilter, setStatusFilter] = useState(
+    searchParams.get('status') || ''
+  );
   const [page, setPage] = useState(1);
 
   // Detail states
@@ -105,7 +115,14 @@ export default function MessagesInboxPage() {
       const res = await apiFetch(`/messages?${params.toString()}`);
       const items = res.data || [];
       setMessages(items);
-      setPagination(res.pagination || { page: 1, limit: 15, total: items.length, totalPages: 1 });
+      setPagination(
+        res.pagination || {
+          page: 1,
+          limit: 15,
+          total: items.length,
+          totalPages: 1,
+        }
+      );
       if (typeof res.unreadCount === 'number') {
         setUnreadCount(res.unreadCount);
       }
@@ -157,7 +174,9 @@ export default function MessagesInboxPage() {
         setSelectedMessage(msg);
         setDetailStatus('con_datos');
       } catch (err) {
-        setDetailError(err.message || 'No se pudo cargar el detalle de la consulta.');
+        setDetailError(
+          err.message || 'No se pudo cargar el detalle de la consulta.'
+        );
         setDetailStatus('error');
       }
     },
@@ -185,9 +204,13 @@ export default function MessagesInboxPage() {
         body: JSON.stringify({ status: newStatus }),
       });
       const updated = res.data;
-      setSelectedMessage((prev) => (prev ? { ...prev, status: updated.status } : prev));
+      setSelectedMessage((prev) =>
+        prev ? { ...prev, status: updated.status } : prev
+      );
       setMessages((prev) =>
-        prev.map((m) => (m.id === selectedMessage.id ? { ...m, status: updated.status } : m))
+        prev.map((m) =>
+          m.id === selectedMessage.id ? { ...m, status: updated.status } : m
+        )
       );
       refreshUnreadMessages();
       fetchMessages();
@@ -208,7 +231,7 @@ export default function MessagesInboxPage() {
   const onSubmitReply = async (values) => {
     if (!selectedMessage) return;
     try {
-      const res = await apiFetch(`/messages/${selectedMessage.id}/reply`, {
+      await apiFetch(`/messages/${selectedMessage.id}/reply`, {
         method: 'POST',
         body: JSON.stringify({ body: values.body }),
       });
@@ -233,38 +256,39 @@ export default function MessagesInboxPage() {
     const type = msg?.type || 'consulta';
 
     if (type === 'cotizacion') {
-      const tipoProyecto = extra.tipo_proyecto || extra.servicio_interes || 'No especificado';
+      const tipoProyecto =
+        extra.tipo_proyecto || extra.servicio_interes || 'No especificado';
       const presupuesto = extra.presupuesto || 'No especificado';
       const plazo = extra.plazo || 'No especificado';
 
       return (
-        <div className="space-y-3 rounded-[14px] border border-[var(--borde)] bg-[var(--superficie-alta)] p-4">
-          <div className="font-mono-ui flex items-center gap-2 text-[11px] uppercase tracking-wider text-[var(--acento-texto)]">
+        <div className="space-y-3 rounded-[14px] border border-[var(--adm-borde)] bg-[var(--adm-superficie-alta)] p-4">
+          <div className="adm-mono flex items-center gap-2 text-[11px] tracking-wider uppercase !text-[var(--ac2)]">
             <Briefcase size={15} />
             <span>Metadatos de Solicitud de Cotización</span>
           </div>
           <div className="grid grid-cols-1 gap-3 pt-1 sm:grid-cols-3">
-            <div className="rounded-[10px] border border-[var(--borde)] bg-[var(--superficie)] p-2.5">
-              <span className="font-mono-ui block text-[11px] uppercase text-[var(--texto-suave)]">
+            <div className="rounded-[10px] border border-[var(--adm-borde)] bg-[var(--adm-superficie)] p-2.5">
+              <span className="adm-mono block text-[11px] uppercase">
                 Tipo de proyecto
               </span>
-              <span className="font-sans-ui mt-0.5 block text-[13px] font-medium text-[var(--texto)]">
+              <span className="mt-0.5 block text-[13px] font-medium text-[var(--adm-texto)]">
                 {tipoProyecto}
               </span>
             </div>
-            <div className="rounded-[10px] border border-[var(--borde)] bg-[var(--superficie)] p-2.5">
-              <span className="font-mono-ui block text-[11px] uppercase text-[var(--texto-suave)]">
+            <div className="rounded-[10px] border border-[var(--adm-borde)] bg-[var(--adm-superficie)] p-2.5">
+              <span className="adm-mono block text-[11px] uppercase">
                 Presupuesto estimado
               </span>
-              <span className="font-sans-ui mt-0.5 block text-[13px] font-medium text-[var(--texto)]">
+              <span className="mt-0.5 block text-[13px] font-medium text-[var(--adm-texto)]">
                 {presupuesto}
               </span>
             </div>
-            <div className="rounded-[10px] border border-[var(--borde)] bg-[var(--superficie)] p-2.5">
-              <span className="font-mono-ui block text-[11px] uppercase text-[var(--texto-suave)]">
+            <div className="rounded-[10px] border border-[var(--adm-borde)] bg-[var(--adm-superficie)] p-2.5">
+              <span className="adm-mono block text-[11px] uppercase">
                 Plazo deseado
               </span>
-              <span className="font-sans-ui mt-0.5 block text-[13px] font-medium text-[var(--texto)]">
+              <span className="mt-0.5 block text-[13px] font-medium text-[var(--adm-texto)]">
                 {plazo}
               </span>
             </div>
@@ -274,29 +298,31 @@ export default function MessagesInboxPage() {
     }
 
     if (type === 'asesoria') {
-      const temaTecnico = extra.tema_tecnico || extra.servicio_interes || 'No especificado';
-      const modalidad = extra.modalidad || extra.disponibilidad || 'No especificada';
+      const temaTecnico =
+        extra.tema_tecnico || extra.servicio_interes || 'No especificado';
+      const modalidad =
+        extra.modalidad || extra.disponibilidad || 'No especificada';
 
       return (
-        <div className="space-y-3 rounded-[14px] border border-[var(--borde)] bg-[var(--superficie-alta)] p-4">
-          <div className="font-mono-ui flex items-center gap-2 text-[11px] uppercase tracking-wider text-[var(--acento-texto)]">
+        <div className="space-y-3 rounded-[14px] border border-[var(--adm-borde)] bg-[var(--adm-superficie-alta)] p-4">
+          <div className="adm-mono flex items-center gap-2 text-[11px] tracking-wider uppercase !text-[var(--ac2)]">
             <Compass size={15} />
             <span>Metadatos de Solicitud de Asesoría</span>
           </div>
           <div className="grid grid-cols-1 gap-3 pt-1 sm:grid-cols-2">
-            <div className="rounded-[10px] border border-[var(--borde)] bg-[var(--superficie)] p-2.5">
-              <span className="font-mono-ui block text-[11px] uppercase text-[var(--texto-suave)]">
+            <div className="rounded-[10px] border border-[var(--adm-borde)] bg-[var(--adm-superficie)] p-2.5">
+              <span className="adm-mono block text-[11px] uppercase">
                 Tema técnico / Servicio
               </span>
-              <span className="font-sans-ui mt-0.5 block text-[13px] font-medium text-[var(--texto)]">
+              <span className="mt-0.5 block text-[13px] font-medium text-[var(--adm-texto)]">
                 {temaTecnico}
               </span>
             </div>
-            <div className="rounded-[10px] border border-[var(--borde)] bg-[var(--superficie)] p-2.5">
-              <span className="font-mono-ui block text-[11px] uppercase text-[var(--texto-suave)]">
+            <div className="rounded-[10px] border border-[var(--adm-borde)] bg-[var(--adm-superficie)] p-2.5">
+              <span className="adm-mono block text-[11px] uppercase">
                 Modalidad / Disponibilidad
               </span>
-              <span className="font-sans-ui mt-0.5 block text-[13px] font-medium text-[var(--texto)]">
+              <span className="mt-0.5 block text-[13px] font-medium text-[var(--adm-texto)]">
                 {modalidad}
               </span>
             </div>
@@ -305,12 +331,14 @@ export default function MessagesInboxPage() {
       );
     }
 
-    const extraKeys = Object.entries(extra).filter(([, v]) => v !== null && v !== '');
+    const extraKeys = Object.entries(extra).filter(
+      ([, v]) => v !== null && v !== ''
+    );
     if (extraKeys.length === 0) return null;
 
     return (
-      <div className="space-y-2 rounded-[14px] border border-[var(--borde)] bg-[var(--superficie-alta)] p-4">
-        <div className="font-mono-ui flex items-center gap-2 text-[11px] uppercase tracking-wider text-[var(--texto-suave)]">
+      <div className="space-y-2 rounded-[14px] border border-[var(--adm-borde)] bg-[var(--adm-superficie-alta)] p-4">
+        <div className="adm-mono flex items-center gap-2 text-[11px] tracking-wider uppercase">
           <MessageSquare size={15} />
           <span>Datos adicionales</span>
         </div>
@@ -318,12 +346,14 @@ export default function MessagesInboxPage() {
           {extraKeys.map(([k, v]) => (
             <div
               key={k}
-              className="rounded-[10px] border border-[var(--borde)] bg-[var(--superficie)] p-2.5"
+              className="rounded-[10px] border border-[var(--adm-borde)] bg-[var(--adm-superficie)] p-2.5"
             >
-              <span className="font-mono-ui block text-[11px] uppercase text-[var(--texto-suave)]">
+              <span className="adm-mono block text-[11px] uppercase">
                 {k.replace(/_/g, ' ')}
               </span>
-              <span className="font-sans-ui text-[13px] text-[var(--texto)]">{String(v)}</span>
+              <span className="text-[13px] text-[var(--adm-texto)]">
+                {String(v)}
+              </span>
             </div>
           ))}
         </div>
@@ -332,29 +362,31 @@ export default function MessagesInboxPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div id="v-mensajes" className="adm-view is-on flex flex-col gap-5">
       <UnsavedChangesModal blocker={blocker} />
 
-      {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="font-heading text-[26px] font-bold tracking-tight text-[var(--texto)]">
-              Mensajes y Consultas
-            </h1>
-            {unreadCount > 0 && (
-              <Badge variant="status" status="nuevo">
-                {unreadCount} sin leer
-              </Badge>
-            )}
+      {/* Header estelar */}
+      <div className="adm-pagehead">
+        <div className="adm-pagehead-left">
+          <span className="adm-planet-orb" aria-hidden="true" />
+          <div>
+            <div className="flex flex-wrap items-center gap-2.5">
+              <h1 className="adm-h1">Mensajes y Consultas</h1>
+              {unreadCount > 0 && (
+                <Badge variant="status" status="nuevo">
+                  {unreadCount} sin leer
+                </Badge>
+              )}
+            </div>
+            <p className="adm-sub">
+              Bandeja de entrada de contactos, solicitudes de cotización y
+              asesorías técnicas.
+            </p>
           </div>
-          <p className="font-sans-ui mt-1 text-[14px] text-[var(--texto-suave)]">
-            Bandeja de entrada de contactos, solicitudes de cotización y asesorías técnicas.
-          </p>
         </div>
 
         {/* Filtros */}
-        <div className="flex flex-wrap items-center gap-2.5">
+        <div className="adm-actions">
           <select
             aria-label="Filtrar por tipo de consulta"
             value={typeFilter}
@@ -362,7 +394,7 @@ export default function MessagesInboxPage() {
               setTypeFilter(e.target.value);
               setPage(1);
             }}
-            className="font-sans-ui rounded-[10px] border border-[var(--borde)] bg-[var(--superficie)] px-3 py-2 text-[13px] text-[var(--texto)] focus:border-[var(--acento)] focus:outline-none"
+            className="adm-select !w-auto"
           >
             <option value="">Todos los tipos</option>
             <option value="consulta">Consulta general</option>
@@ -377,7 +409,7 @@ export default function MessagesInboxPage() {
               setStatusFilter(e.target.value);
               setPage(1);
             }}
-            className="font-sans-ui rounded-[10px] border border-[var(--borde)] bg-[var(--superficie)] px-3 py-2 text-[13px] text-[var(--texto)] focus:border-[var(--acento)] focus:outline-none"
+            className="adm-select !w-auto"
           >
             <option value="">Todos los estados</option>
             <option value="nuevo">Nuevo</option>
@@ -389,12 +421,12 @@ export default function MessagesInboxPage() {
       </div>
 
       {/* Contenedor Maestro-Detalle */}
-      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
+      <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-12">
         {/* Columna Izquierda: Lista de Mensajes (oculta en móvil si hay :id seleccionado) */}
-        <div
+        <section
           className={`${
             id ? 'hidden lg:col-span-5 lg:block' : 'col-span-1 lg:col-span-12'
-          } overflow-hidden rounded-[16px] border border-[var(--borde)] bg-[var(--superficie)]`}
+          } adm-card flush`}
         >
           <DataState
             status={listStatus}
@@ -407,7 +439,9 @@ export default function MessagesInboxPage() {
                 ? 'No hay mensajes que coincidan con los filtros seleccionados.'
                 : 'Aún no has recibido mensajes ni solicitudes desde el formulario de contacto.'
             }
-            emptyActionLabel={typeFilter || statusFilter ? 'Limpiar filtros' : undefined}
+            emptyActionLabel={
+              typeFilter || statusFilter ? 'Limpiar filtros' : undefined
+            }
             onEmptyAction={
               typeFilter || statusFilter
                 ? () => {
@@ -418,7 +452,7 @@ export default function MessagesInboxPage() {
                 : undefined
             }
           >
-            <div className="divide-y divide-[var(--borde)]">
+            <div>
               {messages.map((msg) => {
                 const isSelected = Number(id) === Number(msg.id);
                 const isUnread = msg.status === 'nuevo';
@@ -428,51 +462,53 @@ export default function MessagesInboxPage() {
                     key={msg.id}
                     type="button"
                     onClick={() => navigate(`/admin/mensajes/${msg.id}`)}
-                    className={`flex w-full cursor-pointer flex-col gap-2 p-4 text-left transition-colors hover:bg-[var(--superficie-alta)] ${
-                      isSelected
-                        ? 'border-l-4 border-l-[var(--acento)] bg-[var(--acento)]/10'
-                        : ''
+                    className={`adm-msg-row w-full text-left ${
+                      isSelected ? 'is-selected' : ''
                     }`}
                   >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex min-w-0 items-center gap-2">
+                    <div className="adm-msg-top">
+                      <div className="adm-msg-who">
                         {isUnread ? (
-                          <Mail size={16} className="shrink-0 text-amber-400" />
+                          <Mail
+                            size={15}
+                            className="shrink-0 text-[var(--warn)]"
+                          />
                         ) : (
-                          <MailOpen size={16} className="shrink-0 text-[var(--texto-suave)]" />
+                          <MailOpen
+                            size={15}
+                            className="shrink-0 text-[var(--adm-texto-suave)]"
+                          />
                         )}
                         <span
-                          className={`font-sans-ui truncate text-[14px] ${
+                          className={
                             isUnread
-                              ? 'font-bold text-[var(--texto)]'
-                              : 'font-medium text-[var(--texto-suave)]'
-                          }`}
+                              ? 'font-bold text-[var(--adm-texto)]'
+                              : 'font-medium text-[var(--adm-texto-suave)]'
+                          }
                         >
                           {msg.name}
                         </span>
                       </div>
-                      <span className="font-mono-ui shrink-0 text-[11px] text-[var(--texto-suave)]">
+                      <span className="adm-msg-time">
                         {formatDateTime(msg.created_at)}
                       </span>
                     </div>
 
-                    <div className="font-mono-ui truncate text-[12px] text-[var(--texto-suave)]">
-                      {msg.email}
-                    </div>
+                    <div className="adm-msg-mail">{msg.email}</div>
 
                     <p
-                      className={`font-sans-ui line-clamp-2 text-[13px] ${
-                        isUnread
-                          ? 'font-medium text-[var(--texto)]'
-                          : 'text-[var(--texto-suave)]'
+                      className={`adm-msg-excerpt ${
+                        isUnread ? 'font-medium !text-[var(--adm-texto)]' : ''
                       }`}
                     >
                       {msg.subject ? `${msg.subject}: ` : ''}
                       {msg.body}
                     </p>
 
-                    <div className="flex items-center justify-between gap-2 pt-1">
-                      <Badge variant="neutral">{TYPE_LABELS[msg.type] || msg.type}</Badge>
+                    <div className="adm-msg-meta">
+                      <Badge variant="neutral">
+                        {TYPE_LABELS[msg.type] || msg.type}
+                      </Badge>
                       <Badge variant="status" status={msg.status} />
                     </div>
                   </button>
@@ -481,42 +517,43 @@ export default function MessagesInboxPage() {
             </div>
 
             {/* Controles de paginación */}
-            <div className="flex items-center justify-between gap-2 border-t border-[var(--borde)] bg-[var(--superficie-alta)] px-4 py-3">
+            <div className="adm-foot">
               <button
                 type="button"
                 disabled={pagination.page <= 1}
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
-                className="font-sans-ui inline-flex cursor-pointer items-center gap-1 rounded-[10px] border border-[var(--borde)] bg-[var(--superficie)] px-3 py-1.5 text-[12px] font-medium text-[var(--texto-suave)] hover:text-[var(--texto)] disabled:pointer-events-none disabled:opacity-40"
+                className="adm-btn secondary sm"
               >
                 <ChevronLeft size={14} />
                 Anterior
               </button>
-              <span className="font-mono-ui text-[12px] text-[var(--texto-suave)]">
-                Página {pagination.page} de {pagination.totalPages || 1} ({pagination.total} total)
+              <span className="adm-mono text-[12px]">
+                Página {pagination.page} de {pagination.totalPages || 1} (
+                {pagination.total} total)
               </span>
               <button
                 type="button"
                 disabled={pagination.page >= (pagination.totalPages || 1)}
                 onClick={() => setPage((p) => p + 1)}
-                className="font-sans-ui inline-flex cursor-pointer items-center gap-1 rounded-[10px] border border-[var(--borde)] bg-[var(--superficie)] px-3 py-1.5 text-[12px] font-medium text-[var(--texto-suave)] hover:text-[var(--texto)] disabled:pointer-events-none disabled:opacity-40"
+                className="adm-btn secondary sm"
               >
                 Siguiente
                 <ChevronRight size={14} />
               </button>
             </div>
           </DataState>
-        </div>
+        </section>
 
         {/* Columna Derecha: Detalle de Consulta y Respuesta */}
         {id && (
-          <div className="col-span-1 space-y-6 rounded-[16px] border border-[var(--borde)] bg-[var(--superficie)] p-6 lg:col-span-7">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--borde)] pb-4">
+          <section className="adm-card col-span-1 space-y-5 lg:col-span-7">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--adm-borde)] pb-4">
               <button
                 type="button"
                 onClick={() => navigate('/admin/mensajes')}
-                className="font-sans-ui inline-flex cursor-pointer items-center gap-1.5 text-[13px] font-medium text-[var(--texto-suave)] hover:text-[var(--texto)]"
+                className="adm-link inline-flex items-center gap-1.5 text-[13px] font-medium"
               >
-                <ArrowLeft size={16} />
+                <ArrowLeft size={15} />
                 Volver a la bandeja
               </button>
 
@@ -524,20 +561,24 @@ export default function MessagesInboxPage() {
                 <div className="flex flex-wrap items-center gap-2">
                   <button
                     type="button"
-                    disabled={updatingStatus || selectedMessage.status === 'nuevo'}
+                    disabled={
+                      updatingStatus || selectedMessage.status === 'nuevo'
+                    }
                     onClick={() => handleStatusChange('nuevo')}
-                    className="font-sans-ui inline-flex cursor-pointer items-center gap-1.5 rounded-[10px] border border-[var(--borde)] bg-[var(--superficie-alta)] px-3 py-1.5 text-[12px] font-medium text-[var(--texto-suave)] hover:text-[var(--texto)] disabled:opacity-40"
+                    className="adm-btn secondary sm"
                   >
-                    <Mail size={14} />
+                    <Mail size={13} />
                     Marcar como no leído
                   </button>
                   <button
                     type="button"
-                    disabled={updatingStatus || selectedMessage.status === 'cerrado'}
+                    disabled={
+                      updatingStatus || selectedMessage.status === 'cerrado'
+                    }
                     onClick={() => handleStatusChange('cerrado')}
-                    className="font-sans-ui inline-flex cursor-pointer items-center gap-1.5 rounded-[10px] border border-[var(--borde)] bg-[var(--superficie-alta)] px-3 py-1.5 text-[12px] font-medium text-[var(--texto-suave)] hover:text-[var(--texto)] disabled:opacity-40"
+                    className="adm-btn secondary sm"
                   >
-                    <Archive size={14} />
+                    <Archive size={13} />
                     Cerrar consulta
                   </button>
                 </div>
@@ -551,20 +592,20 @@ export default function MessagesInboxPage() {
               skeletonRows={3}
             >
               {selectedMessage && (
-                <div className="space-y-6">
+                <div className="space-y-5">
                   {/* Encabezado del remitente */}
                   <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
                     <div className="flex items-start gap-3">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--borde)] bg-[var(--superficie-alta)] text-[var(--acento-texto)]">
-                        <User size={18} />
+                      <div className="adm-avatar">
+                        <User size={17} />
                       </div>
                       <div>
-                        <h2 className="font-heading text-[18px] font-bold text-[var(--texto)]">
+                        <h2 className="font-heading text-[18px] font-bold text-[var(--adm-texto)]">
                           {selectedMessage.name}
                         </h2>
                         <a
                           href={`mailto:${selectedMessage.email}`}
-                          className="font-mono-ui text-[13px] text-[var(--acento-texto)] hover:underline"
+                          className="adm-link adm-mono text-[13px]"
                         >
                           {selectedMessage.email}
                         </a>
@@ -573,10 +614,11 @@ export default function MessagesInboxPage() {
 
                     <div className="flex flex-wrap items-center gap-2">
                       <Badge variant="neutral">
-                        {TYPE_LABELS[selectedMessage.type] || selectedMessage.type}
+                        {TYPE_LABELS[selectedMessage.type] ||
+                          selectedMessage.type}
                       </Badge>
                       <Badge variant="status" status={selectedMessage.status} />
-                      <span className="font-mono-ui flex items-center gap-1 text-[11px] text-[var(--texto-suave)]">
+                      <span className="adm-mono flex items-center gap-1 text-[11px]">
                         <Clock size={13} />
                         {formatDateTime(selectedMessage.created_at)}
                       </span>
@@ -587,91 +629,96 @@ export default function MessagesInboxPage() {
                   {renderExtraMetadata(selectedMessage)}
 
                   {/* Cuerpo del mensaje original */}
-                  <div className="space-y-2 rounded-[14px] border border-[var(--borde)] bg-[var(--superficie-alta)]/60 p-4">
+                  <div className="adm-quote space-y-2">
                     {selectedMessage.subject && (
-                      <h3 className="font-sans-ui text-[14px] font-semibold text-[var(--texto)]">
+                      <h3 className="text-[14px] font-semibold text-[var(--adm-texto)]">
                         Asunto: {selectedMessage.subject}
                       </h3>
                     )}
-                    <p className="font-sans-ui text-[14px] leading-relaxed whitespace-pre-wrap text-[var(--texto)]">
+                    <p className="text-[14px] leading-relaxed whitespace-pre-wrap text-[var(--adm-texto)]">
                       {selectedMessage.body}
                     </p>
                   </div>
 
                   {/* Historial de respuestas enviadas */}
-                  {Array.isArray(selectedMessage.replies) && selectedMessage.replies.length > 0 && (
-                    <div className="space-y-3">
-                      <h3 className="font-mono-ui text-[11px] uppercase tracking-wider text-[var(--texto-suave)]">
-                        Historial de Respuestas Enviadas ({selectedMessage.replies.length})
-                      </h3>
+                  {Array.isArray(selectedMessage.replies) &&
+                    selectedMessage.replies.length > 0 && (
                       <div className="space-y-3">
-                        {selectedMessage.replies.map((rep) => (
-                          <div
-                            key={rep.id}
-                            className="space-y-2 rounded-[14px] border border-emerald-500/25 bg-emerald-500/10 p-4"
-                          >
-                            <div className="flex items-center justify-between text-[12px]">
-                              <span className="font-sans-ui flex items-center gap-1.5 font-semibold text-emerald-300">
-                                <CheckCircle2 size={14} />
-                                {rep.author_name || 'Administrador'}
-                              </span>
-                              <span className="font-mono-ui text-[var(--texto-suave)]">
-                                {formatDateTime(rep.created_at)}
-                              </span>
+                        <h3 className="adm-mono text-[11px] tracking-wider uppercase">
+                          Historial de Respuestas Enviadas (
+                          {selectedMessage.replies.length})
+                        </h3>
+                        <div className="space-y-3">
+                          {selectedMessage.replies.map((rep) => (
+                            <div
+                              key={rep.id}
+                              className="space-y-2 rounded-[14px] border border-[rgba(52,211,153,0.3)] bg-[rgba(52,211,153,0.1)] p-4"
+                            >
+                              <div className="flex items-center justify-between text-[12px]">
+                                <span className="flex items-center gap-1.5 font-semibold text-[var(--ok)]">
+                                  <CheckCircle2 size={14} />
+                                  {rep.author_name || 'Administrador'}
+                                </span>
+                                <span className="adm-mono">
+                                  {formatDateTime(rep.created_at)}
+                                </span>
+                              </div>
+                              <p className="text-[13px] whitespace-pre-wrap text-[var(--adm-texto)]">
+                                {rep.body}
+                              </p>
                             </div>
-                            <p className="font-sans-ui text-[13px] whitespace-pre-wrap text-[var(--texto)]">
-                              {rep.body}
-                            </p>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
                   {/* Formulario de respuesta transaccional */}
                   <form
                     onSubmit={handleSubmit(onSubmitReply)}
-                    className="space-y-4 border-t border-[var(--borde)] pt-4"
+                    className="space-y-4 border-t border-[var(--adm-borde)] pt-4"
                   >
                     <div>
-                      <label
-                        htmlFor="reply-body"
-                        className="font-sans-ui mb-1.5 block text-[13px] font-medium text-[var(--texto)]"
-                      >
-                        Responder por correo electrónico a {selectedMessage.name}
+                      <label htmlFor="reply-body" className="adm-label">
+                        Responder por correo electrónico a{' '}
+                        {selectedMessage.name}
                       </label>
                       <textarea
                         id="reply-body"
                         rows={5}
                         placeholder="Escribe aquí tu respuesta profesional. Se enviará por email al remitente y quedará registrada en este hilo..."
                         {...register('body')}
-                        className="font-sans-ui w-full rounded-[12px] border border-[var(--borde)] bg-[var(--superficie-alta)] px-3.5 py-2.5 text-[14px] text-[var(--texto)] placeholder:text-[var(--texto-suave)] focus:border-[var(--acento)] focus:outline-none"
+                        className="adm-textarea"
                       />
                       {errors.body && (
-                        <p className="font-sans-ui mt-1.5 text-[12px] text-red-400">
+                        <p className="mt-1 text-[12px] text-[var(--bad)]">
                           {errors.body.message}
                         </p>
                       )}
                     </div>
 
-                    <div className="flex items-center justify-between gap-4">
-                      <span className="font-sans-ui text-[12px] text-[var(--texto-suave)]">
-                        Al enviar, el estado pasará automáticamente a <strong>Respondido</strong>.
+                    <div className="flex flex-wrap items-center justify-between gap-4">
+                      <span className="text-[12px] text-[var(--adm-texto-suave)]">
+                        Al enviar, el estado pasará automáticamente a{' '}
+                        <strong>Respondido</strong>.
                       </span>
                       <button
                         type="submit"
                         disabled={isSubmitting}
-                        className="font-sans-ui inline-flex cursor-pointer items-center gap-2 rounded-[12px] bg-[var(--acento)] px-4 py-2.5 text-[14px] font-semibold text-[var(--sobre-acento)] transition-opacity hover:opacity-95 disabled:opacity-50"
+                        className="adm-btn primary"
                       >
-                        <Send size={16} />
-                        {isSubmitting ? 'Enviando correo...' : 'Enviar respuesta'}
+                        <Send size={15} />
+                        <span>
+                          {isSubmitting
+                            ? 'Enviando correo...'
+                            : 'Enviar respuesta'}
+                        </span>
                       </button>
                     </div>
                   </form>
                 </div>
               )}
             </DataState>
-          </div>
+          </section>
         )}
       </div>
     </div>

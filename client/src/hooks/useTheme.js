@@ -12,16 +12,13 @@ export const PALETTES = [
 
 const ACCENT_STORAGE_KEY = 'ac';
 const LEGACY_THEME_KEY = 'portfolio_theme';
-const NOOP = () => {};
 
 function getInitialPaletteIndex() {
   if (typeof window === 'undefined') return 0;
   try {
     // Limpiar preferencia antigua de modo claro/oscuro y forzar oscuro
     localStorage.removeItem(LEGACY_THEME_KEY);
-    // Transitorio: se mantiene data-theme="dark" para el panel sin tematizar
-    // (clases [html[data-theme="dark"]_&]:...). Se quita en el PR del panel.
-    document.documentElement.setAttribute('data-theme', 'dark');
+    document.documentElement.removeAttribute('data-theme');
 
     const raw = localStorage.getItem(ACCENT_STORAGE_KEY);
     const parsed = Number(raw);
@@ -100,12 +97,5 @@ export function useTheme() {
     paletteIndex,
     currentPalette: PALETTES[paletteIndex] || PALETTES[0],
     setPalette,
-    // Compatibilidad transitoria con AdminLayout (sin tematizar en este PR):
-    // el sitio es solo oscuro, así que el tema es fijo y el toggle no hace nada.
-    theme: 'dark',
-    isDark: true,
-    isLight: false,
-    setTheme: NOOP,
-    toggleTheme: NOOP,
   };
 }
