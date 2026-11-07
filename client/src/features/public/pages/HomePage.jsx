@@ -42,6 +42,7 @@ export default function HomePage({ initialSection = null }) {
     servicesSection,
     contact,
     footer,
+    isInitialLoading,
   } = usePortfolioData();
 
   const { user, isAuthenticated } = useAuth();
@@ -68,6 +69,13 @@ export default function HomePage({ initialSection = null }) {
   });
   const [contactSending, setContactSending] = useState(false);
   const [contactFeedback, setContactFeedback] = useState(null);
+
+  useEffect(() => {
+    if (profile?.fullName) {
+      const roleSuffix = profile.role ? ` - ${profile.role}` : '';
+      document.title = `${profile.fullName}${roleSuffix}`;
+    }
+  }, [profile?.fullName, profile?.role]);
 
   useEffect(() => {
     trackPortfolioEvent({ type: 'visit', path: window.location.pathname || '/' });
@@ -280,6 +288,18 @@ export default function HomePage({ initialSection = null }) {
       el.scrollIntoView({ behavior: 'smooth' });
     }
   };
+
+  if (isInitialLoading) {
+    return (
+      <div className="relative flex min-h-screen w-full flex-col items-center justify-center bg-[var(--bg)] text-[var(--tx)]">
+        <StarfieldCanvas />
+        <div className="relative z-10 flex flex-col items-center gap-4">
+          <div className="h-10 w-10 animate-spin rounded-full border-2 border-[var(--bd)] border-t-[var(--ac)]" />
+          <p className="font-mono-ui text-sm text-[var(--mut)]">Cargando portfolio...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative min-h-screen w-full bg-[var(--bg)] text-[var(--tx)]">

@@ -13,6 +13,51 @@ import {
   FOOTER_DATA,
 } from '../data/portfolioData.js';
 
+const CACHE_KEY = 'pf_public_cache_v1';
+
+export function getCachedPublicData() {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch (e) {
+    console.warn('Error al leer caché del portfolio:', e);
+    return null;
+  }
+}
+
+export function setCachedPublicData(partialData) {
+  if (typeof window === 'undefined') return;
+  try {
+    const current = getCachedPublicData() || {};
+    const updated = {
+      ...current,
+      ...partialData,
+      updatedAt: Date.now(),
+    };
+    localStorage.setItem(CACHE_KEY, JSON.stringify(updated));
+  } catch (e) {
+    console.warn('Error al escribir caché del portfolio:', e);
+  }
+}
+
+export function updatePortfolioProfileCache(remoteProfile) {
+  if (!remoteProfile) return;
+  const mapped = mapRemoteProfileToPublic(remoteProfile);
+  setCachedPublicData({
+    profile: mapped.profile,
+    about: mapped.about,
+    trajectory: mapped.trajectory,
+    technologies: mapped.technologies,
+  });
+}
+
+export function getCachedProfile() {
+  const cached = getCachedPublicData();
+  return cached?.profile || PROFILE_DATA;
+}
+
 function parseShortBioToTypewriter(rawShortBio, prevProfile = PROFILE_DATA) {
   const defaultPrefix = prevProfile.typewriterPrefix || 'Construyo aplicaciones web';
   const defaultWords = Array.isArray(prevProfile.typewriterWords) && prevProfile.typewriterWords.length > 0
@@ -165,14 +210,32 @@ export function mapRemoteProfileToPublic(remoteProfile, prevProfile = PROFILE_DA
 
 /**
  * Hook que provee todos los datos del portfolio para los componentes públicos.
+ * Implementa caché local SWR (Stale-While-Revalidate) para que en recargas o
+ * navegaciones los datos se muestren inmediatamente en el primer frame sin parpadeo.
  */
 export function usePortfolioData() {
-  const [technologies, setTechnologies] = useState(TECHNOLOGIES_COLLECTION);
-  const [profile, setProfile] = useState(PROFILE_DATA);
-  const [about, setAbout] = useState(ABOUT_DATA);
-  const [trajectory, setTrajectory] = useState(TRAJECTORY_DATA);
-  const [projectsSection, setProjectsSection] = useState(PROJECTS_DATA);
-  const [servicesSection, setServicesSection] = useState(SERVICES_DATA);
+  const initialCache = getCachedPublicData();
+  const hasCache = Boolean(initialCache && initialCache.profile);
+
+  const [technologies, setTechnologies] = useState(
+    () => initialCache?.technologies || TECHNOLOGIES_COLLECTION
+  );
+  const [profile, setProfile] = useState(
+    () => initialCache?.profile || PROFILE_DATA
+  );
+  const [about, setAbout] = useState(
+    () => initialCache?.about || ABOUT_DATA
+  );
+  const [trajectory, setTrajectory] = useState(
+    () => initialCache?.trajectory || TRAJECTORY_DATA
+  );
+  const [projectsSection, setProjectsSection] = useState(
+    () => initialCache?.projectsSection || PROJECTS_DATA
+  );
+  const [servicesSection, setServicesSection] = useState(
+    () => initialCache?.servicesSection || SERVICES_DATA
+  );
+  const [isInitialLoading, setIsInitialLoading] = useState(!hasCache);
 
   useEffect(() => {
     let isMounted = true;
@@ -187,6 +250,7 @@ export function usePortfolioData() {
       if (!isMounted) return;
 
       const [profileRes, projectsRes, servicesRes] = results;
+      const cacheUpdates = {};
 
       if (profileRes.status === 'fulfilled' && profileRes.value?.data) {
         const mapped = mapRemoteProfileToPublic(profileRes.value.data);
@@ -194,6 +258,10 @@ export function usePortfolioData() {
         setAbout(mapped.about);
         setTrajectory(mapped.trajectory);
         setTechnologies(mapped.technologies);
+        cacheUpdates.profile = mapped.profile;
+        cacheUpdates.about = mapped.about;
+        cacheUpdates.trajectory = mapped.trajectory;
+        cacheUpdates.technologies = mapped.technologies;
       }
 
       if (projectsRes.status === 'fulfilled') {
@@ -203,14 +271,16 @@ export function usePortfolioData() {
             ? projectsRes.value
             : null;
         if (list && list.length > 0) {
-          setProjectsSection((prev) => ({
-            ...prev,
+          const nextProjectsSection = {
+            ...PROJECTS_DATA,
             items: list.map((item, idx) => ({
               ...item,
               technologyIds: item.technologies || item.technologyIds || [],
               mockupVariant: item.mockupVariant || ['store', 'cards', 'chart'][idx % 3],
             })),
-          }));
+          };
+          setProjectsSection(nextProjectsSection);
+          cacheUpdates.projectsSection = nextProjectsSection;
         }
       }
 
@@ -221,15 +291,23 @@ export function usePortfolioData() {
             ? servicesRes.value
             : null;
         if (list && list.length > 0) {
-          setServicesSection((prev) => ({
-            ...prev,
+          const nextServicesSection = {
+            ...SERVICES_DATA,
             items: list.map((srv) => ({
               ...srv,
               items: Array.isArray(srv.items) ? srv.items : [],
             })),
-          }));
+          };
+          setServicesSection(nextServicesSection);
+          cacheUpdates.servicesSection = nextServicesSection;
         }
       }
+
+      if (Object.keys(cacheUpdates).length > 0) {
+        setCachedPublicData(cacheUpdates);
+      }
+
+      setIsInitialLoading(false);
     }
 
     loadRemoteData();
@@ -238,6 +316,8 @@ export function usePortfolioData() {
       isMounted = false;
     };
   }, []);
+
+  const dynamicCopyright = `© ${new Date().getFullYear()} ${profile.fullName || 'Lucas Andrade'}. Hecho con dedicación.`;
 
   return {
     navLinks: NAV_LINKS,
@@ -253,6 +333,10 @@ export function usePortfolioData() {
       email: profile.contactEmail || CONTACT_DATA.email,
       serviceOptions: servicesSection.items.map((s) => ({ id: s.id, value: s.title, label: s.title })),
     },
-    footer: FOOTER_DATA,
+    footer: {
+      ...FOOTER_DATA,
+      copyright: dynamicCopyright,
+    },
+    isInitialLoading,
   };
 }

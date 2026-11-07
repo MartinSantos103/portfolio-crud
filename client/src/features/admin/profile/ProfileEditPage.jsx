@@ -27,7 +27,10 @@ import {
 import HeroSection from '../../public/components/HeroSection.jsx';
 import AboutSection from '../../public/components/AboutSection.jsx';
 import TrajectorySection from '../../public/components/TrajectorySection.jsx';
-import { mapRemoteProfileToPublic } from '../../public/hooks/usePortfolioData.js';
+import {
+  mapRemoteProfileToPublic,
+  updatePortfolioProfileCache,
+} from '../../public/hooks/usePortfolioData.js';
 import { STACK_CATEGORIES } from '../../public/data/portfolioData.js';
 
 const stackItemSchema = z.object({
@@ -305,6 +308,10 @@ export default function ProfileEditPage() {
         method: 'PUT',
         body: JSON.stringify(payload),
       });
+
+      if (res?.data) {
+        updatePortfolioProfileCache(res.data);
+      }
 
       reset(formValues);
       toast.success(res?.message || 'Perfil guardado correctamente');

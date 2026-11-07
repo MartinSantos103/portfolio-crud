@@ -34,7 +34,7 @@ export const NAV_LINKS = [
 ];
 
 export const PROFILE_DATA = {
-  fullName: 'Lucas Andrade',
+  fullName: 'Lucass Andrade',
   available: true,
   availabilityLabel: 'Disponible para nuevos proyectos',
   greeting: 'Hola, soy',
@@ -280,7 +280,7 @@ export const CONTACT_DATA = {
 };
 
 export const FOOTER_DATA = {
-  copyright: '© 2026 Lucas Andrade. Hecho con dedicación.',
+  copyright: '© 2026 Lucass Andrade. Hecho con dedicación.',
 };
 
 /**
