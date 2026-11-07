@@ -1788,11 +1788,9 @@ html.cc select {
   position: sticky;
   top: 0;
   z-index: 40;
+  height: 64px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 24px;
   background:
     radial-gradient(50% 140% at 25% 0%, rgba(var(--ar), 0.18), transparent 70%),
     radial-gradient(40% 120% at 80% 100%, rgba(34, 211, 238, 0.14), transparent 70%),
@@ -1823,7 +1821,6 @@ html.cc select {
   display: inline-block;
   width: 11px;
   height: 11px;
-  margin-right: 8px;
   background: var(--adm-acento-hover);
   clip-path: var(--star4);
   filter: drop-shadow(0 0 5px var(--adm-acento));

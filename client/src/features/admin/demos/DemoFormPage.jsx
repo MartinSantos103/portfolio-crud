@@ -498,14 +498,15 @@ export default function DemoFormPage() {
 
   return (
     <div id="v-demos" className="adm-view is-on flex flex-col gap-5">
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
         <button
           type="button"
           onClick={() => navigate('/admin/demos')}
           aria-label="Volver al listado de demos"
           className="adm-iconbtn !h-9 !w-9"
         >
-          <ArrowLeft size={18} />
+          <ArrowLeft size={17} />
         </button>
         <div>
           <h1 className="adm-h1 !text-[24px]">
@@ -518,6 +519,7 @@ export default function DemoFormPage() {
             proyecto.
           </p>
         </div>
+      </div>
       </div>
 
       <DataState

@@ -397,7 +397,7 @@ function AdminLayoutInner() {
               type="button"
               onClick={() => setMobileDrawerOpen(false)}
               aria-label="Cerrar menú"
-              className="adm-iconbtn absolute top-4 right-3 z-20"
+              className="adm-iconbtn absolute top-[15px] right-3 z-20"
             >
               <X size={16} />
             </button>
@@ -411,116 +411,118 @@ function AdminLayoutInner() {
       {/* Columna Principal: Topbar Contextual + Lienzo de Trabajo */}
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="adm-topbar">
-          {/* Izquierda: Botón móvil + Migas de pan (Breadcrumbs) */}
-          <div className="flex min-w-0 items-center gap-3">
-            <button
-              type="button"
-              onClick={() => setMobileDrawerOpen(true)}
-              aria-label="Abrir menú de navegación"
-              className="adm-iconbtn lg:!hidden"
-            >
-              <Menu size={17} />
-            </button>
-
-            <nav aria-label="Migas de pan" className="flex items-center gap-1.5 truncate">
-              <span className="adm-crumb-star" aria-hidden="true" />
-              {breadcrumbs.map((crumb, idx) => {
-                const isLast = idx === breadcrumbs.length - 1;
-                return (
-                  <span key={crumb.path} className="flex items-center gap-1.5 truncate">
-                    {idx > 0 && (
-                      <ChevronRight
-                        size={14}
-                        className="shrink-0 text-[var(--adm-texto-suave)]"
-                      />
-                    )}
-                    {isLast ? (
-                      <span className="font-sans-ui truncate text-[14px] font-semibold text-[var(--adm-texto)]">
-                        {crumb.label}
-                      </span>
-                    ) : (
-                      <Link
-                        to={crumb.path}
-                        className="font-sans-ui truncate text-[13px] font-medium text-[var(--adm-texto-suave)] hover:text-[var(--adm-texto)]"
-                      >
-                        {crumb.label}
-                      </Link>
-                    )}
-                  </span>
-                );
-              })}
-            </nav>
-          </div>
-
-          {/* Derecha: Estado del formulario + Selector de Paleta de Acento + Abrir sitio público */}
-          <div className="flex shrink-0 items-center gap-2.5">
-            {isFormRoute && (
-              <span
-                role="status"
-                className={`badge hidden sm:inline-flex ${
-                  isDirty ? 'badge-warn' : 'badge-ok'
-                }`}
-              >
-                <span
-                  className="h-1.5 w-1.5 rounded-full"
-                  style={{ backgroundColor: isDirty ? 'var(--warn)' : 'var(--ok)' }}
-                />
-                <span>{isDirty ? 'Cambios sin guardar' : 'Guardado'}</span>
-              </span>
-            )}
-
-            {/* Selector compartido de Paleta de Acento (misma clave 'ac' del sitio público) */}
-            <div ref={paletteRef} className="relative">
+          <div className="mx-auto flex h-full w-full max-w-[1440px] items-center justify-between px-4 sm:px-6 lg:px-8">
+            {/* Izquierda: Botón móvil + Migas de pan (Breadcrumbs) */}
+            <div className="flex min-w-0 items-center gap-3">
               <button
                 type="button"
-                onClick={() => setPaletteOpen((prev) => !prev)}
-                aria-label="Paleta de colores de acento"
-                aria-expanded={paletteOpen}
-                title={`Color de acento: ${currentPalette.name}`}
-                className="adm-btn secondary sm !px-2.5"
+                onClick={() => setMobileDrawerOpen(true)}
+                aria-label="Abrir menú de navegación"
+                className="adm-iconbtn lg:!hidden"
               >
-                <Palette size={15} className="text-[var(--ac2)]" />
-                <span className="hidden md:inline">{currentPalette.name}</span>
+                <Menu size={17} />
               </button>
 
-              <div
-                className={`pp ${paletteOpen ? 'open' : ''}`}
-                role="dialog"
-                aria-label="Selector de color de acento"
-              >
-                <p className="pt">Color de acento</p>
-                <div className="ps">
-                  {palettes.map((p, idx) => (
-                    <button
-                      key={p.name}
-                      type="button"
-                      onClick={() => setPalette(idx)}
-                      style={{ '--c': p.ar }}
-                      aria-label={p.name}
-                      aria-pressed={paletteIndex === idx}
-                      title={p.name}
-                      className={`sw2 ${paletteIndex === idx ? 'on' : ''}`}
-                    />
-                  ))}
-                </div>
-                <p className="pn">{currentPalette.name}</p>
-              </div>
+              <nav aria-label="Migas de pan" className="flex items-center gap-1.5 truncate">
+                <span className="adm-crumb-star" aria-hidden="true" />
+                {breadcrumbs.map((crumb, idx) => {
+                  const isLast = idx === breadcrumbs.length - 1;
+                  return (
+                    <span key={crumb.path} className="flex items-center gap-1.5 truncate">
+                      {idx > 0 && (
+                        <ChevronRight
+                          size={14}
+                          className="shrink-0 text-[var(--adm-texto-suave)]"
+                        />
+                      )}
+                      {isLast ? (
+                        <span className="font-sans-ui truncate text-[14px] font-semibold text-[var(--adm-texto)]">
+                          {crumb.label}
+                        </span>
+                      ) : (
+                        <Link
+                          to={crumb.path}
+                          className="font-sans-ui truncate text-[13px] font-medium text-[var(--adm-texto-suave)] hover:text-[var(--adm-texto)]"
+                        >
+                          {crumb.label}
+                        </Link>
+                      )}
+                    </span>
+                  );
+                })}
+              </nav>
             </div>
 
-            {/* Botón «Volver al sitio público» */}
-            <Link
-              to="/"
-              className="adm-btn secondary sm"
-            >
-              <ArrowLeft size={13} className="text-[var(--ac2)]" />
-              <span className="hidden sm:inline">Volver al sitio público</span>
-              <span className="sm:hidden">Sitio</span>
-            </Link>
+            {/* Derecha: Estado del formulario + Selector de Paleta de Acento + Abrir sitio público */}
+            <div className="flex shrink-0 items-center gap-2.5">
+              {isFormRoute && (
+                <span
+                  role="status"
+                  className={`badge hidden sm:inline-flex ${
+                    isDirty ? 'badge-warn' : 'badge-ok'
+                  }`}
+                >
+                  <span
+                    className="h-1.5 w-1.5 rounded-full"
+                    style={{ backgroundColor: isDirty ? 'var(--warn)' : 'var(--ok)' }}
+                  />
+                  <span>{isDirty ? 'Cambios sin guardar' : 'Guardado'}</span>
+                </span>
+              )}
+
+              {/* Selector compartido de Paleta de Acento (misma clave 'ac' del sitio público) */}
+              <div ref={paletteRef} className="relative">
+                <button
+                  type="button"
+                  onClick={() => setPaletteOpen((prev) => !prev)}
+                  aria-label="Paleta de colores de acento"
+                  aria-expanded={paletteOpen}
+                  title={`Color de acento: ${currentPalette.name}`}
+                  className="adm-btn secondary sm !px-2.5"
+                >
+                  <Palette size={15} className="text-[var(--ac2)]" />
+                  <span className="hidden md:inline">{currentPalette.name}</span>
+                </button>
+
+                <div
+                  className={`pp ${paletteOpen ? 'open' : ''}`}
+                  role="dialog"
+                  aria-label="Selector de color de acento"
+                >
+                  <p className="pt">Color de acento</p>
+                  <div className="ps">
+                    {palettes.map((p, idx) => (
+                      <button
+                        key={p.name}
+                        type="button"
+                        onClick={() => setPalette(idx)}
+                        style={{ '--c': p.ar }}
+                        aria-label={p.name}
+                        aria-pressed={paletteIndex === idx}
+                        title={p.name}
+                        className={`sw2 ${paletteIndex === idx ? 'on' : ''}`}
+                      />
+                    ))}
+                  </div>
+                  <p className="pn">{currentPalette.name}</p>
+                </div>
+              </div>
+
+              {/* Botón «Volver al sitio público» */}
+              <Link
+                to="/"
+                className="adm-btn secondary sm"
+              >
+                <ArrowLeft size={13} className="text-[var(--ac2)]" />
+                <span className="hidden sm:inline">Volver al sitio público</span>
+                <span className="sm:hidden">Sitio</span>
+              </Link>
+            </div>
           </div>
         </header>
 
         {/* Contenido de la ruta administrativa activa */}
-        <main className="mx-auto w-full max-w-[1440px] flex-1 p-4 sm:p-6 lg:p-8">
+        <main className="mx-auto w-full max-w-[1440px] flex-1 px-4 sm:px-6 lg:px-8 py-5 sm:py-6 lg:py-7">
           <Outlet />
         </main>
       </div>

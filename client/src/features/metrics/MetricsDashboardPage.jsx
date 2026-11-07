@@ -193,7 +193,7 @@ export default function MetricsDashboardPage() {
   };
 
   return (
-    <div id="v-metricas" className="adm-view is-on space-y-5">
+    <div id="v-metricas" className="adm-view is-on flex flex-col gap-5">
       {/* Cabecera estelar */}
       <div className="adm-pagehead">
         <div className="adm-pagehead-left">
