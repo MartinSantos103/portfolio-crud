@@ -5,7 +5,7 @@ import { useEffect, useRef } from 'react';
  * - Estrellas a distintas profundidades con parallax de mouse y scroll.
  * - Conexiones sutiles entre estrellas cercanas al puntero.
  * - Destellos ocasionales y estrellas fugaces/meteoros en la paleta de acento activa.
- * - Recorte (clip) alrededor de títulos para legibilidad impecable.
+ * - Flujo continuo orgánico a través de todo el viewport sin cortes artificiales.
  * - Se pausa automáticamente si la pestaña está oculta (document.hidden) y dibuja
  *   una sola imagen estática si prefers-reduced-motion está activo.
  */
@@ -88,22 +88,9 @@ export default function StarfieldCanvas() {
       });
     }
 
-    function zn() {
-      cx.beginPath();
-      cx.rect(0, 0, W, H);
-      document.querySelectorAll('h1, h2, .ey, .role').forEach((e) => {
-        const r = e.getBoundingClientRect();
-        if (r.width && r.bottom > 0 && r.top < H) {
-          cx.rect(r.left - 8, r.top - 4, r.width + 16, r.height + 8);
-        }
-      });
-      cx.clip('evenodd');
-    }
-
     function drawFrame(t, staticOnly = false) {
       cx.clearRect(0, 0, W, H);
       cx.save();
-      zn();
 
       if (!staticOnly) {
         mx += (tx - mx) * 0.06;

@@ -17,7 +17,7 @@ const STATUS_CONFIG = {
   },
   leido: {
     label: 'Leído',
-    classes: 'border-[var(--bd)] bg-[var(--bg2)] text-[var(--mut)]',
+    classes: 'border-[var(--bd)] bg-white/[0.04] text-[var(--mut)] backdrop-blur-xs',
     dotStyle: { backgroundColor: 'var(--mut)' },
   },
   respondido: {
@@ -88,7 +88,7 @@ export default function Badge({
 
   return (
     <span
-      className={`font-mono-ui inline-flex items-center gap-1.5 rounded-[8px] border border-[var(--bd)] bg-[var(--bg2)] px-2.5 py-1 text-[11px] font-medium leading-none text-[var(--tx)] ${className}`}
+      className={`font-mono-ui inline-flex items-center gap-1.5 rounded-[8px] border border-[var(--bd)] bg-white/[0.04] px-2.5 py-1 text-[11px] font-medium leading-none text-[var(--tx)] backdrop-blur-xs ${className}`}
     >
       {icon && <span className="shrink-0 text-[var(--mut)]">{icon}</span>}
       <span>{children}</span>

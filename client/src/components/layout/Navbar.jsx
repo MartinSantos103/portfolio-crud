@@ -316,7 +316,7 @@ export default function Navbar({
               }}
               aria-label="Abrir menú de navegación"
               aria-expanded={mobileMenuOpen}
-              className="flex h-[40px] w-[40px] cursor-pointer flex-col items-center justify-center gap-[5px] rounded-[10px] border border-[var(--bd)] bg-black/60 text-[var(--tx)]"
+              className="flex h-[40px] w-[40px] cursor-pointer flex-col items-center justify-center gap-[5px] rounded-[10px] border border-[var(--bd)] bg-black/60 text-[var(--tx)] backdrop-blur-sm"
             >
               <span
                 className={`block h-[2px] w-[18px] bg-current transition-transform ${

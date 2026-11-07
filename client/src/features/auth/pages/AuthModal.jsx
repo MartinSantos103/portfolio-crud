@@ -169,7 +169,7 @@ export default function AuthModal({
             </div>
 
             {/* Selector de pestañas con indicador deslizable (.tabs) */}
-            <div className="relative grid grid-cols-2 rounded-[12px] border border-[var(--bd)] bg-black p-[4px]">
+            <div className="relative grid grid-cols-2 rounded-[12px] border border-[var(--bd)] bg-[var(--bg2)]/80 p-[4px] backdrop-blur-sm">
               <span
                 aria-hidden="true"
                 className={`pointer-events-none absolute top-[4px] bottom-[4px] left-[4px] w-[calc(50%-4px)] rounded-[9px] bg-[var(--ac)] shadow-[0_0_18px_rgba(var(--ar),0.5)] transition-transform duration-300 ${
@@ -321,14 +321,14 @@ export default function AuthModal({
                 <button
                   type="button"
                   onClick={() => fillDemoCredentials('user@pf.local', 'user123')}
-                  className="font-mono-ui cursor-pointer rounded-[8px] border border-[var(--bd)] bg-[var(--bg)] px-[10px] py-[5px] text-[11px] text-[var(--mut)] transition-colors hover:border-[var(--ac)] hover:text-[var(--tx)]"
+                  className="font-mono-ui cursor-pointer rounded-[8px] border border-[var(--bd)] bg-[var(--card)]/90 px-[10px] py-[5px] text-[11px] text-[var(--mut)] transition-colors hover:border-[var(--ac)] hover:bg-[rgba(var(--ar),0.12)] hover:text-[var(--tx)]"
                 >
                   Usuario (user@pf.local)
                 </button>
                 <button
                   type="button"
                   onClick={() => fillDemoCredentials('admin@pf.local', 'admin123')}
-                  className="font-mono-ui cursor-pointer rounded-[8px] border border-[var(--bd)] bg-[var(--bg)] px-[10px] py-[5px] text-[11px] text-[var(--mut)] transition-colors hover:border-[var(--ac)] hover:text-[var(--tx)]"
+                  className="font-mono-ui cursor-pointer rounded-[8px] border border-[var(--bd)] bg-[var(--card)]/90 px-[10px] py-[5px] text-[11px] text-[var(--mut)] transition-colors hover:border-[var(--ac)] hover:bg-[rgba(var(--ar),0.12)] hover:text-[var(--tx)]"
                 >
                   Admin (admin@pf.local)
                 </button>
