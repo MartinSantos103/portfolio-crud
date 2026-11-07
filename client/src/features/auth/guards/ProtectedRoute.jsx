@@ -14,11 +14,15 @@ import LoadingScreen from '../components/LoadingScreen.jsx';
  * @param {React.ReactNode} [props.children] - Componente hijo opcional
  */
 export default function ProtectedRoute({ allowedRoles, redirectTo = '/login', children }) {
-  const { user, isAuthenticated, loading } = useAuth();
+  const { user, isAuthenticated, loading, isLoggingOut } = useAuth();
   const location = useLocation();
 
   if (loading) {
     return <LoadingScreen message="Verificando permisos de acceso..." />;
+  }
+
+  if (isLoggingOut) {
+    return null;
   }
 
   if (!isAuthenticated) {

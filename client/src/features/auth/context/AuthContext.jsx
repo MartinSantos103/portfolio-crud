@@ -1,21 +1,34 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { apiFetch } from '../../../services/api.js';
 import { AuthContext } from './authContext.js';
 
 export function AuthProvider({ children }) {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [token, setToken] = useState(() => localStorage.getItem('token') || null);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(() => !!localStorage.getItem('token'));
   const [error, setError] = useState(null);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [prevPathname, setPrevPathname] = useState(location.pathname);
 
-  const logout = useCallback(() => {
+  if (prevPathname !== location.pathname) {
+    setPrevPathname(location.pathname);
+    if (isLoggingOut) {
+      setIsLoggingOut(false);
+    }
+  }
+
+  const logout = useCallback((redirectTo = '/') => {
+    setIsLoggingOut(true);
     localStorage.removeItem('token');
     setToken(null);
     setUser(null);
     setError(null);
     setLoading(false);
-    window.location.replace('/');
-  }, []);
+    navigate(redirectTo, { replace: true });
+  }, [navigate]);
 
   useEffect(() => {
     let isMounted = true;
@@ -102,6 +115,7 @@ export function AuthProvider({ children }) {
     token,
     loading,
     error,
+    isLoggingOut,
     isAuthenticated: !!user,
     isAdmin: user?.role === 'admin',
     isUser: user?.role === 'user',
