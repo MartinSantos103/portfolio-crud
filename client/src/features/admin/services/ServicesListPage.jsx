@@ -1,35 +1,34 @@
-import { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
-import { Plus, ArrowUp, ArrowDown, Edit3, Trash2 } from "lucide-react";
-import { apiFetch } from "../../../services/api.js";
-import { useToast } from "../../../components/ui/Toast.jsx";
-import DataState from "../../../components/ui/DataState.jsx";
-import Badge from "../../../components/ui/Badge.jsx";
-import Button from "../../../components/ui/Button.jsx";
-import IconSlot from "../../../components/ui/IconSlot.jsx";
-import ConfirmModal from "../../../components/ui/ConfirmModal.jsx";
+import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Plus, ArrowUp, ArrowDown, Edit3, Trash2 } from 'lucide-react';
+import { apiFetch } from '../../../services/api.js';
+import { useToast } from '../../../components/ui/Toast.jsx';
+import DataState from '../../../components/ui/DataState.jsx';
+import Badge from '../../../components/ui/Badge.jsx';
+import IconSlot from '../../../components/ui/IconSlot.jsx';
+import ConfirmModal from '../../../components/ui/ConfirmModal.jsx';
 
 export default function ServicesListPage() {
   const navigate = useNavigate();
   const toast = useToast();
 
   const [services, setServices] = useState([]);
-  const [status, setStatus] = useState("cargando");
-  const [errorMsg, setErrorMsg] = useState("");
+  const [status, setStatus] = useState('cargando');
+  const [errorMsg, setErrorMsg] = useState('');
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
   const loadServices = useCallback(async () => {
-    setStatus("cargando");
-    setErrorMsg("");
+    setStatus('cargando');
+    setErrorMsg('');
     try {
-      const res = await apiFetch("/services?admin=true");
+      const res = await apiFetch('/services?admin=true');
       const list = Array.isArray(res?.data) ? res.data : [];
       setServices(list);
-      setStatus(list.length === 0 ? "sin_datos" : "con_datos");
+      setStatus(list.length === 0 ? 'sin_datos' : 'con_datos');
     } catch (err) {
-      setErrorMsg(err.message || "No se pudieron cargar los servicios.");
-      setStatus("error");
+      setErrorMsg(err.message || 'No se pudieron cargar los servicios.');
+      setStatus('error');
     }
   }, []);
 
@@ -42,8 +41,8 @@ export default function ServicesListPage() {
 
   const handleReorder = async (serviceId, direction) => {
     try {
-      const res = await apiFetch("/services/reorder", {
-        method: "PATCH",
+      const res = await apiFetch('/services/reorder', {
+        method: 'PATCH',
         body: JSON.stringify({ serviceId, direction }),
       });
       if (Array.isArray(res?.data)) {
@@ -51,9 +50,9 @@ export default function ServicesListPage() {
       } else {
         await loadServices();
       }
-      toast.success("Orden de servicios actualizado");
+      toast.success('Orden de servicios actualizado');
     } catch (err) {
-      toast.error(err.message || "No se pudo reordenar el servicio");
+      toast.error(err.message || 'No se pudo reordenar el servicio');
     }
   };
 
@@ -63,22 +62,22 @@ export default function ServicesListPage() {
     const prevSnapshot = [...services];
 
     setServices((prev) =>
-      prev.map((s) => (s.id === service.id ? { ...s, active: nextActive } : s)),
+      prev.map((s) => (s.id === service.id ? { ...s, active: nextActive } : s))
     );
 
     try {
       await apiFetch(`/services/${service.id}/status`, {
-        method: "PATCH",
+        method: 'PATCH',
         body: JSON.stringify({ active: nextActive }),
       });
       toast.success(
         nextActive
           ? `Servicio «${service.title}» ahora es visible`
-          : `Servicio «${service.title}» ahora está oculto`,
+          : `Servicio «${service.title}» ahora está oculto`
       );
     } catch (err) {
       setServices(prevSnapshot);
-      toast.error(err.message || "No se pudo cambiar el estado del servicio");
+      toast.error(err.message || 'No se pudo cambiar el estado del servicio');
     }
   };
 
@@ -86,42 +85,44 @@ export default function ServicesListPage() {
     if (!deleteTarget) return;
     setDeleting(true);
     try {
-      await apiFetch(`/services/${deleteTarget.id}`, { method: "DELETE" });
+      await apiFetch(`/services/${deleteTarget.id}`, { method: 'DELETE' });
       const remaining = services.filter((s) => s.id !== deleteTarget.id);
       setServices(remaining);
-      if (remaining.length === 0) setStatus("sin_datos");
+      if (remaining.length === 0) setStatus('sin_datos');
       toast.success(`Servicio «${deleteTarget.title}» eliminado correctamente`);
       setDeleteTarget(null);
     } catch (err) {
-      toast.error(err.message || "No se pudo eliminar el servicio");
+      toast.error(err.message || 'No se pudo eliminar el servicio');
     } finally {
       setDeleting(false);
     }
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Cabecera */}
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <div>
-          <h1 className="font-heading text-[26px] font-bold tracking-tight text-[var(--texto)]">
-            Gestión de Servicios
-          </h1>
-          <p className="font-sans-ui mt-1 text-[14px] text-[var(--texto-suave)]">
-            Administrá la oferta de servicios profesionales y el orden en que
-            aparecen en la página principal.
-          </p>
+    <div id="v-servicios" className="adm-view is-on flex flex-col gap-5">
+      {/* Cabecera estelar */}
+      <div className="adm-pagehead">
+        <div className="adm-pagehead-left">
+          <span className="adm-planet-orb" aria-hidden="true" />
+          <div>
+            <h1 className="adm-h1">Gestión de Servicios</h1>
+            <p className="adm-sub">
+              Administrá la oferta de servicios profesionales y el orden en que
+              aparecen en la página principal.
+            </p>
+          </div>
         </div>
 
-        <Button
-          type="button"
-          variant="primary"
-          onClick={() => navigate("/admin/servicios/nuevo")}
-          className="!px-4 !py-2.5 !text-[14px]"
-        >
-          <Plus size={17} />
-          <span>Nuevo servicio</span>
-        </Button>
+        <div className="adm-actions">
+          <button
+            type="button"
+            onClick={() => navigate('/admin/servicios/nuevo')}
+            className="adm-btn primary"
+          >
+            <Plus size={16} />
+            <span>Nuevo servicio</span>
+          </button>
+        </div>
       </div>
 
       <DataState
@@ -132,105 +133,91 @@ export default function ServicesListPage() {
         emptyTitle="Aún no hay servicios cargados"
         emptyDescription="Agregá tu primer servicio profesional para habilitar las solicitudes de cotización."
         emptyActionLabel="+ Crear el primero"
-        onEmptyAction={() => navigate("/admin/servicios/nuevo")}
+        onEmptyAction={() => navigate('/admin/servicios/nuevo')}
       >
-        <div className="overflow-hidden rounded-[16px] border border-[var(--borde)] bg-[var(--superficie)]">
+        <section className="adm-card flush">
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse text-left">
+            <table className="adm-table flush">
               <thead>
-                <tr className="border-b border-[var(--borde)] bg-[var(--superficie-alta)] text-[11px] font-semibold uppercase tracking-[1px] text-[var(--texto-suave)]">
-                  <th className="font-mono-ui w-[92px] px-4 py-3.5">Orden</th>
-                  <th className="font-mono-ui px-4 py-3.5">Servicio</th>
-                  <th className="font-mono-ui w-[190px] px-4 py-3.5">Estado</th>
-                  <th className="font-mono-ui w-[160px] px-4 py-3.5 text-right">
-                    Acciones
-                  </th>
+                <tr>
+                  <th className="w-[100px]">Orden</th>
+                  <th>Servicio</th>
+                  <th className="w-[200px]">Estado</th>
+                  <th className="r w-[170px]">Acciones</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[var(--borde)]">
+              <tbody>
                 {services.map((service, index) => (
-                  <tr
-                    key={service.id}
-                    className="transition-colors hover:bg-[var(--superficie-alta)]/40"
-                  >
-                    <td className="px-4 py-4">
-                      <div className="flex items-center gap-1">
+                  <tr key={service.id}>
+                    <td>
+                      <div className="adm-order">
                         <button
                           type="button"
                           disabled={index === 0}
-                          onClick={() => handleReorder(service.id, "up")}
+                          onClick={() => handleReorder(service.id, 'up')}
                           aria-label={`Subir ${service.title}`}
-                          className="cursor-pointer rounded-md border border-[var(--borde)] bg-[var(--fondo)] p-1.5 text-[var(--texto-suave)] hover:border-[var(--acento)] hover:text-[var(--texto)] disabled:opacity-30"
+                          className="adm-iconbtn"
                         >
-                          <ArrowUp size={14} />
+                          <ArrowUp size={13} />
                         </button>
                         <button
                           type="button"
                           disabled={index === services.length - 1}
-                          onClick={() => handleReorder(service.id, "down")}
+                          onClick={() => handleReorder(service.id, 'down')}
                           aria-label={`Bajar ${service.title}`}
-                          className="cursor-pointer rounded-md border border-[var(--borde)] bg-[var(--fondo)] p-1.5 text-[var(--texto-suave)] hover:border-[var(--acento)] hover:text-[var(--texto)] disabled:opacity-30"
+                          className="adm-iconbtn"
                         >
-                          <ArrowDown size={14} />
+                          <ArrowDown size={13} />
                         </button>
                       </div>
                     </td>
 
-                    <td className="px-4 py-4">
-                      <div className="flex items-center gap-3.5">
-                        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[12px] bg-[var(--tile-icono-bg)] text-[var(--acento-texto)]">
+                    <td>
+                      <div className="adm-cell">
+                        <span className="adm-thumb">
                           <IconSlot
-                            size={22}
-                            name={`service-${service.icon || "sitios-landing"}`}
+                            size={18}
+                            name={`service-${service.icon || 'sitios-landing'}`}
                           />
                         </span>
-                        <div>
-                          <p className="font-heading text-[15px] font-bold text-[var(--texto)]">
+                        <div className="min-w-0">
+                          <b className="font-heading text-[15px] font-bold text-[var(--adm-texto)]">
                             {service.title}
-                          </p>
-                          <p className="font-sans-ui mt-0.5 line-clamp-1 text-[12px] text-[var(--texto-suave)]">
+                          </b>
+                          <small className="mt-0.5 line-clamp-1">
                             {service.description}
-                          </p>
+                          </small>
                         </div>
                       </div>
                     </td>
 
-                    <td className="px-4 py-4">
-                      <div className="flex items-center gap-2.5">
-                        <button
-                          type="button"
+                    <td>
+                      <div className="adm-state">
+                        <input
+                          type="checkbox"
                           role="switch"
                           aria-checked={service.active}
-                          onClick={() => handleOptimisticToggleActive(service)}
-                          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors ${
-                            service.active
-                              ? "bg-emerald-500"
-                              : "bg-[var(--borde)]"
-                          }`}
-                        >
-                          <span
-                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                              service.active ? "translate-x-6" : "translate-x-1"
-                            }`}
-                          />
-                        </button>
+                          checked={Boolean(service.active)}
+                          onChange={() => handleOptimisticToggleActive(service)}
+                          className="adm-switch"
+                        />
                         <Badge
                           variant="status"
-                          status={service.active ? "visible" : "oculto"}
+                          status={service.active ? 'visible' : 'oculto'}
                         />
                       </div>
                     </td>
 
-                    <td className="px-4 py-4 text-right">
-                      <div className="inline-flex items-center gap-2">
+                    <td className="r">
+                      <div className="adm-row-actions">
                         <button
                           type="button"
                           onClick={() =>
                             navigate(`/admin/servicios/${service.id}/editar`)
                           }
-                          className="font-sans-ui inline-flex cursor-pointer items-center gap-1.5 rounded-[9px] border border-[var(--borde)] bg-[var(--fondo)] px-3 py-1.5 text-[12px] font-semibold text-[var(--texto)] hover:border-[var(--acento)]"
+                          className="adm-btn secondary sm"
                         >
-                          <Edit3 size={13} />
+                          <Edit3 size={12} />
                           <span>Editar</span>
                         </button>
 
@@ -238,9 +225,9 @@ export default function ServicesListPage() {
                           type="button"
                           onClick={() => setDeleteTarget(service)}
                           aria-label={`Eliminar ${service.title}`}
-                          className="cursor-pointer rounded-[9px] border border-[var(--borde)] bg-[var(--fondo)] p-1.5 text-red-400 hover:border-red-500/40 hover:bg-red-500/10"
+                          className="adm-iconbtn danger"
                         >
-                          <Trash2 size={14} />
+                          <Trash2 size={13} />
                         </button>
                       </div>
                     </td>
@@ -249,7 +236,7 @@ export default function ServicesListPage() {
               </tbody>
             </table>
           </div>
-        </div>
+        </section>
       </DataState>
 
       <ConfirmModal

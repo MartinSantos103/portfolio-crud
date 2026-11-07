@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -14,7 +14,6 @@ import {
 import { apiFetch } from '../../../services/api.js';
 import { useToast } from '../../../components/ui/Toast.jsx';
 import DataState from '../../../components/ui/DataState.jsx';
-import Button from '../../../components/ui/Button.jsx';
 import ImageUploader from '../../../components/uploader/ImageUploader.jsx';
 import DemoViewer from '../../demos/DemoViewer.jsx';
 import LivePreviewLayout from '../components/LivePreviewLayout.jsx';
@@ -26,7 +25,11 @@ import {
 const demoFormSchema = z
   .object({
     project_id: z.string().min(1, 'Debes seleccionar el proyecto asociado'),
-    title: z.string().trim().min(1, 'El título de la demo es obligatorio').max(140),
+    title: z
+      .string()
+      .trim()
+      .min(1, 'El título de la demo es obligatorio')
+      .max(140),
     description: z.string().trim().max(1000).optional().default(''),
     type: z.enum(['iframe', 'video', 'imagenes']),
     url: z.string().trim().optional().default(''),
@@ -114,7 +117,9 @@ export default function DemoFormPage() {
         isEditing ? apiFetch(`/demos/${id}`) : Promise.resolve(null),
       ]);
 
-      const projList = Array.isArray(projectsRes?.data) ? projectsRes.data : [];
+      const projList = Array.isArray(projectsRes?.data)
+        ? projectsRes.data
+        : [];
       setProjects(projList);
 
       if (isEditing && demoRes?.data) {
@@ -133,7 +138,9 @@ export default function DemoFormPage() {
 
       setStatus('con_datos');
     } catch (err) {
-      setErrorMsg(err.message || 'No se pudo cargar la configuración de la demo.');
+      setErrorMsg(
+        err.message || 'No se pudo cargar la configuración de la demo.'
+      );
       setStatus('error');
     }
   }, [id, isEditing, preselectedProjectId, reset, setValue]);
@@ -150,7 +157,9 @@ export default function DemoFormPage() {
   const handleCheckIframeHeaders = async () => {
     const targetUrl = (watchedValues.url || '').trim();
     if (!/^https?:\/\//i.test(targetUrl)) {
-      toast.error('Ingresá primero una URL con https:// para verificar sus cabeceras');
+      toast.error(
+        'Ingresá primero una URL con https:// para verificar sus cabeceras'
+      );
       return;
     }
 
@@ -186,7 +195,9 @@ export default function DemoFormPage() {
       bypassBlocker();
       reset(DEFAULT_DEMO_VALUES);
       toast.success(
-        isEditing ? (res?.message || 'Demo actualizada con \u00e9xito') : 'Demo creada con \u00e9xito'
+        isEditing
+          ? res?.message || 'Demo actualizada con éxito'
+          : 'Demo creada con éxito'
       );
       navigate('/admin/demos');
     } catch (err) {
@@ -200,16 +211,11 @@ export default function DemoFormPage() {
         toast.error('Revisá los campos requeridos de la demo.');
       })}
       noValidate
-      className="flex flex-col gap-5 rounded-[18px] border border-[var(--borde)] bg-[var(--superficie)] p-5 sm:p-6"
+      className="adm-card flex flex-col gap-5"
     >
       <div>
-        <label className="font-sans-ui mb-1.5 block text-[13px] font-medium text-[var(--texto)]">
-          Proyecto asociado *
-        </label>
-        <select
-          {...register('project_id')}
-          className="font-sans-ui w-full rounded-[12px] border border-[var(--borde)] bg-[var(--fondo)] px-3.5 py-2.5 text-[14px] text-[var(--texto)] focus:border-[var(--acento)] focus:outline-none"
-        >
+        <label className="adm-label">Proyecto asociado *</label>
+        <select {...register('project_id')} className="adm-select">
           <option value="">Seleccionar proyecto...</option>
           {projects.map((p) => (
             <option key={p.id} value={String(p.id)}>
@@ -218,42 +224,40 @@ export default function DemoFormPage() {
           ))}
         </select>
         {errors.project_id && (
-          <p className="mt-1 text-[12px] text-red-400">{errors.project_id.message}</p>
+          <p className="mt-1 text-[12px] text-[var(--bad)]">
+            {errors.project_id.message}
+          </p>
         )}
       </div>
 
       <div>
-        <label className="font-sans-ui mb-1.5 block text-[13px] font-medium text-[var(--texto)]">
-          Título de la demo *
-        </label>
+        <label className="adm-label">Título de la demo *</label>
         <input
           type="text"
           {...register('title')}
           placeholder="Ej. Entorno interactivo de tienda en línea"
-          className="font-sans-ui w-full rounded-[12px] border border-[var(--borde)] bg-[var(--fondo)] px-3.5 py-2.5 text-[14px] text-[var(--texto)] focus:border-[var(--acento)] focus:outline-none"
+          className="adm-input"
         />
         {errors.title && (
-          <p className="mt-1 text-[12px] text-red-400">{errors.title.message}</p>
+          <p className="mt-1 text-[12px] text-[var(--bad)]">
+            {errors.title.message}
+          </p>
         )}
       </div>
 
       <div>
-        <label className="font-sans-ui mb-1.5 block text-[13px] font-medium text-[var(--texto)]">
-          Descripción breve (opcional)
-        </label>
+        <label className="adm-label">Descripción breve (opcional)</label>
         <input
           type="text"
           {...register('description')}
           placeholder="Instrucciones o credenciales de prueba para el visitante..."
-          className="font-sans-ui w-full rounded-[12px] border border-[var(--borde)] bg-[var(--fondo)] px-3.5 py-2.5 text-[14px] text-[var(--texto)] focus:border-[var(--acento)] focus:outline-none"
+          className="adm-input"
         />
       </div>
 
       {/* Selector de Tipo de Demo */}
       <div>
-        <label className="font-sans-ui mb-1.5 block text-[13px] font-medium text-[var(--texto)]">
-          Tipo de demostración *
-        </label>
+        <label className="adm-label">Tipo de demostración *</label>
         <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
           {[
             {
@@ -283,14 +287,14 @@ export default function DemoFormPage() {
                 }}
                 className={`cursor-pointer rounded-[12px] border p-3.5 text-left transition-colors ${
                   isSelected
-                    ? 'border-[var(--acento)] bg-[var(--tile-icono-bg)]'
-                    : 'border-[var(--borde)] bg-[var(--fondo)] hover:border-[var(--acento)]/50'
+                    ? 'border-[var(--adm-acento)] bg-[var(--adm-superficie-alta)]'
+                    : 'border-[var(--adm-borde)] bg-[#090b20] hover:border-[var(--adm-acento)]'
                 }`}
               >
-                <p className="font-heading text-[14px] font-bold text-[var(--texto)]">
+                <p className="font-heading text-[14px] font-bold text-[var(--adm-texto)]">
                   {opt.title}
                 </p>
-                <p className="font-sans-ui mt-0.5 text-[11px] text-[var(--texto-suave)]">
+                <p className="mt-0.5 text-[11px] text-[var(--adm-texto-suave)]">
                   {opt.desc}
                 </p>
               </button>
@@ -303,7 +307,7 @@ export default function DemoFormPage() {
       {watchedValues.type === 'iframe' && (
         <div className="flex flex-col gap-3">
           <div>
-            <label className="font-sans-ui mb-1.5 block text-[13px] font-medium text-[var(--texto)]">
+            <label className="adm-label">
               Dirección URL de la aplicación desplegada (Vercel / GitHub Pages) *
             </label>
             <div className="flex flex-col gap-2 sm:flex-row">
@@ -311,23 +315,26 @@ export default function DemoFormPage() {
                 type="url"
                 {...register('url')}
                 placeholder="https://mi-app.vercel.app"
-                className="font-sans-ui flex-1 rounded-[12px] border border-[var(--borde)] bg-[var(--fondo)] px-3.5 py-2.5 text-[14px] text-[var(--texto)] focus:border-[var(--acento)] focus:outline-none"
+                className="adm-input flex-1"
               />
-              <Button
+              <button
                 type="button"
-                variant="secondary"
                 disabled={checkingHeaders}
                 onClick={handleCheckIframeHeaders}
-                className="!px-3.5 !py-2 !text-[12px]"
+                className="adm-btn secondary sm shrink-0"
               >
                 <SearchCheck size={15} />
                 <span>
-                  {checkingHeaders ? 'Inspeccionando...' : 'Verificar cabeceras'}
+                  {checkingHeaders
+                    ? 'Inspeccionando...'
+                    : 'Verificar cabeceras'}
                 </span>
-              </Button>
+              </button>
             </div>
             {errors.url && (
-              <p className="mt-1 text-[12px] text-red-400">{errors.url.message}</p>
+              <p className="mt-1 text-[12px] text-[var(--bad)]">
+                {errors.url.message}
+              </p>
             )}
           </div>
 
@@ -335,14 +342,20 @@ export default function DemoFormPage() {
             <div
               className={`flex items-start gap-2.5 rounded-[12px] border p-3.5 text-[13px] ${
                 headerCheckResult.embeddable
-                  ? 'border-emerald-500/40 bg-emerald-500/10 text-[var(--texto)]'
-                  : 'border-amber-500/45 bg-amber-500/15 text-[var(--texto)]'
+                  ? 'border-[rgba(52,211,153,0.4)] bg-[rgba(52,211,153,0.1)] text-[var(--adm-texto)]'
+                  : 'border-[rgba(251,191,36,0.45)] bg-[rgba(251,191,36,0.12)] text-[var(--adm-texto)]'
               }`}
             >
               {headerCheckResult.embeddable ? (
-                <CheckCircle2 size={17} className="mt-0.5 shrink-0 text-emerald-400" />
+                <CheckCircle2
+                  size={17}
+                  className="mt-0.5 shrink-0 text-[var(--ok)]"
+                />
               ) : (
-                <ShieldAlert size={17} className="mt-0.5 shrink-0 text-amber-400" />
+                <ShieldAlert
+                  size={17}
+                  className="mt-0.5 shrink-0 text-[var(--warn)]"
+                />
               )}
               <span>{headerCheckResult.message}</span>
             </div>
@@ -352,20 +365,23 @@ export default function DemoFormPage() {
 
       {watchedValues.type === 'video' && (
         <div>
-          <label className="font-sans-ui mb-1.5 block text-[13px] font-medium text-[var(--texto)]">
+          <label className="adm-label">
             Enlace externo de inserción (YouTube o Loom) *
           </label>
           <input
             type="url"
             {...register('url')}
             placeholder="https://www.youtube.com/watch?v=... o https://www.loom.com/share/..."
-            className="font-sans-ui w-full rounded-[12px] border border-[var(--borde)] bg-[var(--fondo)] px-3.5 py-2.5 text-[14px] text-[var(--texto)] focus:border-[var(--acento)] focus:outline-none"
+            className="adm-input"
           />
-          <p className="font-sans-ui mt-1.5 text-[12px] text-[var(--texto-suave)]">
-            Se convierte automáticamente a formato embed sin consumir cuota de video en Cloudinary.
+          <p className="adm-sub mt-1.5">
+            Se convierte automáticamente a formato embed sin consumir cuota de
+            video en Cloudinary.
           </p>
           {errors.url && (
-            <p className="mt-1 text-[12px] text-red-400">{errors.url.message}</p>
+            <p className="mt-1 text-[12px] text-[var(--bad)]">
+              {errors.url.message}
+            </p>
           )}
         </div>
       )}
@@ -377,7 +393,9 @@ export default function DemoFormPage() {
             value={tempImageUrl}
             onChange={(url) => {
               if (url) {
-                const current = Array.isArray(watchedValues.urls) ? watchedValues.urls : [];
+                const current = Array.isArray(watchedValues.urls)
+                  ? watchedValues.urls
+                  : [];
                 setValue('urls', [...current, url], { shouldDirty: true });
                 setTempImageUrl('');
               }
@@ -385,7 +403,9 @@ export default function DemoFormPage() {
             folder="portfolio/demos"
           />
           {errors.urls && (
-            <p className="text-[12px] text-red-400">{errors.urls.message}</p>
+            <p className="text-[12px] text-[var(--bad)]">
+              {errors.urls.message}
+            </p>
           )}
 
           {(watchedValues.urls || []).length > 0 && (
@@ -393,21 +413,27 @@ export default function DemoFormPage() {
               {(watchedValues.urls || []).map((imgUrl, idx) => (
                 <div
                   key={idx}
-                  className="relative overflow-hidden rounded-[10px] border border-[var(--borde)] bg-[var(--fondo)]"
+                  className="relative overflow-hidden rounded-[10px] border border-[var(--adm-borde)] bg-[#090b20]"
                 >
-                  <img src={imgUrl} alt="" className="h-24 w-full object-cover" />
+                  <img
+                    src={imgUrl}
+                    alt=""
+                    className="h-24 w-full object-cover"
+                  />
                   <div className="flex items-center justify-between px-2.5 py-1.5">
-                    <span className="font-mono-ui text-[11px] text-[var(--texto-suave)]">
+                    <span className="adm-mono text-[11px]">
                       Pantalla #{idx + 1}
                     </span>
                     <button
                       type="button"
                       onClick={() => {
-                        const next = (watchedValues.urls || []).filter((_, i) => i !== idx);
+                        const next = (watchedValues.urls || []).filter(
+                          (_, i) => i !== idx
+                        );
                         setValue('urls', next, { shouldDirty: true });
                       }}
                       aria-label="Quitar imagen"
-                      className="cursor-pointer rounded p-1 text-red-400 hover:bg-red-500/10"
+                      className="adm-iconbtn danger !h-6 !w-6"
                     >
                       <Trash2 size={13} />
                     </button>
@@ -419,20 +445,18 @@ export default function DemoFormPage() {
         </div>
       )}
 
-      <div className="flex items-center justify-end gap-3 border-t border-[var(--borde)] pt-4">
-        <Button
+      <div className="flex items-center justify-end gap-3 border-t border-[var(--adm-borde)] pt-4">
+        <button
           type="button"
-          variant="secondary"
           onClick={() => navigate('/admin/demos')}
-          className="!px-4 !py-2.5 !text-[14px]"
+          className="adm-btn secondary"
         >
           Cancelar
-        </Button>
-        <Button
+        </button>
+        <button
           type="submit"
-          variant="primary"
           disabled={isSubmitting}
-          className="!px-5 !py-2.5 !text-[14px]"
+          className="adm-btn primary"
         >
           <Save size={16} />
           <span>
@@ -442,7 +466,7 @@ export default function DemoFormPage() {
                 ? 'Guardar cambios'
                 : 'Crear demo'}
           </span>
-        </Button>
+        </button>
       </div>
     </form>
   );
@@ -453,11 +477,17 @@ export default function DemoFormPage() {
       {watchedValues.type === 'iframe' && (
         <div
           role="note"
-          className="flex items-start gap-3 rounded-[14px] border border-amber-500/40 bg-amber-500/10 p-4 text-[13px] leading-relaxed text-[var(--texto)]"
+          className="flex items-start gap-3 rounded-[14px] border border-[rgba(251,191,36,0.4)] bg-[rgba(251,191,36,0.1)] p-4 text-[13px] leading-relaxed text-[var(--adm-texto)]"
         >
-          <ShieldAlert size={19} className="mt-0.5 shrink-0 text-amber-400" />
-          <p className="font-sans-ui">
-            «Verifica visualmente que la aplicación cargue aquí abajo. Si ves un recuadro en blanco o un aviso de conexión rechazada, el sitio externo prohíbe ser incrustado en un iframe: en ese caso cambia el tipo de demo a Video o Imágenes».
+          <ShieldAlert
+            size={19}
+            className="mt-0.5 shrink-0 text-[var(--warn)]"
+          />
+          <p>
+            «Verifica visualmente que la aplicación cargue aquí abajo. Si ves un
+            recuadro en blanco o un aviso de conexión rechazada, el sitio
+            externo prohíbe ser incrustado en un iframe: en ese caso cambia el
+            tipo de demo a Video o Imágenes».
           </p>
         </div>
       )}
@@ -467,22 +497,25 @@ export default function DemoFormPage() {
   );
 
   return (
-    <div className="flex flex-col gap-6">
+    <div id="v-demos" className="adm-view is-on flex flex-col gap-5">
       <div className="flex items-center gap-3">
         <button
           type="button"
           onClick={() => navigate('/admin/demos')}
           aria-label="Volver al listado de demos"
-          className="cursor-pointer rounded-[10px] border border-[var(--borde)] bg-[var(--superficie)] p-2 text-[var(--texto-suave)] hover:border-[var(--acento)] hover:text-[var(--texto)]"
+          className="adm-iconbtn !h-9 !w-9"
         >
           <ArrowLeft size={18} />
         </button>
         <div>
-          <h1 className="font-heading text-[24px] font-bold tracking-tight text-[var(--texto)]">
-            {isEditing ? 'Editar Demostración' : 'Nueva Demostración Interactiva'}
+          <h1 className="adm-h1 !text-[24px]">
+            {isEditing
+              ? 'Editar Demostración'
+              : 'Nueva Demostración Interactiva'}
           </h1>
-          <p className="font-sans-ui text-[13px] text-[var(--texto-suave)]">
-            Probá en vivo el entorno interactivo antes de publicarlo en el proyecto.
+          <p className="adm-sub">
+            Probá en vivo el entorno interactivo antes de publicarlo en el
+            proyecto.
           </p>
         </div>
       </div>
