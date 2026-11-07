@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
-  Users,
   Search,
   Shield,
   UserCheck,
@@ -38,7 +37,12 @@ export default function UsersManagementPage() {
   const [status, setStatus] = useState('cargando');
   const [errorMsg, setErrorMsg] = useState('');
   const [users, setUsers] = useState([]);
-  const [pagination, setPagination] = useState({ page: 1, limit: 20, total: 0, totalPages: 1 });
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 20,
+    total: 0,
+    totalPages: 1,
+  });
 
   // Filters
   const [searchInput, setSearchInput] = useState('');
@@ -74,7 +78,14 @@ export default function UsersManagementPage() {
       const res = await apiFetch(`/users?${params.toString()}`);
       const items = res.data || [];
       setUsers(items);
-      setPagination(res.pagination || { page: 1, limit: 20, total: items.length, totalPages: 1 });
+      setPagination(
+        res.pagination || {
+          page: 1,
+          limit: 20,
+          total: items.length,
+          totalPages: 1,
+        }
+      );
       setStatus(items.length === 0 ? 'sin_datos' : 'con_datos');
     } catch (err) {
       setErrorMsg(err.message || 'No se pudo cargar el listado de usuarios.');
@@ -99,12 +110,15 @@ export default function UsersManagementPage() {
         body: JSON.stringify(payload),
       });
       const updated = res.data;
-      setUsers((prev) => prev.map((u) => (u.id === updated.id ? { ...u, ...updated } : u)));
+      setUsers((prev) =>
+        prev.map((u) => (u.id === updated.id ? { ...u, ...updated } : u))
+      );
       toast.success(successMessage);
       setPendingAction(null);
     } catch (err) {
       toast.error(
-        err.message || 'No se pudo actualizar los permisos o estado del usuario.'
+        err.message ||
+          'No se pudo actualizar los permisos o estado del usuario.'
       );
       setPendingAction(null);
     } finally {
@@ -117,12 +131,16 @@ export default function UsersManagementPage() {
     setPendingAction({
       targetUser,
       payload: { role: newRole },
-      title: newRole === 'admin' ? 'Promover a Administrador' : 'Revocar rol de Administrador',
+      title:
+        newRole === 'admin'
+          ? 'Promover a Administrador'
+          : 'Revocar rol de Administrador',
       description:
         newRole === 'admin'
           ? `¿Confirmas otorgar permisos completos de Administrador a "${targetUser.name}" (${targetUser.email})? Podrá editar todo el contenido del portafolio.`
           : `¿Confirmas cambiar el rol de "${targetUser.name}" (${targetUser.email}) a Usuario Registrado estándar? Perderá el acceso al panel de administración.`,
-      confirmLabel: newRole === 'admin' ? 'Sí, promover a Admin' : 'Sí, cambiar a Usuario',
+      confirmLabel:
+        newRole === 'admin' ? 'Sí, promover a Admin' : 'Sí, cambiar a Usuario',
       tone: newRole === 'admin' ? 'warning' : 'danger',
       successMessage: `Rol de ${targetUser.name} actualizado a ${
         newRole === 'admin' ? 'Administrador' : 'Usuario'
@@ -135,7 +153,9 @@ export default function UsersManagementPage() {
     setPendingAction({
       targetUser,
       payload: { active: nextActive },
-      title: nextActive ? 'Reactivar cuenta de usuario' : 'Suspender cuenta de usuario',
+      title: nextActive
+        ? 'Reactivar cuenta de usuario'
+        : 'Suspender cuenta de usuario',
       description: nextActive
         ? `¿Deseas reactivar el acceso para "${targetUser.name}" (${targetUser.email})?`
         : `¿Estás seguro de desactivar la cuenta de "${targetUser.name}" (${targetUser.email})? Su sesión actual quedará invalidada y no podrá iniciar sesión.`,
@@ -148,39 +168,42 @@ export default function UsersManagementPage() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="font-heading text-[26px] font-bold tracking-tight text-[var(--texto)]">
-            Gestión de Usuarios y Roles
-          </h1>
-          <p className="font-sans-ui mt-1 text-[14px] text-[var(--texto-suave)]">
-            Control de cuentas registradas, niveles de acceso y prevención de autobloqueo.
-          </p>
+    <div id="v-usuarios" className="adm-view is-on flex flex-col gap-5">
+      {/* Header estelar */}
+      <div className="adm-pagehead">
+        <div className="adm-pagehead-left">
+          <span className="adm-planet-orb" aria-hidden="true" />
+          <div>
+            <h1 className="adm-h1">Gestión de Usuarios y Roles</h1>
+            <p className="adm-sub">
+              Control de cuentas registradas, niveles de acceso y prevención de
+              autobloqueo.
+            </p>
+          </div>
         </div>
 
-        <div className="font-sans-ui inline-flex items-center gap-2 rounded-[12px] border border-[var(--borde)] bg-[var(--superficie)] px-3.5 py-2 text-[13px] text-[var(--texto-suave)]">
-          <Users size={16} className="text-[var(--acento-texto)]" />
-          <span>
-            Total registrados: <strong className="text-[var(--texto)]">{pagination.total}</strong>
+        <div className="adm-actions">
+          <span className="adm-pill">
+            <span className="dot" />
+            Total registrados:{' '}
+            <b className="text-[var(--adm-texto)]">{pagination.total}</b>
           </span>
         </div>
       </div>
 
       {/* Barra de Búsqueda y Filtros */}
-      <div className="flex flex-col items-stretch gap-3 rounded-[16px] border border-[var(--borde)] bg-[var(--superficie)] p-4 md:flex-row md:items-center">
+      <section className="adm-card adm-toolbar">
         <div className="relative flex-1">
           <Search
-            size={16}
-            className=" absolute top-1/2 left-3.5 -translate-y-1/2 text-[var(--texto-suave)]"
+            size={15}
+            className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-[var(--adm-texto-suave)]"
           />
           <input
             type="text"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             placeholder="Buscar por nombre o correo electrónico..."
-            className="font-sans-ui w-full rounded-[10px] border border-[var(--borde)] bg-[var(--superficie-alta)] py-2 pr-4 pl-10 text-[13px] text-[var(--texto)] placeholder:text-[var(--texto-suave)] focus:border-[var(--acento)] focus:outline-none"
+            className="adm-input !pl-9"
           />
         </div>
 
@@ -192,7 +215,7 @@ export default function UsersManagementPage() {
               setRoleFilter(e.target.value);
               setPage(1);
             }}
-            className="font-sans-ui rounded-[10px] border border-[var(--borde)] bg-[var(--superficie-alta)] px-3 py-2 text-[13px] text-[var(--texto)] focus:border-[var(--acento)] focus:outline-none"
+            className="adm-select !w-auto"
           >
             <option value="">Todos los roles</option>
             <option value="admin">Administrador (admin)</option>
@@ -206,17 +229,17 @@ export default function UsersManagementPage() {
               setActiveFilter(e.target.value);
               setPage(1);
             }}
-            className="font-sans-ui rounded-[10px] border border-[var(--borde)] bg-[var(--superficie-alta)] px-3 py-2 text-[13px] text-[var(--texto)] focus:border-[var(--acento)] focus:outline-none"
+            className="adm-select !w-auto"
           >
             <option value="">Todos los estados</option>
             <option value="true">Activos</option>
             <option value="false">Inactivos</option>
           </select>
         </div>
-      </div>
+      </section>
 
       {/* Tabla de Usuarios */}
-      <div className="overflow-hidden rounded-[16px] border border-[var(--borde)] bg-[var(--superficie)]">
+      <section className="adm-card flush">
         <DataState
           status={status}
           errorMessage={errorMsg}
@@ -225,7 +248,9 @@ export default function UsersManagementPage() {
           emptyTitle="No se encontraron usuarios"
           emptyDescription="No hay cuentas registradas que coincidan con los criterios de búsqueda o filtrado."
           emptyActionLabel={
-            searchInput || roleFilter || activeFilter !== '' ? 'Limpiar filtros' : undefined
+            searchInput || roleFilter || activeFilter !== ''
+              ? 'Limpiar filtros'
+              : undefined
           }
           onEmptyAction={
             searchInput || roleFilter || activeFilter !== ''
@@ -240,59 +265,56 @@ export default function UsersManagementPage() {
           }
         >
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse text-left">
+            <table className="adm-table flush">
               <thead>
-                <tr className="font-mono-ui border-b border-[var(--borde)] bg-[var(--superficie-alta)] text-[11px] uppercase tracking-wider text-[var(--texto-suave)]">
-                  <th className="px-4 py-3.5">Usuario / Correo</th>
-                  <th className="px-4 py-3.5">Origen</th>
-                  <th className="px-4 py-3.5">Registro</th>
-                  <th className="px-4 py-3.5">Último acceso</th>
-                  <th className="px-4 py-3.5">Rol</th>
-                  <th className="px-4 py-3.5">Estado</th>
-                  <th className="px-4 py-3.5 text-right">Acciones</th>
+                <tr>
+                  <th>Usuario / Correo</th>
+                  <th>Origen</th>
+                  <th>Registro</th>
+                  <th>Último acceso</th>
+                  <th>Rol</th>
+                  <th>Estado</th>
+                  <th className="r">Acciones</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[var(--borde)] text-[13px]">
+              <tbody>
                 {users.map((u) => {
                   const isSelf = Number(currentUser?.id) === Number(u.id);
 
                   return (
-                    <tr
-                      key={u.id}
-                      className="transition-colors hover:bg-[var(--superficie-alta)]/50"
-                    >
-                      <td className="px-4 py-3.5">
-                        <div className="flex items-center gap-3">
-                          <div className="font-sans-ui flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[var(--borde)] bg-[var(--superficie-alta)] text-[12px] font-semibold text-[var(--acento-texto)]">
+                    <tr key={u.id}>
+                      <td>
+                        <div className="adm-cell">
+                          <div className="adm-avatar sm">
                             {u.name ? u.name.slice(0, 2).toUpperCase() : 'US'}
                           </div>
-                          <div className="min-w-0">
+                          <div>
                             <div className="flex items-center gap-2">
-                              <span className="font-sans-ui truncate font-semibold text-[var(--texto)]">
-                                {u.name}
-                              </span>
-                              {isSelf && <Badge variant="neutral">Tú (Sesión actual)</Badge>}
+                              <b>{u.name}</b>
+                              {isSelf && (
+                                <span className="adm-chip accent">
+                                  Tú (Sesión actual)
+                                </span>
+                              )}
                             </div>
-                            <div className="font-mono-ui truncate text-[12px] text-[var(--texto-suave)]">
-                              {u.email}
-                            </div>
+                            <small className="adm-mono">{u.email}</small>
                           </div>
                         </div>
                       </td>
 
-                      <td className="px-4 py-3.5">
-                        <Badge variant="neutral">{u.origin || 'Local'}</Badge>
+                      <td>
+                        <span className="adm-chip">{u.origin || 'Local'}</span>
                       </td>
 
-                      <td className="font-mono-ui px-4 py-3.5 text-[12px] text-[var(--texto-suave)]">
+                      <td className="adm-mono text-[12px]">
                         {formatDate(u.created_at)}
                       </td>
 
-                      <td className="font-mono-ui px-4 py-3.5 text-[12px] text-[var(--texto-suave)]">
+                      <td className="adm-mono text-[12px]">
                         {formatDate(u.last_login_at)}
                       </td>
 
-                      <td className="px-4 py-3.5">
+                      <td>
                         <select
                           aria-label={`Cambiar rol de ${u.name}`}
                           value={u.role}
@@ -303,45 +325,48 @@ export default function UsersManagementPage() {
                               ? 'Por seguridad no puedes degradar tu propio rol de administrador'
                               : 'Cambiar nivel de acceso'
                           }
-                          className="font-sans-ui rounded-[8px] border border-[var(--borde)] bg-[var(--superficie-alta)] px-2.5 py-1.5 text-[12px] font-medium text-[var(--texto)] focus:border-[var(--acento)] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                          className="adm-select !w-auto !py-1.5 !text-[12px]"
                         >
                           <option value="user">Usuario (user)</option>
                           <option value="admin">Administrador (admin)</option>
                         </select>
                       </td>
 
-                      <td className="px-4 py-3.5">
-                        <Badge variant="status" status={u.active ? 'activo' : 'inactivo'}>{u.active ? 'Activo' : 'Inactivo'}</Badge>
+                      <td>
+                        <Badge
+                          variant="status"
+                          status={u.active ? 'activo' : 'inactivo'}
+                        >
+                          {u.active ? 'Activo' : 'Inactivo'}
+                        </Badge>
                       </td>
 
-                      <td className="px-4 py-3.5 text-right">
+                      <td className="r">
                         {isSelf ? (
                           <span
-                            className="font-sans-ui inline-flex items-center gap-1 text-[12px] text-[var(--texto-suave)]"
+                            className="adm-mono inline-flex items-center gap-1 text-[11px]"
                             title="Protección anti-autobloqueo activa"
                           >
-                            <Lock size={14} />
+                            <Lock size={13} />
                             Protegido
                           </span>
                         ) : (
                           <button
                             type="button"
                             onClick={() => requestToggleActive(u)}
-                            className={`font-sans-ui inline-flex cursor-pointer items-center gap-1.5 rounded-[8px] border px-3 py-1.5 text-[12px] font-medium transition-colors ${
-                              u.active
-                                ? 'border-red-500/25 bg-red-500/10 text-red-300 hover:bg-red-500/20'
-                                : 'border-emerald-500/25 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20'
+                            className={`adm-btn sm ${
+                              u.active ? 'danger' : 'secondary'
                             }`}
                           >
                             {u.active ? (
                               <>
-                                <UserX size={14} />
-                                Desactivar
+                                <UserX size={13} />
+                                <span>Desactivar</span>
                               </>
                             ) : (
                               <>
-                                <UserCheck size={14} />
-                                Activar
+                                <UserCheck size={13} />
+                                <span>Activar</span>
                               </>
                             )}
                           </button>
@@ -355,42 +380,44 @@ export default function UsersManagementPage() {
           </div>
 
           {/* Paginación */}
-          <div className="flex items-center justify-between gap-2 border-t border-[var(--borde)] bg-[var(--superficie-alta)] px-4 py-3">
+          <div className="adm-foot">
             <button
               type="button"
               disabled={pagination.page <= 1}
               onClick={() => setPage((p) => Math.max(1, p - 1))}
-              className="font-sans-ui inline-flex cursor-pointer items-center gap-1 rounded-[10px] border border-[var(--borde)] bg-[var(--superficie)] px-3 py-1.5 text-[12px] font-medium text-[var(--texto-suave)] hover:text-[var(--texto)] disabled:pointer-events-none disabled:opacity-40"
+              className="adm-btn secondary sm"
             >
               <ChevronLeft size={14} />
               Anterior
             </button>
-            <span className="font-mono-ui text-[12px] text-[var(--texto-suave)]">
-              Página {pagination.page} de {pagination.totalPages || 1} ({pagination.total} usuarios)
+            <span className="adm-mono text-[12px]">
+              Página {pagination.page} de {pagination.totalPages || 1} (
+              {pagination.total} usuarios)
             </span>
             <button
               type="button"
               disabled={pagination.page >= (pagination.totalPages || 1)}
               onClick={() => setPage((p) => p + 1)}
-              className="font-sans-ui inline-flex cursor-pointer items-center gap-1 rounded-[10px] border border-[var(--borde)] bg-[var(--superficie)] px-3 py-1.5 text-[12px] font-medium text-[var(--texto-suave)] hover:text-[var(--texto)] disabled:pointer-events-none disabled:opacity-40"
+              className="adm-btn secondary sm"
             >
               Siguiente
               <ChevronRight size={14} />
             </button>
           </div>
         </DataState>
-      </div>
+      </section>
 
       {/* Nota informativa de seguridad */}
-      <div className="font-sans-ui flex items-start gap-3 rounded-[16px] border border-[var(--borde)] bg-[var(--superficie)] p-4 text-[12px] text-[var(--texto-suave)]">
-        <Shield size={16} className="mt-0.5 shrink-0 text-[var(--acento-texto)]" />
+      <section className="adm-card adm-note">
+        <Shield size={16} className="mt-0.5 shrink-0 text-[var(--ac2)]" />
         <div>
-          <strong className="text-[var(--texto)]">
-            Reglas de Seguridad e Integridad Activas:
-          </strong>{' '}
-          El servidor impide automáticamente que desactives tu propia cuenta o revoques tu propio rol de administrador (<code>400 Bad Request</code>), así como eliminar o degradar al último administrador activo del sistema (<code>409 Conflict</code>).
+          <b>Reglas de Seguridad e Integridad Activas:</b> El servidor impide
+          automáticamente que desactives tu propia cuenta o revoques tu propio
+          rol de administrador (<code>400 Bad Request</code>), así como eliminar
+          o degradar al último administrador activo del sistema (
+          <code>409 Conflict</code>).
         </div>
-      </div>
+      </section>
 
       <ConfirmModal
         isOpen={Boolean(pendingAction)}

@@ -1,4 +1,4 @@
-﻿@import "tailwindcss";
+@import "tailwindcss";
 
 @property --ang {
   syntax: '<angle>';
@@ -1358,7 +1358,7 @@ html.cc select {
 
 
 /* ==========================================================================
-   9. PANEL DE ADMINISTRADOR TEMATIZADO (PARTE 3 ÔÇö Est├ítico y Liviano)
+   9. PANEL DE ADMINISTRADOR TEMATIZADO (PARTE 3 — Estático y Liviano)
    ========================================================================== */
 :root {
   --adm-fondo: var(--bg2);
@@ -1830,7 +1830,7 @@ html.cc select {
   flex: none;
 }
 
-/* Asignaci├│n de Planeta, Constelaci├│n y Nebulosas por cada una de las 8 secciones */
+/* Asignación de Planeta, Constelación y Nebulosas por cada una de las 8 secciones */
 #v-resumen {
   --const: var(--const-osa);
   --sec-planet: var(--planet-resumen);
@@ -1913,7 +1913,7 @@ html.cc select {
     radial-gradient(38% 34% at 54% 52%, var(--nebula3, transparent), transparent 72%);
 }
 
-/* Cabecera de secci├│n (.adm-pagehead) con el Planeta visual y Constelaci├│n */
+/* Cabecera de sección (.adm-pagehead) con el Planeta visual y Constelación */
 .adm-pagehead {
   display: flex;
   justify-content: space-between;
@@ -2191,7 +2191,7 @@ html.cc select {
 
 .adm-card-head .adm-h3::before,
 .adm-card-head .adm-h2::before {
-  content: "Ô£ª";
+  content: "\2726";
   margin-right: 8px;
   font-size: 0.75em;
   color: var(--sector-color, var(--adm-acento));
@@ -2232,7 +2232,7 @@ html.cc select {
   margin-left: auto;
 }
 
-/* Botones, chips, pesta├▒as y filtros del Panel */
+/* Botones, chips, pestañas y filtros del Panel */
 .adm-btn {
   display: inline-flex;
   align-items: center;
@@ -2359,7 +2359,7 @@ html.cc select {
 }
 
 .adm-chip.star::before {
-  content: "Ôÿà";
+  content: "\2605";
   color: var(--adm-acento-hover);
   font-size: 10px;
 }
@@ -2424,15 +2424,17 @@ html.cc select {
   border-color: rgba(var(--ar), 0.45);
 }
 
-.adm-tab.is-active {
+.adm-tab.is-active,
+.adm-tab.is-on {
   color: #fff;
   background: var(--adm-acento);
   border-color: var(--adm-acento);
   font-weight: 600;
 }
 
-.adm-tab.is-active::before {
-  content: "Ô£ª";
+.adm-tab.is-active::before,
+.adm-tab.is-on::before {
+  content: "\2726";
   font-size: 10px;
 }
 
@@ -2456,7 +2458,8 @@ html.cc select {
   transition: all 0.15s;
 }
 
-.adm-seg button[aria-pressed="true"] {
+.adm-seg button[aria-pressed="true"],
+.adm-seg button.is-on {
   background: var(--adm-acento);
   color: #fff;
   font-weight: 600;
@@ -2465,6 +2468,39 @@ html.cc select {
 .adm-seg button:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+.adm-preview-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(var(--ar), 0.2);
+}
+
+.adm-preview-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--adm-acento-hover);
+}
+
+.adm-preview-title .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--adm-acento);
+  box-shadow: 0 0 8px var(--adm-acento);
+}
+
+.adm-preview-body {
+  padding: 18px;
 }
 
 /* Toolbars, Tablas, Inputs, Switches y Bandeja de Mensajes */
@@ -2505,7 +2541,7 @@ html.cc select {
 }
 
 .adm-table th:first-child::before {
-  content: "Ô£ª";
+  content: "\2726";
   margin-right: 8px;
   color: var(--sector-color, var(--adm-acento));
   font-size: 9px;
@@ -2745,7 +2781,7 @@ html.cc select {
   margin-bottom: 4px;
 }
 
-/* Filas de mensajes estilo constelaci├│n (.adm-msg-row) */
+/* Filas de mensajes estilo constelación (.adm-msg-row) */
 .adm-msg-row {
   position: relative;
   padding: 16px 20px 16px 38px;
