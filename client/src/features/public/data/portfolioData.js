@@ -35,13 +35,18 @@ export const NAV_LINKS = [
 
 export const PROFILE_DATA = {
   fullName: 'Lucass Andrade',
-  available: true,
-  availabilityLabel: 'Disponible para nuevos proyectos',
   greeting: 'Hola, soy',
   role: 'Desarrollador Web Full Stack',
-  shortDescription: 'Construyo aplicaciones web rápidas, escalables, intuitivas y modernas.',
-  typewriterPrefix: 'Construyo aplicaciones web',
-  typewriterWords: ['rápidas', 'escalables', 'intuitivas', 'modernas'],
+  shortDescription: 'Desarrollo software robusto, eficiente, escalable, intuitivo, seguro y mantenible.',
+  typewriterPrefix: 'Desarrollo software',
+  typewriterWords: [
+    'robusto',
+    'eficiente',
+    'escalable',
+    'intuitivo',
+    'seguro',
+    'mantenible',
+  ],
   primaryCtaLabel: 'Ver proyectos',
   secondaryCtaLabel: 'Contactar',
   cvLabel: 'Descargar CV',

@@ -23,11 +23,12 @@ export default function LivePreviewLayout({
 
   return (
     <div className="flex w-full flex-col gap-5">
-      {/* Barra de 2 pestañas para pantallas < 1280px */}
+      {/* Barra de 2 pestañas exclusiva para pantallas reducidas (< 1280px) */}
       <div
         role="tablist"
         aria-label="Modo de edición y vista previa"
-        className="adm-tabs xl:hidden"
+        data-adm-responsive-tabs="true"
+        className="adm-tabs flex xl:!hidden"
       >
         <button
           type="button"

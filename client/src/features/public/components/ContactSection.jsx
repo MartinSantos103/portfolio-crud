@@ -134,7 +134,7 @@ export default function ContactSection({
         <div className="flex flex-col items-start lg:sticky lg:top-[110px]">
           <p className="ey">{contact.sectionLabel}</p>
 
-          <h2 className="mt-[14px] mb-[24px] font-heading text-[clamp(40px,6vw,68px)] font-bold leading-[1.02] tracking-[-0.02em] text-[var(--tx)]">
+          <h2 className="mt-[14px] mb-[24px] font-heading text-[clamp(32px,5.5vw,68px)] font-bold leading-[1.02] tracking-[-0.02em] text-[var(--tx)]">
             {contact.titleLines?.[0] || '¿Tenés una idea?'}
             <br />
             {contact.titleLines?.[1] || 'Hablemos.'}
@@ -145,7 +145,7 @@ export default function ContactSection({
           </p>
 
           {/* Fila de redes sociales (.soc) */}
-          <div className="mt-[32px] flex items-center gap-[10px]">
+          <div className="mt-[32px] flex flex-wrap items-center gap-[10px]">
             <div className="relative">
               <button
                 type="button"

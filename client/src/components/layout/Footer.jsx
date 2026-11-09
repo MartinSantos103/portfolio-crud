@@ -17,7 +17,7 @@ export default function Footer({
           {copyright}
         </p>
 
-        <div className="flex items-center gap-[14px]">
+        <div className="flex flex-wrap items-center justify-center gap-[14px]">
           {socialLinks.map((social) => (
             <a
               key={social.id}

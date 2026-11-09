@@ -70,9 +70,9 @@ export default function AboutSection({
                 return (
                   <div
                     key={cat.id}
-                    className="mt-[4px] flex flex-wrap items-center gap-x-[12px] gap-y-[10px]"
+                    className="mt-[4px] flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-x-[12px] gap-y-[10px]"
                   >
-                    <em className="min-w-[120px] font-mono-ui text-[11px] font-medium not-italic uppercase tracking-[0.14em] text-[var(--ac)]">
+                    <em className="w-full sm:w-auto sm:min-w-[120px] font-mono-ui text-[11px] font-medium not-italic uppercase tracking-[0.14em] text-[var(--ac)]">
                       {cat.label}
                     </em>
                     <div className="flex flex-wrap items-center gap-[10px]">

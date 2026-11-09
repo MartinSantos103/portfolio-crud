@@ -17,7 +17,7 @@ export default function TrajectoryCard({
       <span className="dot" aria-hidden="true" />
       <p className="yr">{entry.date}</p>
       <div data-interactive-card="true" className="card">
-        <div className="cb !px-[30px] !py-[26px]">
+        <div className="cb px-4 py-4 sm:!px-[30px] sm:!py-[26px]">
           <span className="tag mb-[10px]">
             <IconSlot
               size={12}

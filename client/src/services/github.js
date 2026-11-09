@@ -68,6 +68,16 @@ export function parseGitHubRepoUrl(url) {
 /**
  * Lista los repositorios públicos del perfil de GitHub configurado en el servidor.
  */
+/**
+ * Obtiene los datos del perfil público de GitHub (incluye avatar_url, username, bio).
+ * Si no se pasa username, utiliza el configurado en GITHUB_USERNAME en el servidor.
+ */
+export async function fetchGitHubProfile(username = '') {
+  const query = username.trim() ? `?username=${encodeURIComponent(username.trim())}` : '';
+  const res = await apiFetch(`/github/profile${query}`);
+  return res?.data || null;
+}
+
 export async function fetchGitHubRepos(search = '') {
   const query = search.trim() ? `?search=${encodeURIComponent(search.trim())}` : '';
   const res = await apiFetch(`/github/repos${query}`);

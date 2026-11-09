@@ -42,6 +42,43 @@ export function setCachedPublicData(partialData) {
   }
 }
 
+export function extractYearAndMonth(dateStr) {
+  if (!dateStr || typeof dateStr !== 'string') return 0;
+  const clean = dateStr.trim();
+  const yearMatch = clean.match(/\b(19\d\d|20\d\d)\b/);
+  const year = yearMatch ? parseInt(yearMatch[1], 10) : 0;
+  let month = 0;
+  const monthMatch = clean.match(/(?:^|\D)(0[1-9]|1[0-2])(?:\D|$)/);
+  if (monthMatch) month = parseInt(monthMatch[1], 10);
+  return year * 100 + month;
+}
+
+export function compareMilestonesChronological(a, b) {
+  const aCurrent = Boolean(
+    a?.current ||
+    String(a?.end_date || '').toLowerCase().includes('actualidad') ||
+    String(a?.date || '').toLowerCase().includes('actualidad')
+  );
+  const bCurrent = Boolean(
+    b?.current ||
+    String(b?.end_date || '').toLowerCase().includes('actualidad') ||
+    String(b?.date || '').toLowerCase().includes('actualidad')
+  );
+
+  const aStart = extractYearAndMonth(a?.start_date || a?.date);
+  const bStart = extractYearAndMonth(b?.start_date || b?.date);
+  const aEnd = aCurrent
+    ? 999999
+    : extractYearAndMonth(a?.end_date) || aStart;
+  const bEnd = bCurrent
+    ? 999999
+    : extractYearAndMonth(b?.end_date) || bStart;
+
+  if (aEnd !== bEnd) return bEnd - aEnd;
+  if (aStart !== bStart) return bStart - aStart;
+  return 0;
+}
+
 export function updatePortfolioProfileCache(remoteProfile) {
   if (!remoteProfile) return;
   const mapped = mapRemoteProfileToPublic(remoteProfile);
@@ -58,26 +95,6 @@ export function getCachedProfile() {
   return cached?.profile || PROFILE_DATA;
 }
 
-function parseShortBioToTypewriter(rawShortBio, prevProfile = PROFILE_DATA) {
-  const defaultPrefix = prevProfile.typewriterPrefix || 'Construyo aplicaciones web';
-  const defaultWords = Array.isArray(prevProfile.typewriterWords) && prevProfile.typewriterWords.length > 0
-    ? prevProfile.typewriterWords
-    : ['rápidas', 'escalables', 'intuitivas', 'modernas'];
-
-  if (!rawShortBio || typeof rawShortBio !== 'string' || !rawShortBio.trim()) {
-    return { typewriterPrefix: defaultPrefix, typewriterWords: defaultWords };
-  }
-
-  const withoutTrailingDots = rawShortBio.trim().replace(/\.+$/, '').trim();
-  const tokens = withoutTrailingDots.split(/\s+/).filter(Boolean);
-  if (tokens.length >= 2) {
-    const lastWord = tokens.pop();
-    const prefix = tokens.join(' ');
-    return { typewriterPrefix: prefix, typewriterWords: [lastWord] };
-  }
-
-  return { typewriterPrefix: withoutTrailingDots, typewriterWords: defaultWords };
-}
 
 export function mapRemoteProfileToPublic(remoteProfile, prevProfile = PROFILE_DATA, prevAbout = ABOUT_DATA, prevTrajectory = TRAJECTORY_DATA) {
   if (!remoteProfile) {
@@ -117,22 +134,23 @@ export function mapRemoteProfileToPublic(remoteProfile, prevProfile = PROFILE_DA
       ? remoteProfile.headline
       : prevProfile.role;
 
-  const { typewriterPrefix, typewriterWords } = parseShortBioToTypewriter(
-    remoteProfile.short_bio,
-    prevProfile
-  );
-
   const nextProfile = {
     ...prevProfile,
     fullName: cleanFullName,
     role: cleanRole,
-    shortDescription: remoteProfile.short_bio || prevProfile.shortDescription,
-    typewriterPrefix,
-    typewriterWords,
+    shortDescription: 'Desarrollo software robusto, eficiente, escalable, intuitivo, seguro y mantenible.',
+    typewriterPrefix: 'Desarrollo software',
+    typewriterWords: [
+      'robusto',
+      'eficiente',
+      'escalable',
+      'intuitivo',
+      'seguro',
+      'mantenible',
+    ],
     photoUrl: remoteProfile.photo_url ?? prevProfile.photoUrl,
     contactEmail: remoteProfile.contact_email || prevProfile.contactEmail,
     cvUrl: (remoteProfile.cv_url && remoteProfile.cv_url !== '#descargar-cv') ? remoteProfile.cv_url : prevProfile.cvUrl,
-    available: remoteProfile.available ?? prevProfile.available,
     location: remoteProfile.location || prevProfile.location,
     socialLinks,
   };
@@ -174,7 +192,9 @@ export function mapRemoteProfileToPublic(remoteProfile, prevProfile = PROFILE_DA
   // Trayectoria (combina experiencia + educación)
   const expList = Array.isArray(remoteProfile.experience) ? remoteProfile.experience : [];
   const eduList = Array.isArray(remoteProfile.education) ? remoteProfile.education : [];
-  const combinedEntries = [...expList, ...eduList].map((item, idx) => {
+  const combinedEntries = [...expList, ...eduList]
+    .sort(compareMilestonesChronological)
+    .map((item, idx) => {
     const isEdu = item.type === 'educacion' || item.type === 'formacion';
     const endLabel = item.current ? 'Actualidad' : item.end_date || '';
     const dateLabel =

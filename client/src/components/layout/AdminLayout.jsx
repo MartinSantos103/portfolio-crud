@@ -219,12 +219,12 @@ function AdminLayoutInner() {
     document.documentElement.style.setProperty('--active-planet', planetVar);
   }, [location.pathname]);
 
-  // Regla 4.2.1: Al entrar a una vista de edición o creación (o perfil), el Sidebar se colapsa
+  // Regla 4.2.1: Al entrar a una vista de edición o creación con split preview, el Sidebar se colapsa
   // automáticamente a modo íconos para maximizar el ancho útil en notebooks de 1366px.
   useEffect(() => {
     const p = location.pathname;
     const isSplitPreviewRoute =
-      p.endsWith('/nuevo') || p.endsWith('/editar') || p === '/admin/perfil';
+      p.endsWith('/nuevo') || p.endsWith('/editar');
     const timer = setTimeout(() => {
       if (isSplitPreviewRoute) {
         setCollapsed(true);

@@ -966,6 +966,59 @@
   }
 }
 
+/* Adaptación de la línea de tiempo (.tl-panel) para paneles laterales de previsualización */
+.tl.tl-panel {
+  gap: 28px;
+}
+
+.tl.tl-panel::before,
+.tl.tl-panel .fill {
+  left: 20px;
+}
+
+.tl.tl-panel .fill {
+  height: calc(100% - 12px);
+}
+
+.tl.tl-panel .it,
+.tl.tl-panel .it.lf,
+.tl.tl-panel .it.rt {
+  grid-template-columns: 1fr;
+  padding-left: 52px;
+  row-gap: 10px;
+  align-items: start;
+}
+
+.tl.tl-panel .it .dot {
+  left: 20px;
+  top: 20px;
+  background: rgba(var(--ar), 0.18);
+}
+
+.tl.tl-panel .it .dot::after {
+  background: var(--ac);
+  border-color: var(--ac);
+  box-shadow: 0 0 16px rgba(var(--ar), 0.8);
+}
+
+.tl.tl-panel .it .yr,
+.tl.tl-panel .it.lf .yr,
+.tl.tl-panel .it.rt .yr {
+  grid-column: 1;
+  grid-row: 1;
+  padding: 0;
+  text-align: left;
+}
+
+.tl.tl-panel .it .card,
+.tl.tl-panel .it.lf .card,
+.tl.tl-panel .it.rt .card {
+  grid-column: 1;
+  grid-row: 2;
+  margin: 0;
+  width: 100%;
+}
+
 /* Vista previa de tarjetas de proyectos (.pv) — limpia y estática, 16:9 con imagen */
 .pv {
   height: 112px;
@@ -2399,6 +2452,20 @@ html.cc select {
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
+}
+
+@media (min-width: 1280px) {
+  [data-adm-responsive-tabs],
+  .adm-tabs.xl\:hidden,
+  .adm-tabs.xl\:\!hidden {
+    display: none !important;
+  }
+}
+
+@media (max-width: 1279px) {
+  [data-adm-responsive-tabs] {
+    display: flex !important;
+  }
 }
 
 .adm-tab {

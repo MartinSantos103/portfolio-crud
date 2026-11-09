@@ -2,8 +2,15 @@ import { useState, useEffect, useMemo } from 'react';
 import IconSlot from '../../../components/ui/IconSlot.jsx';
 import Button from '../../../components/ui/Button.jsx';
 
-const DEFAULT_PREFIX = 'Construyo aplicaciones web';
-const DEFAULT_WORDS = ['rápidas', 'escalables', 'intuitivas', 'modernas'];
+const DEFAULT_PREFIX = 'Desarrollo software';
+const DEFAULT_WORDS = [
+  'robusto',
+  'eficiente',
+  'escalable',
+  'intuitivo',
+  'seguro',
+  'mantenible',
+];
 
 /**
  * Sección Inicio (Hero) según el prototipo Portfolio_animado_v4.html:
@@ -137,7 +144,7 @@ export default function HeroSection({ profile }) {
   return (
     <section
       id="inicio"
-      className="relative z-10 flex min-h-[100svh] w-full items-center pt-[110px] pb-[48px]"
+      className="relative z-10 flex min-h-[100svh] w-full items-center pt-[110px] pb-[48px] overflow-x-clip"
     >
       <div className="mx-auto grid w-full max-w-[1080px] grid-cols-1 items-center gap-[38px] px-[20px] md:grid-cols-[1.1fr_0.9fr]">
         {/* Columna izquierda */}
@@ -148,7 +155,7 @@ export default function HeroSection({ profile }) {
           </p>
 
           {/* 2. Nombre grande en Bricolage Grotesque */}
-          <h1 className="font-heading text-[clamp(46px,9vw,80px)] font-bold leading-[1.06] tracking-[-0.02em] text-[var(--tx)]">
+          <h1 className="font-heading text-[clamp(34px,8.5vw,80px)] break-words font-bold leading-[1.06] tracking-[-0.02em] text-[var(--tx)]">
             {profile.fullName}
           </h1>
 
