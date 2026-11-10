@@ -348,7 +348,7 @@ function AdminLayoutInner() {
 
       {/* Sidebar fijo en escritorio (>= 1024px) */}
       <aside
-        className={`adm-sidebar sticky top-0 hidden h-screen shrink-0 transition-all duration-200 lg:block ${
+        className={`adm-sidebar sticky top-0 self-start z-30 hidden h-screen h-[100dvh] shrink-0 transition-all duration-200 lg:block ${
           collapsed ? 'is-collapsed w-[72px]' : 'w-[244px]'
         }`}
       >

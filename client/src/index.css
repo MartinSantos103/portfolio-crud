@@ -92,7 +92,7 @@
     line-height: 1.6;
     margin: 0;
     min-height: 100vh;
-    overflow-x: hidden;
+    overflow-x: clip;
   }
 
   h1,
@@ -1473,7 +1473,7 @@ html.cc select {
   line-height: 1.5;
   position: relative;
   isolation: isolate;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 .adm-root,
@@ -1654,7 +1654,6 @@ html.cc select {
 
 /* Sidebar y Topbar del Panel */
 .adm-sidebar {
-  position: relative;
   background:
     radial-gradient(90% 45% at 20% 10%, rgba(var(--ar), 0.18), transparent 70%),
     radial-gradient(80% 50% at 85% 78%, rgba(34, 211, 238, 0.12), transparent 75%),
@@ -1662,6 +1661,17 @@ html.cc select {
   backdrop-filter: blur(16px);
   border-right: 1px solid var(--adm-borde);
   isolation: isolate;
+}
+
+@media (min-width: 1024px) {
+  .adm-sidebar {
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+    height: 100vh;
+    height: 100dvh;
+    max-height: 100dvh;
+  }
 }
 
 .adm-sidebar:not(.is-collapsed)::before {
@@ -1838,9 +1848,8 @@ html.cc select {
 }
 
 .adm-topbar {
-  position: sticky;
-  top: 0;
-  z-index: 40;
+  position: relative;
+  z-index: 20;
   height: 64px;
   display: flex;
   align-items: center;

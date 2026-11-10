@@ -70,7 +70,7 @@ export default function LivePreviewLayout({
 
         {/* Columna Derecha (45% en xl:): Lienzo de Vista Previa Sticky */}
         <div
-          className={`w-full xl:sticky xl:top-[84px] xl:w-[45%] xl:shrink-0 ${
+          className={`w-full xl:sticky xl:top-6 xl:w-[45%] xl:shrink-0 ${
             mobileTab === 'preview' ? 'block' : 'hidden xl:block'
           }`}
         >
