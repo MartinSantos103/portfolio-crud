@@ -139,7 +139,7 @@ export default function Navbar({
       if (onOpenAuthModal) {
         onOpenAuthModal('login');
       } else {
-        navigate('/login');
+        navigate('/');
       }
     } else {
       setUserMenuOpen((prev) => !prev);

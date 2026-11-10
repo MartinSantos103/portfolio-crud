@@ -3,8 +3,6 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 import Placeholder from '../pages/Placeholder.jsx';
 import HomePage from '../features/public/pages/HomePage.jsx';
 import ProjectDetail from '../features/projects/public/ProjectDetail.jsx';
-import Login from '../features/auth/pages/Login.jsx';
-import Register from '../features/auth/pages/Register.jsx';
 import {
   AuthProvider,
   ProtectedRoute,
@@ -67,14 +65,14 @@ const router = createBrowserRouter([
           {
             element: <PublicOnlyRoute />,
             children: [
-              { path: '/login', element: <Login /> },
-              { path: '/registro', element: <Register /> },
+              { path: '/login', element: <Navigate to="/" replace /> },
+              { path: '/registro', element: <Navigate to="/" replace /> },
             ],
           },
 
           /* Rutas Protegidas de Usuario Autenticado (admin o user) */
           {
-            element: <ProtectedRoute allowedRoles={['admin', 'user']} />,
+            element: <ProtectedRoute allowedRoles={['admin', 'user']} redirectTo="/" />,
             children: [{ path: '/proyectos/:id', element: <ProjectDetail /> }],
           },
         ],
@@ -83,7 +81,7 @@ const router = createBrowserRouter([
       /* Rutas Protegidas Exclusivas de Administrador (solo admin) — 15 rutas del CMS v2 */
       {
         path: '/admin',
-        element: <ProtectedRoute allowedRoles={['admin']} />,
+        element: <ProtectedRoute allowedRoles={['admin']} redirectTo="/" />,
         children: [
           {
             element: <AdminLayout />,
