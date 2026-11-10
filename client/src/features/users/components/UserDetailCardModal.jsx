@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import {
   X,
@@ -91,13 +92,13 @@ export default function UserDetailCardModal({
     navigate(`/admin/mensajes?search=${encodeURIComponent(user.email)}`);
   };
 
-  return (
+  const modalContent = (
     <div
       role="dialog"
       aria-modal="true"
       aria-labelledby="user-card-modal-title"
       onClick={() => !updating && onClose?.()}
-      className="fixed inset-0 z-[85] flex items-center justify-center p-3 sm:p-5 overflow-y-auto bg-black/80 backdrop-blur-sm"
+      className="fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-5 overflow-y-auto bg-black/80 backdrop-blur-sm"
     >
       <div
         onClick={(e) => e.stopPropagation()}
@@ -323,4 +324,8 @@ export default function UserDetailCardModal({
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined'
+    ? createPortal(modalContent, document.body)
+    : modalContent;
 }

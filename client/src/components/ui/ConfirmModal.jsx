@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { AlertTriangle, CheckCircle2, X } from 'lucide-react';
 import Button from './Button.jsx';
 
@@ -30,12 +31,12 @@ export default function ConfirmModal({
   const isSuccess = tone === 'success' || tone === 'reactivate';
   const toneColor = isDanger ? 'var(--bad)' : isSuccess ? 'var(--ok)' : 'var(--warn)';
 
-  return (
+  const modalContent = (
     <div
       role="dialog"
       aria-modal="true"
       aria-labelledby="confirm-modal-title"
-      className="fixed inset-0 z-[90] flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[120] flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm"
     >
       <div className="card w-full max-w-[440px] rounded-[20px] p-6">
         <div className="flex items-start justify-between gap-4">
@@ -112,4 +113,8 @@ export default function ConfirmModal({
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined'
+    ? createPortal(modalContent, document.body)
+    : modalContent;
 }
