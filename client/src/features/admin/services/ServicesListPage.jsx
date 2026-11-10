@@ -8,12 +8,6 @@ import Badge from '../../../components/ui/Badge.jsx';
 import IconSlot from '../../../components/ui/IconSlot.jsx';
 import ConfirmModal from '../../../components/ui/ConfirmModal.jsx';
 
-const STATUS_FILTERS = [
-  { id: 'todos', label: 'Todos' },
-  { id: 'publicados', label: 'Publicados' },
-  { id: 'borradores', label: 'Borradores' },
-];
-
 export default function ServicesListPage() {
   const navigate = useNavigate();
   const toast = useToast();
@@ -170,6 +164,7 @@ export default function ServicesListPage() {
           />
           <input
             type="text"
+            maxLength={100}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar por título o descripción…"

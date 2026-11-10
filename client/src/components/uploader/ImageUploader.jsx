@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { UploadCloud, Trash2, Link as LinkIcon, Loader2 } from 'lucide-react';
 import { apiFetch } from '../../services/api.js';
 import { useToast } from '../ui/Toast.jsx';
+import { VALIDATION_MESSAGES, URL_REGEX } from '../../utils/validationConstants.js';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'];
 const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
@@ -20,23 +21,26 @@ export default function ImageUploader({
   const [uploading, setUploading] = useState(false);
   const [urlInput, setUrlInput] = useState('');
   const [showUrlMode, setShowUrlMode] = useState(false);
+  const [inlineError, setInlineError] = useState('');
   const fileInputRef = useRef(null);
   const toast = useToast();
 
-  const handleFileSelect = async (e) => {
-    const file = e.target.files?.[0];
+  const processFile = async (file) => {
     if (!file) return;
 
     if (!ALLOWED_TYPES.includes(file.type)) {
-      toast.error('Formato no válido. Seleccioná una imagen JPG, PNG, WebP o AVIF.');
+      setInlineError(VALIDATION_MESSAGES.IMAGE_FORMAT_INVALID);
+      toast.error(VALIDATION_MESSAGES.IMAGE_FORMAT_INVALID);
       return;
     }
 
     if (file.size > MAX_SIZE_BYTES) {
-      toast.error('El archivo supera el límite máximo de 5 MB.');
+      setInlineError(VALIDATION_MESSAGES.IMAGE_SIZE_EXCEEDED);
+      toast.error(VALIDATION_MESSAGES.IMAGE_SIZE_EXCEEDED);
       return;
     }
 
+    setInlineError('');
     setUploading(true);
     try {
       const base64DataUrl = await new Promise((resolve, reject) => {
@@ -59,7 +63,9 @@ export default function ImageUploader({
         toast.success('Imagen cargada correctamente');
       }
     } catch (err) {
-      toast.error(err.message || 'No se pudo subir la imagen');
+      const msg = err.message || 'No se pudo subir la imagen';
+      setInlineError(msg);
+      toast.error(msg);
     } finally {
       setUploading(false);
       if (fileInputRef.current) {
@@ -68,12 +74,27 @@ export default function ImageUploader({
     }
   };
 
+  const handleFileSelect = (e) => {
+    const file = e.target.files?.[0];
+    processFile(file);
+  };
+
+  const handleDropFile = (e) => {
+    e.preventDefault();
+    const file = e.dataTransfer?.files?.[0];
+    if (file) {
+      processFile(file);
+    }
+  };
+
   const handleApplyUrl = () => {
     const trimmed = urlInput.trim();
-    if (!/^https?:\/\//i.test(trimmed)) {
-      toast.error('Ingresá una URL válida que comience con https://');
+    if (!URL_REGEX.test(trimmed)) {
+      setInlineError(VALIDATION_MESSAGES.URL_INVALID);
+      toast.error(VALIDATION_MESSAGES.URL_INVALID);
       return;
     }
+    setInlineError('');
     onChange?.(trimmed);
     setUrlInput('');
     setShowUrlMode(false);
@@ -88,7 +109,10 @@ export default function ImageUploader({
         </label>
         <button
           type="button"
-          onClick={() => setShowUrlMode((prev) => !prev)}
+          onClick={() => {
+            setShowUrlMode((prev) => !prev);
+            setInlineError('');
+          }}
           className="font-mono-ui inline-flex cursor-pointer items-center gap-1 text-[11px] text-[var(--acento-texto)] hover:underline"
         >
           <LinkIcon size={12} />
@@ -113,7 +137,10 @@ export default function ImageUploader({
           </div>
           <button
             type="button"
-            onClick={() => onChange?.('')}
+            onClick={() => {
+              onChange?.('');
+              setInlineError('');
+            }}
             aria-label="Quitar imagen"
             className="cursor-pointer rounded-[8px] border border-[var(--borde)] bg-[var(--superficie)] p-2 text-red-400 hover:border-red-500/40 hover:bg-red-500/10"
           >
@@ -121,51 +148,81 @@ export default function ImageUploader({
           </button>
         </div>
       ) : showUrlMode ? (
-        <div className="flex gap-2">
-          <input
-            type="url"
-            value={urlInput}
-            onChange={(e) => setUrlInput(e.target.value)}
-            placeholder="https://res.cloudinary.com/..."
-            className="font-sans-ui flex-1 rounded-[12px] border border-[var(--borde)] bg-[var(--fondo)] px-3.5 py-2.5 text-[14px] text-[var(--texto)] placeholder:text-[var(--texto-suave)] focus:border-[var(--acento)] focus:outline-none"
-          />
-          <button
-            type="button"
-            onClick={handleApplyUrl}
-            className="font-sans-ui cursor-pointer rounded-[12px] bg-[var(--acento)] px-4 py-2.5 text-[13px] font-semibold text-[var(--sobre-acento)] hover:bg-[var(--acento-hover)]"
-          >
-            Aplicar
-          </button>
+        <div className="flex flex-col gap-1">
+          <div className="flex gap-2">
+            <input
+              type="url"
+              value={urlInput}
+              onChange={(e) => {
+                setUrlInput(e.target.value);
+                if (inlineError) setInlineError('');
+              }}
+              placeholder="https://res.cloudinary.com/..."
+              maxLength={500}
+              className={`font-sans-ui flex-1 rounded-[12px] border bg-[var(--fondo)] px-3.5 py-2.5 text-[14px] text-[var(--texto)] placeholder:text-[var(--texto-suave)] focus:outline-none ${
+                inlineError
+                  ? 'border-[var(--bad)] focus:border-[var(--bad)]'
+                  : 'border-[var(--borde)] focus:border-[var(--acento)]'
+              }`}
+            />
+            <button
+              type="button"
+              onClick={handleApplyUrl}
+              className="font-sans-ui cursor-pointer rounded-[12px] bg-[var(--acento)] px-4 py-2.5 text-[13px] font-semibold text-[var(--sobre-acento)] hover:bg-[var(--acento-hover)]"
+            >
+              Aplicar
+            </button>
+          </div>
+          {inlineError && (
+            <span role="alert" className="font-sans-ui text-[12px] font-medium text-[var(--bad)] mt-1 block leading-tight">
+              {inlineError}
+            </span>
+          )}
         </div>
       ) : (
-        <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-[12px] border border-dashed border-[var(--borde)] bg-[var(--fondo)] px-4 py-5 text-center transition-colors hover:border-[var(--acento)] hover:bg-[var(--superficie-alta)]/50">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept={ALLOWED_TYPES.join(',')}
-            onChange={handleFileSelect}
-            disabled={uploading}
-            className="sr-only"
-          />
-          {uploading ? (
-            <>
-              <Loader2 size={22} className="animate-spin text-[var(--acento-texto)]" />
-              <span className="font-sans-ui text-[13px] font-medium text-[var(--texto)]">
-                Subiendo imagen...
-              </span>
-            </>
-          ) : (
-            <>
-              <UploadCloud size={22} className="text-[var(--acento-texto)]" />
-              <span className="font-sans-ui text-[13px] font-medium text-[var(--texto)]">
-                Hacé clic para subir una imagen a Cloudinary
-              </span>
-              <span className="font-mono-ui text-[11px] text-[var(--texto-suave)]">
-                {helperText}
-              </span>
-            </>
+        <div className="flex flex-col gap-1">
+          <label
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={handleDropFile}
+            className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-[12px] border border-dashed bg-[var(--fondo)] px-4 py-5 text-center transition-colors hover:bg-[var(--superficie-alta)]/50 ${
+              inlineError
+                ? 'border-[var(--bad)] hover:border-[var(--bad)]'
+                : 'border-[var(--borde)] hover:border-[var(--acento)]'
+            }`}
+          >
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept={ALLOWED_TYPES.join(',')}
+              onChange={handleFileSelect}
+              disabled={uploading}
+              className="sr-only"
+            />
+            {uploading ? (
+              <>
+                <Loader2 size={22} className="animate-spin text-[var(--acento-texto)]" />
+                <span className="font-sans-ui text-[13px] font-medium text-[var(--texto)]">
+                  Subiendo imagen...
+                </span>
+              </>
+            ) : (
+              <>
+                <UploadCloud size={22} className="text-[var(--acento-texto)]" />
+                <span className="font-sans-ui text-[13px] font-medium text-[var(--texto)]">
+                  Hacé clic para subir una imagen a Cloudinary
+                </span>
+                <span className="font-mono-ui text-[11px] text-[var(--texto-suave)]">
+                  {helperText}
+                </span>
+              </>
+            )}
+          </label>
+          {inlineError && (
+            <span role="alert" className="font-sans-ui text-[12px] font-medium text-[var(--bad)] mt-1 block leading-tight">
+              {inlineError}
+            </span>
           )}
-        </label>
+        </div>
       )}
     </div>
   );

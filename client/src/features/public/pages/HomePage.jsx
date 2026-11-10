@@ -15,6 +15,10 @@ import { usePortfolioData } from '../hooks/usePortfolioData.js';
 import { useAuth } from '../../auth/index.js';
 import { apiFetch } from '../../../services/api.js';
 import { trackPortfolioEvent } from '../../../services/analytics.js';
+import {
+  VALIDATION_MESSAGES,
+  EMAIL_REGEX,
+} from '../../../utils/validationConstants.js';
 
 const SECTION_DOTS = [
   { id: 'inicio', label: 'Inicio' },
@@ -203,8 +207,7 @@ export default function HomePage({ initialSection = null }) {
   const handleFileAttachAttempt = () => {
     setContactFeedback({
       type: 'error',
-      message:
-        'Por razones de seguridad no se admiten archivos adjuntos directos. Podés compartir enlaces (Google Drive, Dropbox, GitHub, Figma, etc.) en el cuerpo del mensaje.',
+      message: VALIDATION_MESSAGES.NO_ATTACHMENTS,
     });
   };
 
@@ -315,11 +318,8 @@ export default function HomePage({ initialSection = null }) {
     // 2. Email
     if (!finalEmail) {
       newErrors.email = 'Por favor completá tu correo electrónico.';
-    } else {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(finalEmail)) {
-        newErrors.email = 'El formato del correo electrónico es inválido.';
-      }
+    } else if (!EMAIL_REGEX.test(finalEmail)) {
+      newErrors.email = VALIDATION_MESSAGES.EMAIL_INVALID;
     }
 
     // 3. Específicos por tipo de consulta

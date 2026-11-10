@@ -24,6 +24,7 @@ import { apiFetch } from '../../../services/api.js';
 import { useToast } from '../../../components/ui/Toast.jsx';
 import Badge from '../../../components/ui/Badge.jsx';
 import DataState from '../../../components/ui/DataState.jsx';
+import { VALIDATION_MESSAGES } from '../../../utils/validationConstants.js';
 import { useAdminFormContext } from '../context/AdminFormContext.jsx';
 import {
   useUnsavedChanges,
@@ -115,6 +116,7 @@ export default function MessagesInboxPage() {
   const [detailError, setDetailError] = useState('');
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [replyFileError, setReplyFileError] = useState('');
 
   const {
     register,
@@ -213,6 +215,7 @@ export default function MessagesInboxPage() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
+      setReplyFileError('');
       if (id) {
         fetchMessageDetail(id);
       } else {
@@ -266,6 +269,7 @@ export default function MessagesInboxPage() {
       toast.success('Respuesta enviada por correo y registrada correctamente');
       bypassBlocker();
       reset({ body: '' });
+      setReplyFileError('');
       setSelectedMessage(null);
       await refreshUnreadMessages();
       fetchMessages();
@@ -452,6 +456,7 @@ export default function MessagesInboxPage() {
           />
           <input
             type="text"
+            maxLength={100}
             value={searchInput}
             onChange={(e) => {
               const val = e.target.value;
@@ -784,13 +789,31 @@ export default function MessagesInboxPage() {
                       <textarea
                         id="reply-body"
                         rows={5}
+                        maxLength={5000}
                         placeholder="Escribe aquí tu respuesta profesional. Se enviará por email al remitente y quedará registrada en este hilo..."
-                        {...register('body')}
+                        onDragOver={(e) => e.preventDefault()}
+                        onDrop={(e) => {
+                          if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
+                            e.preventDefault();
+                            setReplyFileError(VALIDATION_MESSAGES.NO_ATTACHMENTS);
+                          }
+                        }}
+                        onPaste={(e) => {
+                          if (e.clipboardData?.files && e.clipboardData.files.length > 0) {
+                            e.preventDefault();
+                            setReplyFileError(VALIDATION_MESSAGES.NO_ATTACHMENTS);
+                          }
+                        }}
+                        {...register('body', {
+                          onChange: () => {
+                            if (replyFileError) setReplyFileError('');
+                          },
+                        })}
                         className="adm-textarea"
                       />
-                      {errors.body && (
+                      {(errors.body || replyFileError) && (
                         <p className="mt-1 text-[12px] text-[var(--bad)]">
-                          {errors.body.message}
+                          {errors.body?.message || replyFileError}
                         </p>
                       )}
                     </div>

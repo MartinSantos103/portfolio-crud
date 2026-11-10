@@ -184,6 +184,7 @@ export default function DemosListPage() {
           />
           <input
             type="text"
+            maxLength={100}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar por proyecto, demo o descripción…"

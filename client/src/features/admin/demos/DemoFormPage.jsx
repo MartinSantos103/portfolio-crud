@@ -21,6 +21,10 @@ import {
   useUnsavedChanges,
   UnsavedChangesModal,
 } from '../hooks/useUnsavedChanges.jsx';
+import {
+  VALIDATION_MESSAGES,
+  URL_REGEX,
+} from '../../../utils/validationConstants.js';
 
 const demoFormSchema = z
   .object({
@@ -32,7 +36,7 @@ const demoFormSchema = z
       .max(140),
     description: z.string().trim().max(1000).optional().default(''),
     type: z.enum(['iframe', 'video', 'imagenes']),
-    url: z.string().trim().optional().default(''),
+    url: z.string().trim().max(500).optional().default(''),
     urls: z.array(z.string().trim().min(1)).default([]),
   })
   .superRefine((val, ctx) => {
@@ -46,12 +50,12 @@ const demoFormSchema = z
     if (
       (val.type === 'iframe' || val.type === 'video') &&
       val.url &&
-      !/^https?:\/\//i.test(val.url)
+      !URL_REGEX.test(val.url)
     ) {
       ctx.addIssue({
         code: 'custom',
         path: ['url'],
-        message: 'La URL debe comenzar con http:// o https://',
+        message: VALIDATION_MESSAGES.URL_INVALID,
       });
     }
     if (val.type === 'imagenes' && (!val.urls || val.urls.length === 0)) {
@@ -234,6 +238,7 @@ export default function DemoFormPage() {
         <label className="adm-label">Título de la demo *</label>
         <input
           type="text"
+          maxLength={140}
           {...register('title')}
           placeholder="Ej. Entorno interactivo de tienda en línea"
           className="adm-input"
@@ -249,6 +254,7 @@ export default function DemoFormPage() {
         <label className="adm-label">Descripción breve (opcional)</label>
         <input
           type="text"
+          maxLength={1000}
           {...register('description')}
           placeholder="Instrucciones o credenciales de prueba para el visitante..."
           className="adm-input"
@@ -313,6 +319,7 @@ export default function DemoFormPage() {
             <div className="flex flex-col gap-2 sm:flex-row">
               <input
                 type="url"
+                maxLength={500}
                 {...register('url')}
                 placeholder="https://mi-app.vercel.app"
                 className="adm-input flex-1"
@@ -370,6 +377,7 @@ export default function DemoFormPage() {
           </label>
           <input
             type="url"
+            maxLength={500}
             {...register('url')}
             placeholder="https://www.youtube.com/watch?v=... o https://www.loom.com/share/..."
             className="adm-input"

@@ -42,6 +42,10 @@ import {
   TRAJECTORY_DATA,
   STACK_CATEGORIES,
 } from '../../public/data/portfolioData.js';
+import {
+  VALIDATION_MESSAGES,
+  URL_REGEX,
+} from '../../../utils/validationConstants.js';
 
 const stackItemSchema = z.object({
   id: z.string().trim().min(1, 'ID requerido'),
@@ -80,7 +84,11 @@ const socialLinkSchema = z.object({
     .trim()
     .min(1, 'El nombre de la red es obligatorio')
     .max(50),
-  url: z.string().trim().url('Debe ser una URL válida (https://...)'),
+  url: z
+    .string()
+    .trim()
+    .max(300)
+    .refine((v) => URL_REGEX.test(v), VALIDATION_MESSAGES.URL_INVALID),
 });
 
 const profileFormSchema = z.object({
@@ -111,8 +119,16 @@ const profileFormSchema = z.object({
   contact_email: z
     .string()
     .trim()
-    .email('Ingresá un correo de contacto válido'),
-  cv_url: z.string().trim().max(500).optional().default(''),
+    .min(1, 'El correo de contacto es obligatorio')
+    .max(100)
+    .email(VALIDATION_MESSAGES.EMAIL_INVALID),
+  cv_url: z
+    .string()
+    .trim()
+    .max(500)
+    .refine((v) => !v || URL_REGEX.test(v), VALIDATION_MESSAGES.URL_INVALID)
+    .optional()
+    .default(''),
   stack: z.array(stackItemSchema).default([]),
   milestones: z.array(milestoneSchema).default([]),
   social_links_list: z.array(socialLinkSchema).default([]),
@@ -960,6 +976,7 @@ export default function ProfileEditPage() {
               <label className="adm-label">Nombre completo *</label>
               <input
                 type="text"
+                maxLength={120}
                 {...register('full_name')}
                 placeholder="Ej. Lucas Andrade"
                 className="adm-input"
@@ -975,6 +992,7 @@ export default function ProfileEditPage() {
               <label className="adm-label">Titular profesional *</label>
               <input
                 type="text"
+                maxLength={160}
                 {...register('headline')}
                 placeholder="Ej. Desarrollador Web Full Stack"
                 className="adm-input"
@@ -996,6 +1014,7 @@ export default function ProfileEditPage() {
             </label>
             <textarea
               rows={6}
+              maxLength={5000}
               {...register('bio')}
               placeholder="Escribí tu presentación profesional..."
               className="adm-textarea"
@@ -1012,6 +1031,7 @@ export default function ProfileEditPage() {
               <label className="adm-label">Ubicación</label>
               <input
                 type="text"
+                maxLength={120}
                 {...register('location')}
                 placeholder="Salta, Argentina"
                 className="adm-input"
@@ -1022,6 +1042,7 @@ export default function ProfileEditPage() {
               <label className="adm-label">Correo de contacto público *</label>
               <input
                 type="email"
+                maxLength={100}
                 {...register('contact_email')}
                 placeholder="contacto@ejemplo.com"
                 className="adm-input"
@@ -1036,11 +1057,17 @@ export default function ProfileEditPage() {
             <div>
               <label className="adm-label">URL al CV en PDF</label>
               <input
-                type="text"
+                type="url"
+                maxLength={500}
                 {...register('cv_url')}
                 placeholder="https://.../cv.pdf"
                 className="adm-input"
               />
+              {errors.cv_url && (
+                <p className="mt-1 text-[12px] text-[var(--bad)]">
+                  {errors.cv_url.message}
+                </p>
+              )}
             </div>
           </div>
 
@@ -1082,10 +1109,16 @@ export default function ProfileEditPage() {
                     <label className="adm-label">Red / Etiqueta</label>
                     <input
                       type="text"
+                      maxLength={50}
                       {...register(`social_links_list.${index}.name`)}
                       placeholder="GitHub / LinkedIn"
                       className="adm-input"
                     />
+                    {errors.social_links_list?.[index]?.name && (
+                      <p className="mt-1 text-[11px] text-[var(--bad)]">
+                        {errors.social_links_list[index].name.message}
+                      </p>
+                    )}
                   </div>
 
                   <div className="sm:col-span-7">
@@ -1094,6 +1127,7 @@ export default function ProfileEditPage() {
                     </label>
                     <input
                       type="url"
+                      maxLength={300}
                       {...register(`social_links_list.${index}.url`)}
                       placeholder="https://github.com/usuario"
                       className="adm-input"
@@ -1135,6 +1169,7 @@ export default function ProfileEditPage() {
                 <label className="adm-label">Nombre visible</label>
                 <input
                   type="text"
+                  maxLength={80}
                   value={newTechName}
                   onChange={(e) => setNewTechName(e.target.value)}
                   placeholder="Ej. React, PostgreSQL..."
@@ -1450,10 +1485,16 @@ export default function ProfileEditPage() {
                       <label className="adm-label">Rol o Título *</label>
                       <input
                         type="text"
+                        maxLength={140}
                         {...register(`milestones.${index}.title`)}
                         placeholder="Ej. Desarrollador Full Stack"
                         className="adm-input"
                       />
+                      {errors.milestones?.[index]?.title && (
+                        <p className="mt-1 text-[11px] text-[var(--bad)]">
+                          {errors.milestones[index].title.message}
+                        </p>
+                      )}
                     </div>
                   </div>
 
@@ -1464,26 +1505,39 @@ export default function ProfileEditPage() {
                       </label>
                       <input
                         type="text"
+                        maxLength={140}
                         {...register(`milestones.${index}.organization`)}
                         placeholder="Empresa o Universidad"
                         className="adm-input"
                       />
+                      {errors.milestones?.[index]?.organization && (
+                        <p className="mt-1 text-[11px] text-[var(--bad)]">
+                          {errors.milestones[index].organization.message}
+                        </p>
+                      )}
                     </div>
 
                     <div>
                       <label className="adm-label">Inicio *</label>
                       <input
                         type="text"
+                        maxLength={40}
                         {...register(`milestones.${index}.start_date`)}
                         placeholder="2024"
                         className="adm-input"
                       />
+                      {errors.milestones?.[index]?.start_date && (
+                        <p className="mt-1 text-[11px] text-[var(--bad)]">
+                          {errors.milestones[index].start_date.message}
+                        </p>
+                      )}
                     </div>
 
                     <div>
                       <label className="adm-label">Fin</label>
                       <input
                         type="text"
+                        maxLength={40}
                         {...register(`milestones.${index}.end_date`)}
                         disabled={watchedValues.milestones?.[index]?.current}
                         placeholder="2025"
@@ -1504,6 +1558,7 @@ export default function ProfileEditPage() {
                     <label className="adm-label">Descripción breve</label>
                     <textarea
                       rows={2}
+                      maxLength={600}
                       {...register(`milestones.${index}.description`)}
                       placeholder="Principales logros o materias..."
                       className="adm-textarea !min-h-[68px]"

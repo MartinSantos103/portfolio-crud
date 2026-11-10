@@ -38,6 +38,10 @@ import {
 import { ProjectCardView } from '../../../components/ui/ProjectCard.jsx';
 import { ProjectDetailView } from '../../projects/public/ProjectDetail.jsx';
 import { resolveTechnologies } from '../../public/data/portfolioData.js';
+import {
+  VALIDATION_MESSAGES,
+  URL_REGEX,
+} from '../../../utils/validationConstants.js';
 
 const projectFormSchema = z.object({
   title: z
@@ -69,19 +73,15 @@ const projectFormSchema = z.object({
   repo_url: z
     .string()
     .trim()
-    .refine(
-      (v) => !v || /^https?:\/\//i.test(v),
-      'Debe comenzar con http:// o https://'
-    )
+    .max(300)
+    .refine((v) => !v || URL_REGEX.test(v), VALIDATION_MESSAGES.URL_INVALID)
     .optional()
     .default(''),
   live_url: z
     .string()
     .trim()
-    .refine(
-      (v) => !v || /^https?:\/\//i.test(v),
-      'Debe comenzar con http:// o https://'
-    )
+    .max(300)
+    .refine((v) => !v || URL_REGEX.test(v), VALIDATION_MESSAGES.URL_INVALID)
     .optional()
     .default(''),
 });
@@ -444,6 +444,7 @@ export default function ProjectFormPage() {
               />
               <input
                 type="text"
+                maxLength={100}
                 value={githubSearch}
                 onChange={(e) => setGithubSearch(e.target.value)}
                 placeholder="Buscar repositorio por nombre..."
@@ -526,6 +527,7 @@ export default function ProjectFormPage() {
             <label className="adm-label">Título del proyecto *</label>
             <input
               type="text"
+              maxLength={140}
               {...register('title', {
                 onChange: (e) => {
                   if (!isEditing) {
@@ -549,6 +551,7 @@ export default function ProjectFormPage() {
             <label className="adm-label">Slug (identificador URL) *</label>
             <input
               type="text"
+              maxLength={160}
               {...register('slug')}
               placeholder="plataforma-e-commerce"
               className="adm-input adm-mono"
@@ -672,6 +675,7 @@ export default function ProjectFormPage() {
           </label>
           <textarea
             rows={4}
+            maxLength={8000}
             {...register('problem')}
             placeholder="¿Qué necesidad o cuello de botella resolvía este proyecto?"
             className="adm-textarea"
@@ -682,6 +686,7 @@ export default function ProjectFormPage() {
           <label className="adm-label">2. La Solución (Markdown simple)</label>
           <textarea
             rows={4}
+            maxLength={8000}
             {...register('solution')}
             placeholder="¿Qué arquitectura y funcionalidades se implementaron?"
             className="adm-textarea"
@@ -694,6 +699,7 @@ export default function ProjectFormPage() {
           </label>
           <textarea
             rows={4}
+            maxLength={8000}
             {...register('tech_decisions')}
             placeholder="¿Por qué elegiste estas herramientas, patrones o estructura de datos?"
             className="adm-textarea"
@@ -772,6 +778,7 @@ export default function ProjectFormPage() {
             <label className="adm-label">URL del repositorio (GitHub)</label>
             <input
               type="url"
+              maxLength={300}
               {...register('repo_url')}
               placeholder="https://github.com/usuario/proyecto"
               className="adm-input"
@@ -787,6 +794,7 @@ export default function ProjectFormPage() {
             <label className="adm-label">URL de despliegue en vivo</label>
             <input
               type="url"
+              maxLength={300}
               {...register('live_url')}
               placeholder="https://mi-proyecto.vercel.app"
               className="adm-input"

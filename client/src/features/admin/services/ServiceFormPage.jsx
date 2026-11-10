@@ -133,6 +133,7 @@ export default function ServiceFormPage() {
         <label className="adm-label">Título del servicio *</label>
         <input
           type="text"
+          maxLength={120}
           {...register('title')}
           placeholder="Ej. Aplicaciones web a medida"
           className="adm-input"
@@ -148,6 +149,7 @@ export default function ServiceFormPage() {
         <label className="adm-label">Descripción concisa *</label>
         <textarea
           rows={3}
+          maxLength={600}
           {...register('description')}
           placeholder="Explicá en una o dos oraciones qué resuelve este servicio..."
           className="adm-textarea"
@@ -174,6 +176,7 @@ export default function ServiceFormPage() {
         <div className="flex gap-2">
           <input
             type="text"
+            maxLength={120}
             value={newItemText}
             onChange={(e) => setNewItemText(e.target.value)}
             placeholder="Ej. Panel autogestionable"
