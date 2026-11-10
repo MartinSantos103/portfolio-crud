@@ -272,7 +272,7 @@ export const CONTACT_DATA = {
   sectionLabel: '05 / CONTACTO',
   titleLines: ['¿Tenés una idea?', 'Hablemos.'],
   description:
-    'Contame sobre tu proyecto, propuesta laboral o consulta. Respondo personalmente dentro de las 24 a 48 horas hábiles.',
+    'Contame sobre tu proyecto, propuesta laboral o consulta. Podés incluir todos los detalles, enlaces o referencias que consideres relevantes.',
   email: 'martinsantos4890@gmail.com',
   consultationTypes: [
     { value: 'cotizacion', label: 'Cotización' },

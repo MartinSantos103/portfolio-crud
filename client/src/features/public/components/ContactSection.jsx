@@ -17,7 +17,10 @@ export default function ContactSection({
   user = null,
   isAuthenticated = false,
   formData,
+  errors = {},
   onFormChange,
+  onPresupuestoChange,
+  onFileAttachAttempt,
   onSubmitForm,
   sending = false,
   feedback = null,
@@ -94,14 +97,12 @@ export default function ContactSection({
           'APIs y backend',
         ];
 
-  const displayName =
-    formData.name !== '' ? formData.name : isAuthenticated ? user?.name || '' : '';
-  const displayEmail =
-    formData.email !== ''
-      ? formData.email
-      : isAuthenticated
-        ? user?.email || ''
-        : '';
+  const displayName = isAuthenticated
+    ? user?.name || formData.name || ''
+    : formData.name;
+  const displayEmail = isAuthenticated
+    ? user?.email || formData.email || ''
+    : formData.email;
 
   const handleCopyEmail = async () => {
     const emailToCopy = contact.email || 'martinsantos4890@gmail.com';
@@ -126,6 +127,8 @@ export default function ContactSection({
       console.error('No se pudo copiar el correo al portapapeles:', err);
     }
   };
+
+  const bodyLength = (formData.body || '').length;
 
   return (
     <section id="contacto" className="relative z-10 w-full py-[72px] lg:py-[90px]">
@@ -201,6 +204,13 @@ export default function ContactSection({
           onSubmit={onSubmitForm}
           noValidate
           data-interactive-card="true"
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={(e) => {
+            e.preventDefault();
+            if (e.dataTransfer?.files?.length > 0 && onFileAttachAttempt) {
+              onFileAttachAttempt();
+            }
+          }}
           className="card flex w-full flex-col gap-[20px] rounded-[24px] p-[22px] sm:p-[32px]"
         >
           <FormField
@@ -211,6 +221,9 @@ export default function ContactSection({
             onChange={onFormChange}
             placeholder="Tu nombre"
             required
+            readOnly={isAuthenticated}
+            maxLength={100}
+            errorMessage={errors?.name}
           />
 
           <FormField
@@ -222,9 +235,12 @@ export default function ContactSection({
             onChange={onFormChange}
             placeholder="tu@email.com"
             required
+            readOnly={isAuthenticated}
+            maxLength={100}
+            errorMessage={errors?.email}
           />
 
-          {/* Tipo de consulta */}
+          {/* Tipo de consulta (selector sin asterisco) */}
           <FormField
             as="select"
             label="Tipo de consulta"
@@ -253,18 +269,17 @@ export default function ContactSection({
                   options={serviceOptions}
                 />
                 <FormField
-                  as="select"
-                  label="Presupuesto estimado"
+                  as="input"
+                  type="text"
+                  inputMode="numeric"
+                  label="Presupuesto estimado ($)"
                   name="presupuesto"
-                  value={formData.presupuesto || '< $1.000 USD'}
-                  onChange={onFormChange}
-                  options={[
-                    { value: '< $1.000 USD', label: 'Menos de $1.000 USD' },
-                    { value: '$1.000 - $3.000 USD', label: '$1.000 - $3.000 USD' },
-                    { value: '$3.000 - $5.000 USD', label: '$3.000 - $5.000 USD' },
-                    { value: '> $5.000 USD', label: 'Más de $5.000 USD' },
-                    { value: 'A definir', label: 'A definir / A conversar' },
-                  ]}
+                  value={formData.presupuesto || ''}
+                  onChange={onPresupuestoChange || onFormChange}
+                  placeholder="Ej: 1.500.000"
+                  maxLength={15}
+                  required
+                  errorMessage={errors?.presupuesto}
                 />
               </div>
               <FormField
@@ -285,36 +300,18 @@ export default function ContactSection({
           )}
 
           {formData.type === 'asesoria' && (
-            <div className="grid grid-cols-1 gap-[14px] sm:grid-cols-2">
-              <FormField
-                as="select"
-                label="Tema técnico"
-                name="tema_tecnico"
-                value={formData.tema_tecnico || 'Arquitectura Frontend & React'}
-                onChange={onFormChange}
-                options={[
-                  { value: 'Arquitectura Frontend & React', label: 'Arquitectura Frontend & React' },
-                  { value: 'APIs REST & Backend Node.js', label: 'APIs REST & Backend Node.js' },
-                  { value: 'Bases de Datos & PostgreSQL', label: 'Bases de Datos & PostgreSQL' },
-                  { value: 'Code Review & Optimización', label: 'Code Review & Optimización' },
-                  { value: 'Despliegue & DevOps', label: 'Despliegue & DevOps' },
-                  { value: 'Otro tema técnico', label: 'Otro tema técnico' },
-                ]}
-              />
-              <FormField
-                as="select"
-                label="Modalidad deseada"
-                name="modalidad"
-                value={formData.modalidad || 'Sesión puntual (1h)'}
-                onChange={onFormChange}
-                options={[
-                  { value: 'Sesión puntual (1h)', label: 'Sesión 1 a 1 puntual (1 hora)' },
-                  { value: 'Acompañamiento semanal', label: 'Acompañamiento semanal' },
-                  { value: 'Auditoría de código', label: 'Auditoría de código' },
-                  { value: 'A coordinar', label: 'A coordinar' },
-                ]}
-              />
-            </div>
+            <FormField
+              as="input"
+              type="text"
+              label="Tema técnico"
+              name="tema_tecnico"
+              value={formData.tema_tecnico || ''}
+              onChange={onFormChange}
+              placeholder="Ej: Optimización de consultas SQL, arquitectura React, APIs REST..."
+              maxLength={120}
+              required
+              errorMessage={errors?.tema_tecnico}
+            />
           )}
 
           {formData.type === 'consulta' && (
@@ -325,6 +322,9 @@ export default function ContactSection({
               value={formData.asunto || ''}
               onChange={onFormChange}
               placeholder="Ej: Propuesta laboral, charla técnica o consulta general..."
+              maxLength={150}
+              required
+              errorMessage={errors?.asunto}
             />
           )}
 
@@ -334,6 +334,18 @@ export default function ContactSection({
             name="body"
             value={formData.body}
             onChange={onFormChange}
+            onDrop={(e) => {
+              e.preventDefault();
+              if (e.dataTransfer?.files?.length > 0 && onFileAttachAttempt) {
+                onFileAttachAttempt();
+              }
+            }}
+            onPaste={(e) => {
+              if (e.clipboardData?.files && e.clipboardData.files.length > 0) {
+                e.preventDefault();
+                if (onFileAttachAttempt) onFileAttachAttempt();
+              }
+            }}
             placeholder={
               formData.type === 'cotizacion'
                 ? 'Contame sobre los objetivos, alcance y funcionalidades requeridas...'
@@ -341,8 +353,25 @@ export default function ContactSection({
                   ? 'Describí brevemente sobre qué tecnología, problema o proyecto te gustaría que trabajemos...'
                   : 'Contame brevemente qué necesitás o en qué te puedo ayudar…'
             }
+            maxLength={2000}
             required
             rows={4}
+            errorMessage={errors?.body}
+            bottomSlot={
+              <div className="flex items-center justify-end text-[12px] font-mono-ui pt-1">
+                <span
+                  className={`${
+                    bodyLength >= 1800
+                      ? 'text-[var(--bad)] font-semibold'
+                      : bodyLength >= 1400
+                        ? 'text-[var(--ac2)]'
+                        : 'text-[var(--mut)]'
+                  }`}
+                >
+                  {bodyLength} / 2000
+                </span>
+              </div>
+            }
           />
 
           {feedback && (
@@ -420,20 +449,6 @@ export default function ContactSection({
               </span>
             ))}
           </button>
-
-          {/* Aviso de sesión / privacidad */}
-          <p className="flex items-center gap-[8px] font-sans-ui text-[13px] text-[var(--mut)]">
-            <IconSlot
-              size={14}
-              name={isAuthenticated ? 'check' : 'contact-lock'}
-            />
-            <span>
-              {isAuthenticated
-                ? `Sesión iniciada: tu mensaje queda vinculado a tu cuenta (${user?.email})`
-                : (contact.authNotice ||
-                    'Mensaje directo a mi casilla de correo (o iniciá sesión si querés vincular tu cuenta)')}
-            </span>
-          </p>
         </form>
       </div>
     </section>

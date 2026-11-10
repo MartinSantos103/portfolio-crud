@@ -150,6 +150,38 @@ describe('Pruebas del Módulo de Mensajes y Notificaciones', () => {
     assert.equal(encontrado.extra.presupuesto, 'USD 2000');
   });
 
+  test('6b. POST /api/messages - Registra solicitud de asesoría técnica con tema manual y sin modalidad (201)', async () => {
+    const payload = {
+      tipo: 'asesoria',
+      nombre: 'Lucía Gómez',
+      email: 'lucia@dev.com',
+      asunto: 'ASESORÍA — Optimización de base de datos PostgreSQL',
+      mensaje: 'Queremos auditar índices y planes de ejecución EXPLAIN.',
+      tema_tecnico: 'Optimización de consultas SQL y Postgres',
+    };
+
+    const res = await fetch(`${baseUrl}/messages`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    assert.equal(res.status, 201);
+    const data = await res.json();
+    assert.equal(data.ok, true);
+    assert.equal(data.data.tipo, 'asesoria');
+
+    const adminCheckRes = await fetch(`${baseUrl}/messages/${data.data.id}`, {
+      headers: {
+        Authorization: `Bearer ${adminToken}`,
+      },
+    });
+    assert.equal(adminCheckRes.status, 200);
+    const detailData = await adminCheckRes.json();
+    assert.equal(detailData.data.extra.tema_tecnico, 'Optimización de consultas SQL y Postgres');
+    assert.equal(detailData.data.extra.modalidad, undefined);
+  });
+
   test('7. PATCH /api/messages/:id/status - Administrador puede actualizar el estado (200)', async () => {
     assert.ok(createdMessageId, 'Se requiere el ID del mensaje creado');
 

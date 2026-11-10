@@ -61,13 +61,13 @@ export default function HomePage({ initialSection = null }) {
     email: '',
     type: contact.consultationTypes?.[0]?.value || 'cotizacion',
     service: contact.defaultServiceOption || 'Sitios y landing pages',
-    presupuesto: '< $1.000 USD',
+    presupuesto: '',
     plazo: '1 a 2 meses',
-    tema_tecnico: 'Arquitectura Frontend & React',
-    modalidad: 'Sesión puntual (1h)',
+    tema_tecnico: '',
     asunto: '',
     body: '',
   });
+  const [formErrors, setFormErrors] = useState({});
   const [contactSending, setContactSending] = useState(false);
   const [contactFeedback, setContactFeedback] = useState(null);
   const [suspendedMailModal, setSuspendedMailModal] = useState({
@@ -171,13 +171,47 @@ export default function HomePage({ initialSection = null }) {
   const handleContactChange = (e) => {
     const { name, value } = e.target;
     setContactForm((prev) => ({ ...prev, [name]: value }));
+    if (formErrors[name]) {
+      setFormErrors((prev) => {
+        const next = { ...prev };
+        delete next[name];
+        return next;
+      });
+    }
     if (contactFeedback) setContactFeedback(null);
+  };
+
+  const formatDigitsWithThousandSeparators = (val) => {
+    const rawDigits = String(val || '').replace(/\D/g, '');
+    if (!rawDigits) return '';
+    return rawDigits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  };
+
+  const handlePresupuestoChange = (e) => {
+    const formatted = formatDigitsWithThousandSeparators(e.target.value);
+    setContactForm((prev) => ({ ...prev, presupuesto: formatted }));
+    if (formErrors.presupuesto) {
+      setFormErrors((prev) => {
+        const next = { ...prev };
+        delete next.presupuesto;
+        return next;
+      });
+    }
+    if (contactFeedback) setContactFeedback(null);
+  };
+
+  const handleFileAttachAttempt = () => {
+    setContactFeedback({
+      type: 'error',
+      message:
+        'Por razones de seguridad no se admiten archivos adjuntos directos. Podés compartir enlaces (Google Drive, Dropbox, GitHub, Figma, etc.) en el cuerpo del mensaje.',
+    });
   };
 
   const sendContactMessage = async (authUser) => {
     const activeUser = authUser || user;
-    const finalName = contactForm.name.trim() || activeUser?.name || '';
-    const finalEmail = contactForm.email.trim() || activeUser?.email || '';
+    const finalName = (isAuthenticated ? activeUser?.name : contactForm.name)?.trim() || '';
+    const finalEmail = (isAuthenticated ? activeUser?.email : contactForm.email)?.trim() || '';
 
     if (!finalName || !finalEmail) {
       setContactFeedback({
@@ -194,31 +228,45 @@ export default function HomePage({ initialSection = null }) {
         contactForm.type === 'cotizacion'
           ? `COTIZACIÓN — ${contactForm.service || 'Servicio'}`
           : contactForm.type === 'asesoria'
-            ? `ASESORÍA — ${contactForm.tema_tecnico || 'Técnica'}`
+            ? `ASESORÍA — ${contactForm.tema_tecnico?.trim() || 'Técnica'}`
             : `CONSULTA — ${contactForm.asunto?.trim() || 'Consulta general'}`;
+
+      const payload = {
+        type: contactForm.type,
+        name: finalName,
+        email: finalEmail,
+        subject,
+        body: contactForm.body.trim(),
+        ...(contactForm.type === 'cotizacion' && {
+          servicio_interes: contactForm.service,
+          tipo_proyecto: contactForm.service,
+          presupuesto: contactForm.presupuesto ? `$ ${contactForm.presupuesto.trim()}` : '',
+          plazo: contactForm.plazo,
+        }),
+        ...(contactForm.type === 'asesoria' && {
+          tema_tecnico: contactForm.tema_tecnico?.trim(),
+        }),
+        ...(contactForm.type === 'consulta' && {
+          asunto_consulta: contactForm.asunto?.trim(),
+        }),
+      };
 
       await apiFetch('/messages', {
         method: 'POST',
-        body: JSON.stringify({
-          type: contactForm.type,
-          name: finalName,
-          email: finalEmail,
-          subject,
-          body: contactForm.body.trim(),
-          servicio_interes: contactForm.service,
-          tipo_proyecto: contactForm.service,
-          presupuesto: contactForm.presupuesto,
-          plazo: contactForm.plazo,
-          tema_tecnico: contactForm.tema_tecnico,
-          modalidad: contactForm.modalidad,
-          asunto_consulta: contactForm.asunto,
-        }),
+        body: JSON.stringify(payload),
       });
       setContactFeedback({
         type: 'success',
         message: '¡Mensaje enviado con éxito! Te responderé a la brevedad.',
       });
-      setContactForm((prev) => ({ ...prev, asunto: '', body: '' }));
+      setFormErrors({});
+      setContactForm((prev) => ({
+        ...prev,
+        asunto: '',
+        tema_tecnico: '',
+        presupuesto: '',
+        body: '',
+      }));
     } catch (err) {
       if (
         err.code === 'ACCOUNT_SUSPENDED' ||
@@ -253,31 +301,64 @@ export default function HomePage({ initialSection = null }) {
     e.preventDefault();
     setContactFeedback(null);
 
-    const finalName = contactForm.name.trim() || user?.name || '';
-    const finalEmail = contactForm.email.trim() || user?.email || '';
+    const finalName = (isAuthenticated ? user?.name : contactForm.name)?.trim() || '';
+    const finalEmail = (isAuthenticated ? user?.email : contactForm.email)?.trim() || '';
+    const newErrors = {};
 
-    if (!finalName || !finalEmail) {
-      setContactFeedback({
-        type: 'error',
-        message: 'Por favor completá tu nombre y correo electrónico.',
-      });
-      return;
+    // 1. Nombre
+    if (!finalName) {
+      newErrors.name = 'Por favor completá tu nombre.';
+    } else if (finalName.length < 2) {
+      newErrors.name = 'El nombre debe contener al menos 2 caracteres.';
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(finalEmail)) {
-      setContactFeedback({
-        type: 'error',
-        message: 'El formato del correo electrónico es inválido.',
-      });
-      return;
+    // 2. Email
+    if (!finalEmail) {
+      newErrors.email = 'Por favor completá tu correo electrónico.';
+    } else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(finalEmail)) {
+        newErrors.email = 'El formato del correo electrónico es inválido.';
+      }
     }
 
-    if (!contactForm.body.trim()) {
-      setContactFeedback({
-        type: 'error',
-        message: 'Por favor escribí tu mensaje antes de enviar.',
-      });
+    // 3. Específicos por tipo de consulta
+    if (contactForm.type === 'cotizacion') {
+      const rawPresupuesto = (contactForm.presupuesto || '').replace(/\D/g, '');
+      if (!rawPresupuesto) {
+        newErrors.presupuesto = 'Por favor ingresá un presupuesto estimado (solo números).';
+      } else if (Number(rawPresupuesto) <= 0) {
+        newErrors.presupuesto = 'El presupuesto debe ser un monto mayor a 0.';
+      }
+    } else if (contactForm.type === 'asesoria') {
+      const tema = (contactForm.tema_tecnico || '').trim();
+      if (!tema) {
+        newErrors.tema_tecnico = 'Por favor completá el tema técnico.';
+      } else if (tema.length < 3) {
+        newErrors.tema_tecnico = 'El tema técnico debe contener al menos 3 caracteres.';
+      }
+    } else if (contactForm.type === 'consulta') {
+      const asunto = (contactForm.asunto || '').trim();
+      if (!asunto) {
+        newErrors.asunto = 'Por favor ingresá el asunto de la consulta.';
+      } else if (asunto.length < 3) {
+        newErrors.asunto = 'El asunto debe tener al menos 3 caracteres.';
+      }
+    }
+
+    // 4. Mensaje
+    const bodyTrim = (contactForm.body || '').trim();
+    if (!bodyTrim) {
+      newErrors.body = 'Por favor escribí tu mensaje.';
+    } else if (bodyTrim.length < 10) {
+      newErrors.body = 'El mensaje debe tener al menos 10 caracteres.';
+    } else if (bodyTrim.length > 2000) {
+      newErrors.body = 'El mensaje no puede superar los 2000 caracteres.';
+    }
+
+    setFormErrors(newErrors);
+
+    if (Object.keys(newErrors).length > 0) {
       return;
     }
 
@@ -385,7 +466,10 @@ export default function HomePage({ initialSection = null }) {
           user={user}
           isAuthenticated={isAuthenticated}
           formData={contactForm}
+          errors={formErrors}
           onFormChange={handleContactChange}
+          onPresupuestoChange={handlePresupuestoChange}
+          onFileAttachAttempt={handleFileAttachAttempt}
           onSubmitForm={handleContactSubmit}
           sending={contactSending}
           feedback={contactFeedback}

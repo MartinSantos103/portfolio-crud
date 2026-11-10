@@ -299,7 +299,13 @@ export default function MessagesInboxPage() {
     if (type === 'cotizacion') {
       const tipoProyecto =
         extra.tipo_proyecto || extra.servicio_interes || 'No especificado';
-      const presupuesto = extra.presupuesto || 'No especificado';
+      const rawPresupuesto = extra.presupuesto || 'No especificado';
+      const presupuesto =
+        rawPresupuesto !== 'No especificado' &&
+        !rawPresupuesto.includes('$') &&
+        /^[0-9.]+$/.test(rawPresupuesto)
+          ? `$ ${rawPresupuesto}`
+          : rawPresupuesto;
       const plazo = extra.plazo || 'No especificado';
 
       return (
@@ -342,7 +348,7 @@ export default function MessagesInboxPage() {
       const temaTecnico =
         extra.tema_tecnico || extra.servicio_interes || 'No especificado';
       const modalidad =
-        extra.modalidad || extra.disponibilidad || 'No especificada';
+        extra.modalidad || extra.disponibilidad || null;
 
       return (
         <div className="space-y-3 rounded-[14px] border border-[var(--adm-borde)] bg-[var(--adm-superficie-alta)] p-4">
@@ -350,7 +356,11 @@ export default function MessagesInboxPage() {
             <Compass size={15} />
             <span>Metadatos de Solicitud de Asesoría</span>
           </div>
-          <div className="grid grid-cols-1 gap-3 pt-1 sm:grid-cols-2">
+          <div
+            className={`grid grid-cols-1 gap-3 pt-1 ${
+              modalidad ? 'sm:grid-cols-2' : ''
+            }`}
+          >
             <div className="rounded-[10px] border border-[var(--adm-borde)] bg-[var(--adm-superficie)] p-2.5">
               <span className="adm-mono block text-[11px] uppercase">
                 Tema técnico / Servicio
@@ -359,14 +369,16 @@ export default function MessagesInboxPage() {
                 {temaTecnico}
               </span>
             </div>
-            <div className="rounded-[10px] border border-[var(--adm-borde)] bg-[var(--adm-superficie)] p-2.5">
-              <span className="adm-mono block text-[11px] uppercase">
-                Modalidad / Disponibilidad
-              </span>
-              <span className="mt-0.5 block text-[13px] font-medium text-[var(--adm-texto)]">
-                {modalidad}
-              </span>
-            </div>
+            {modalidad && (
+              <div className="rounded-[10px] border border-[var(--adm-borde)] bg-[var(--adm-superficie)] p-2.5">
+                <span className="adm-mono block text-[11px] uppercase">
+                  Modalidad / Disponibilidad
+                </span>
+                <span className="mt-0.5 block text-[13px] font-medium text-[var(--adm-texto)]">
+                  {modalidad}
+                </span>
+              </div>
+            )}
           </div>
         </div>
       );
