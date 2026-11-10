@@ -259,10 +259,10 @@ describe('Pruebas Integrales del Panel de Administración (CMS Portfolio v2)', (
     });
   });
 
-  test('6. PATCH /api/users/:id - Impide auto-bloqueo y auto-degradación (400 SELF_LOCKOUT)', async () => {
+  test('6. PATCH /api/users/:id - Impide auto-bloqueo, excluye al Admin del listado y bloquea envío de correos/registro de usuarios suspendidos', async () => {
     assert.ok(adminUser?.id, 'Se requiere ID del administrador en sesión');
 
-    // Intento de auto-desactivación
+    // 6.1 Intento de auto-desactivación -> 400 SELF_LOCKOUT
     const resDeactivate = await fetch(`${baseUrl}/users/${adminUser.id}`, {
       method: 'PATCH',
       headers: {
@@ -275,7 +275,7 @@ describe('Pruebas Integrales del Panel de Administración (CMS Portfolio v2)', (
     const bodyDeactivate = await resDeactivate.json();
     assert.equal(bodyDeactivate.error.code, 'SELF_LOCKOUT');
 
-    // Intento de auto-degradación a user
+    // 6.2 Intento de auto-degradación a user -> 400 SELF_LOCKOUT
     const resDemote = await fetch(`${baseUrl}/users/${adminUser.id}`, {
       method: 'PATCH',
       headers: {
@@ -287,6 +287,86 @@ describe('Pruebas Integrales del Panel de Administración (CMS Portfolio v2)', (
     assert.equal(resDemote.status, 400);
     const bodyDemote = await resDemote.json();
     assert.equal(bodyDemote.error.code, 'SELF_LOCKOUT');
+
+    // 6.3 GET /api/users nunca incluye al Admin y devuelve métricas enriquecidas
+    const listRes = await fetch(`${baseUrl}/users`, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    assert.equal(listRes.status, 200);
+    const listBody = await listRes.json();
+    assert.equal(listBody.ok, true);
+    assert.ok(listBody.data.every((u) => u.role !== 'admin'), 'El Admin no debe figurar en los registros de usuarios');
+
+    const regularUser = listBody.data.find((u) => u.email === 'user@pf.local');
+    assert.ok(regularUser, 'Debe existir el usuario de prueba user@pf.local');
+    assert.equal(typeof regularUser.registration_type, 'string');
+    assert.equal(typeof regularUser.messages_count, 'number');
+    assert.equal(typeof regularUser.projects_viewed_count, 'number');
+    assert.equal(typeof regularUser.demos_viewed_count, 'number');
+
+    // 6.4 Prohibición de asignar otro admin (400 ROLE_CHANGE_FORBIDDEN)
+    const promoteRes = await fetch(`${baseUrl}/users/${regularUser.id}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${adminToken}`,
+      },
+      body: JSON.stringify({ role: 'admin' }),
+    });
+    assert.equal(promoteRes.status, 400);
+    const promoteBody = await promoteRes.json();
+    assert.equal(promoteBody.error.code, 'ROLE_CHANGE_FORBIDDEN');
+
+    // 6.5 Suspender usuario -> impide enviar correos y volver a registrarse (403 ACCOUNT_SUSPENDED)
+    const suspendRes = await fetch(`${baseUrl}/users/${regularUser.id}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${adminToken}`,
+      },
+      body: JSON.stringify({ active: false }),
+    });
+    assert.equal(suspendRes.status, 200);
+
+    try {
+      const blockedMailRes = await fetch(`${baseUrl}/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tipo: 'consulta',
+          nombre: 'Usuario Suspendido',
+          email: 'user@pf.local',
+          asunto: 'Intento bloqueado',
+          mensaje: 'No debería enviarse',
+        }),
+      });
+      assert.equal(blockedMailRes.status, 403);
+      const blockedMailBody = await blockedMailRes.json();
+      assert.equal(blockedMailBody.error.code, 'ACCOUNT_SUSPENDED');
+
+      const blockedRegRes = await fetch(`${baseUrl}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: 'Usuario Suspendido',
+          email: 'user@pf.local',
+          password: 'user1234',
+        }),
+      });
+      assert.equal(blockedRegRes.status, 403);
+      const blockedRegBody = await blockedRegRes.json();
+      assert.equal(blockedRegBody.error.code, 'ACCOUNT_SUSPENDED');
+    } finally {
+      // Reactivar usuario de prueba para dejar el estado limpio
+      await fetch(`${baseUrl}/users/${regularUser.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${adminToken}`,
+        },
+        body: JSON.stringify({ active: true }),
+      });
+    }
   });
 
   test('7. GET /api/metrics y /api/metrics/summary - Calcula series con ceros y aplica regla > 90 días', async () => {

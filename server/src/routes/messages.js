@@ -14,6 +14,8 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
  * POST /api/messages
  * Guarda un nuevo mensaje de contacto y despacha la notificación por correo.
  * Acepta tanto nombres en español (tipo, nombre, asunto, mensaje) como en inglés.
+ * Si el usuario autenticado o el correo del emisario pertenece a una cuenta suspendida (active = false),
+ * rechaza el envío con 403 ACCOUNT_SUSPENDED.
  */
 router.post('/', optionalAuth, async (req, res, next) => {
   try {
@@ -87,13 +89,49 @@ router.post('/', optionalAuth, async (req, res, next) => {
       });
     }
 
+    const sessionUserId = req.user?.id || req.userId || null;
+
+    // 1. Verificar si el usuario con sesión iniciada está suspendido
+    if (sessionUserId) {
+      const { rows: sessionUserRows } = await query(
+        'SELECT id, active FROM users WHERE id = $1',
+        [sessionUserId]
+      );
+      if (sessionUserRows.length > 0 && !sessionUserRows[0].active) {
+        return res.status(403).json({
+          ok: false,
+          error: {
+            code: 'ACCOUNT_SUSPENDED',
+            message:
+              'Tu cuenta se encuentra suspendida. El correo del emisario no es válido y no tienes permisos para enviar correos a través del programa.',
+          },
+        });
+      }
+    }
+
+    // 2. Verificar si el correo del emisario pertenece a una cuenta registrada suspendida
+    const { rows: emailUserRows } = await query(
+      'SELECT id, active FROM users WHERE lower(email) = lower($1)',
+      [finalEmail]
+    );
+    if (emailUserRows.length > 0 && !emailUserRows[0].active) {
+      return res.status(403).json({
+        ok: false,
+        error: {
+          code: 'ACCOUNT_SUSPENDED',
+          message:
+            'La cuenta asociada a este correo electrónico se encuentra suspendida. El correo del emisario no es válido para enviar mensajes a través del programa.',
+        },
+      });
+    }
+
     const datosAdicionales =
       extra && typeof extra === 'object'
         ? { ...extra, ...camposExtra }
         : Object.keys(camposExtra).length > 0
           ? camposExtra
           : {};
-    const userId = req.user?.id || req.userId || null;
+    const userId = sessionUserId || emailUserRows[0]?.id || null;
 
     const sql = `
       INSERT INTO messages (user_id, type, name, email, subject, body, extra, status)
@@ -147,13 +185,20 @@ router.post('/', optionalAuth, async (req, res, next) => {
 /**
  * GET /api/messages
  * Listado paginado y filtrable de mensajes para el panel de administración.
- * Filtros: ?type=...&status=...&page=1&limit=15
+ * Filtros: ?search=...&type=...&status=...&page=1&limit=15
  */
 router.get('/', requireAuth, requireRole('admin'), async (req, res, next) => {
   try {
-    const { status, type, page, limit = 15, offset } = req.query;
+    const { search, status, type, page, limit = 15, offset } = req.query;
     const conditions = [];
     const filterParams = [];
+
+    if (search && String(search).trim()) {
+      filterParams.push(`%${String(search).trim().toLowerCase()}%`);
+      conditions.push(
+        `(LOWER(name) LIKE $${filterParams.length} OR LOWER(email) LIKE $${filterParams.length})`
+      );
+    }
 
     if (status && ESTADOS_VALIDOS.includes(status)) {
       filterParams.push(status);

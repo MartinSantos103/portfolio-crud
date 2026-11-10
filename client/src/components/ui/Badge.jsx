@@ -4,9 +4,9 @@
  * - variant="status": Color semántico para estados:
  *   - 'nuevo': acento de la paleta activa (--ac2 / --ar)
  *   - 'leido': neutro (--mut / --bd)
- *   - 'respondido' | 'publicado' | 'activo': semántico fijo --ok (#34d399)
+ *   - 'respondido' | 'publicado' | 'activo' | 'habilitada': semántico fijo --ok (#34d399)
  *   - 'borrador' | 'inactivo': semántico fijo --warn (#fbbf24) / --info (#22d3ee)
- *   - 'cerrado': semántico fijo --bad (#fb7185)
+ *   - 'cerrado' | 'suspendida': semántico fijo --bad (#fb7185)
  */
 
 const STATUS_CONFIG = {
@@ -35,6 +35,11 @@ const STATUS_CONFIG = {
     classes: 'badge-ok',
     dotStyle: { backgroundColor: 'var(--ok)' },
   },
+  habilitada: {
+    label: 'Habilitada',
+    classes: 'badge-ok',
+    dotStyle: { backgroundColor: 'var(--ok)' },
+  },
   visible: {
     label: 'Visible',
     classes: 'badge-ok',
@@ -57,6 +62,11 @@ const STATUS_CONFIG = {
   },
   cerrado: {
     label: 'Cerrado',
+    classes: 'badge-bad',
+    dotStyle: { backgroundColor: 'var(--bad)' },
+  },
+  suspendida: {
+    label: 'Suspendida',
     classes: 'badge-bad',
     dotStyle: { backgroundColor: 'var(--bad)' },
   },

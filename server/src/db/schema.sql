@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS users (
   last_login_at TIMESTAMPTZ
 );
 CREATE UNIQUE INDEX IF NOT EXISTS users_email_lower_idx ON users (lower(email));
+CREATE UNIQUE INDEX IF NOT EXISTS users_single_admin_unique_idx ON users (role) WHERE role = 'admin';
 
 CREATE TABLE IF NOT EXISTS profile (
   id            SMALLINT PRIMARY KEY DEFAULT 1 CHECK (id = 1),

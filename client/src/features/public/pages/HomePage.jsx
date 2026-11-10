@@ -10,6 +10,7 @@ import ProjectsSection from '../components/ProjectsSection.jsx';
 import ServicesSection from '../components/ServicesSection.jsx';
 import ContactSection from '../components/ContactSection.jsx';
 import AuthModal from '../../auth/pages/AuthModal.jsx';
+import SuspendedAccountModal from '../../../components/ui/SuspendedAccountModal.jsx';
 import { usePortfolioData } from '../hooks/usePortfolioData.js';
 import { useAuth } from '../../auth/index.js';
 import { apiFetch } from '../../../services/api.js';
@@ -69,6 +70,11 @@ export default function HomePage({ initialSection = null }) {
   });
   const [contactSending, setContactSending] = useState(false);
   const [contactFeedback, setContactFeedback] = useState(null);
+  const [suspendedMailModal, setSuspendedMailModal] = useState({
+    open: false,
+    email: '',
+    message: '',
+  });
 
   useEffect(() => {
     if (profile?.fullName) {
@@ -214,11 +220,30 @@ export default function HomePage({ initialSection = null }) {
       });
       setContactForm((prev) => ({ ...prev, asunto: '', body: '' }));
     } catch (err) {
-      setContactFeedback({
-        type: 'error',
-        message:
-          err.message || 'No se pudo enviar el mensaje. Intentá nuevamente.',
-      });
+      if (
+        err.code === 'ACCOUNT_SUSPENDED' ||
+        err.code === 'ACCOUNT_DISABLED' ||
+        err.status === 403
+      ) {
+        setSuspendedMailModal({
+          open: true,
+          email: finalEmail,
+          message:
+            err.message ||
+            'Tu cuenta se encuentra suspendida. El correo del emisario no es válido para enviar mensajes a través del programa.',
+        });
+        setContactFeedback({
+          type: 'error',
+          message:
+            'No es posible enviar el correo: la cuenta asociada al emisario se encuentra suspendida.',
+        });
+      } else {
+        setContactFeedback({
+          type: 'error',
+          message:
+            err.message || 'No se pudo enviar el mensaje. Intentá nuevamente.',
+        });
+      }
     } finally {
       setContactSending(false);
     }
@@ -377,6 +402,17 @@ export default function HomePage({ initialSection = null }) {
         contextMessage={authModalContext}
         onClose={() => setAuthModalOpen(false)}
         onSuccess={handleAuthSuccess}
+      />
+
+      {/* Ventana emergente de cuenta suspendida al enviar correo */}
+      <SuspendedAccountModal
+        isOpen={suspendedMailModal.open}
+        email={suspendedMailModal.email}
+        context="mail"
+        customMessage={suspendedMailModal.message}
+        onClose={() =>
+          setSuspendedMailModal((prev) => ({ ...prev, open: false }))
+        }
       />
     </div>
   );

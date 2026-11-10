@@ -27,27 +27,35 @@ export async function touchLastLogin(id) {
   await query('UPDATE users SET last_login_at = now() WHERE id = $1', [id]);
 }
 
-export async function createUser({ name, email, passwordHash, role = 'user' }) {
+// Regla de negocio: solo existe un único admin (dueño del repositorio).
+// Cualquier usuario creado por registro local o Google OAuth se crea estrictamente con rol 'user'.
+export async function createUser({ name, email, passwordHash }) {
   const { rows } = await query(
     `INSERT INTO users (name, email, password_hash, role, active)
-     VALUES ($1, $2, $3, $4, TRUE)
+     VALUES ($1, $2, $3, 'user', TRUE)
      RETURNING id, name, email, role, active, created_at`,
-    [name, email, passwordHash, role]
+    [name, email, passwordHash]
   );
   return rows[0];
 }
 
-export async function createUserWithGoogle({ name, email, googleId, role = 'user' }) {
+export async function createUserWithGoogle({ name, email, googleId }) {
   const { rows } = await query(
     `INSERT INTO users (name, email, google_id, role, active)
-     VALUES ($1, $2, $3, $4, TRUE)
+     VALUES ($1, $2, $3, 'user', TRUE)
      RETURNING id, name, email, google_id, role, active, created_at`,
-    [name, email, googleId, role]
+    [name, email, googleId]
   );
   return rows[0];
 }
 
 // Forma pública del usuario: lo único que sale hacia el frontend.
 export function toPublicUser(row) {
-  return { id: row.id, name: row.name, email: row.email, role: row.role };
+  return {
+    id: row.id,
+    name: row.name,
+    email: row.email,
+    role: row.role,
+    active: row.active,
+  };
 }

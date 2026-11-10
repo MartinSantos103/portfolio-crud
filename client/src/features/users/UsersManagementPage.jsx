@@ -6,32 +6,28 @@ import {
   UserX,
   ChevronLeft,
   ChevronRight,
-  Lock,
 } from 'lucide-react';
 import { apiFetch } from '../../services/api.js';
-import { useAuth } from '../auth/index.js';
 import { useToast } from '../../components/ui/Toast.jsx';
-import Badge from '../../components/ui/Badge.jsx';
 import ConfirmModal from '../../components/ui/ConfirmModal.jsx';
 import DataState from '../../components/ui/DataState.jsx';
+import UserDetailCardModal from './components/UserDetailCardModal.jsx';
 
-function formatDate(dateStr) {
-  if (!dateStr) return 'Nunca';
+function formatDateDDMMYYYY(dateStr) {
+  if (!dateStr) return '-';
   try {
-    return new Intl.DateTimeFormat('es-AR', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(new Date(dateStr));
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return '-';
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
   } catch {
-    return dateStr;
+    return '-';
   }
 }
 
 export default function UsersManagementPage() {
-  const { user: currentUser } = useAuth();
   const toast = useToast();
 
   const [status, setStatus] = useState('cargando');
@@ -47,9 +43,11 @@ export default function UsersManagementPage() {
   // Filters
   const [searchInput, setSearchInput] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [roleFilter, setRoleFilter] = useState('');
   const [activeFilter, setActiveFilter] = useState('');
   const [page, setPage] = useState(1);
+
+  // Selected user for detail card modal
+  const [selectedUserId, setSelectedUserId] = useState(null);
 
   // Confirm modal state
   const [pendingAction, setPendingAction] = useState(null);
@@ -72,11 +70,11 @@ export default function UsersManagementPage() {
         limit: '20',
       });
       if (debouncedSearch) params.set('search', debouncedSearch);
-      if (roleFilter) params.set('role', roleFilter);
       if (activeFilter !== '') params.set('active', activeFilter);
 
       const res = await apiFetch(`/users?${params.toString()}`);
-      const items = res.data || [];
+      // El Admin nunca aparece en los registros de usuarios
+      const items = (res.data || []).filter((u) => u.role !== 'admin');
       setUsers(items);
       setPagination(
         res.pagination || {
@@ -91,7 +89,7 @@ export default function UsersManagementPage() {
       setErrorMsg(err.message || 'No se pudo cargar el listado de usuarios.');
       setStatus('error');
     }
-  }, [page, debouncedSearch, roleFilter, activeFilter]);
+  }, [page, debouncedSearch, activeFilter]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -117,35 +115,12 @@ export default function UsersManagementPage() {
       setPendingAction(null);
     } catch (err) {
       toast.error(
-        err.message ||
-          'No se pudo actualizar los permisos o estado del usuario.'
+        err.message || 'No se pudo actualizar el estado de la cuenta del usuario.'
       );
       setPendingAction(null);
     } finally {
       setSubmittingAction(false);
     }
-  };
-
-  const requestRoleChange = (targetUser, newRole) => {
-    if (targetUser.role === newRole) return;
-    setPendingAction({
-      targetUser,
-      payload: { role: newRole },
-      title:
-        newRole === 'admin'
-          ? 'Promover a Administrador'
-          : 'Revocar rol de Administrador',
-      description:
-        newRole === 'admin'
-          ? `¿Confirmas otorgar permisos completos de Administrador a "${targetUser.name}" (${targetUser.email})? Podrá editar todo el contenido del portafolio.`
-          : `¿Confirmas cambiar el rol de "${targetUser.name}" (${targetUser.email}) a Usuario Registrado estándar? Perderá el acceso al panel de administración.`,
-      confirmLabel:
-        newRole === 'admin' ? 'Sí, promover a Admin' : 'Sí, cambiar a Usuario',
-      tone: newRole === 'admin' ? 'warning' : 'danger',
-      successMessage: `Rol de ${targetUser.name} actualizado a ${
-        newRole === 'admin' ? 'Administrador' : 'Usuario'
-      }`,
-    });
   };
 
   const requestToggleActive = (targetUser) => {
@@ -157,15 +132,20 @@ export default function UsersManagementPage() {
         ? 'Reactivar cuenta de usuario'
         : 'Suspender cuenta de usuario',
       description: nextActive
-        ? `¿Deseas reactivar el acceso para "${targetUser.name}" (${targetUser.email})?`
-        : `¿Estás seguro de desactivar la cuenta de "${targetUser.name}" (${targetUser.email})? Su sesión actual quedará invalidada y no podrá iniciar sesión.`,
+        ? `¿Deseas reactivar la cuenta de "${targetUser.name}" (${targetUser.email})? El usuario volverá a tener permiso para iniciar sesión y enviar correos a través del programa.`
+        : `¿Estás seguro de suspender la cuenta de "${targetUser.name}" (${targetUser.email})? Su sesión quedará invalidada, no podrá volver a registrarse y su correo no será válido para enviar consultas.`,
       confirmLabel: nextActive ? 'Reactivar cuenta' : 'Suspender cuenta',
-      tone: nextActive ? 'warning' : 'danger',
+      tone: nextActive ? 'success' : 'danger',
       successMessage: nextActive
-        ? `Cuenta de ${targetUser.name} reactivada`
+        ? `Cuenta de ${targetUser.name} habilitada nuevamente`
         : `Cuenta de ${targetUser.name} suspendida`,
     });
   };
+
+  const selectedUser =
+    selectedUserId !== null
+      ? users.find((u) => Number(u.id) === Number(selectedUserId)) || null
+      : null;
 
   return (
     <div id="v-usuarios" className="adm-view is-on flex flex-col gap-5">
@@ -174,10 +154,11 @@ export default function UsersManagementPage() {
         <div className="adm-pagehead-left">
           <span className="adm-planet-orb" aria-hidden="true" />
           <div>
-            <h1 className="adm-h1">Gestión de Usuarios y Roles</h1>
+            <h1 className="adm-h1">Gestión de Usuarios</h1>
             <p className="adm-sub">
-              Control de cuentas registradas, niveles de acceso y prevención de
-              autobloqueo.
+              Control de cuentas registradas, actividad en el sitio y estado de
+              acceso o envío de correos. Haz clic en cualquier fila para ver la
+              ficha completa del usuario.
             </p>
           </div>
         </div>
@@ -185,13 +166,13 @@ export default function UsersManagementPage() {
         <div className="adm-actions">
           <span className="adm-pill">
             <span className="dot" />
-            Total registrados:{' '}
+            Total usuarios:{' '}
             <b className="text-[var(--adm-texto)]">{pagination.total}</b>
           </span>
         </div>
       </div>
 
-      {/* Barra de Búsqueda y Filtros */}
+      {/* Barra de Búsqueda y Filtro de Estado */}
       <section className="adm-card adm-toolbar">
         <div className="relative flex-1">
           <Search
@@ -202,26 +183,12 @@ export default function UsersManagementPage() {
             type="text"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            placeholder="Buscar por nombre o correo electrónico..."
+            placeholder="Buscar por nombre de usuario o correo electrónico..."
             className="adm-input !pl-9"
           />
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
-          <select
-            aria-label="Filtrar por rol"
-            value={roleFilter}
-            onChange={(e) => {
-              setRoleFilter(e.target.value);
-              setPage(1);
-            }}
-            className="adm-select !w-auto"
-          >
-            <option value="">Todos los roles</option>
-            <option value="admin">Administrador (admin)</option>
-            <option value="user">Usuario (user)</option>
-          </select>
-
           <select
             aria-label="Filtrar por estado de cuenta"
             value={activeFilter}
@@ -232,13 +199,13 @@ export default function UsersManagementPage() {
             className="adm-select !w-auto"
           >
             <option value="">Todos los estados</option>
-            <option value="true">Activos</option>
-            <option value="false">Inactivos</option>
+            <option value="true">Habilitada (Con acceso)</option>
+            <option value="false">Suspendida (Bloqueada)</option>
           </select>
         </div>
       </section>
 
-      {/* Tabla de Usuarios */}
+      {/* Tabla de Usuarios (Usuario, Correo, Estados, Acciones) */}
       <section className="adm-card flush">
         <DataState
           status={status}
@@ -246,18 +213,15 @@ export default function UsersManagementPage() {
           onRetry={fetchUsers}
           skeletonRows={5}
           emptyTitle="No se encontraron usuarios"
-          emptyDescription="No hay cuentas registradas que coincidan con los criterios de búsqueda o filtrado."
+          emptyDescription="No hay cuentas de usuarios registradas que coincidan con los criterios de búsqueda o filtrado."
           emptyActionLabel={
-            searchInput || roleFilter || activeFilter !== ''
-              ? 'Limpiar filtros'
-              : undefined
+            searchInput || activeFilter !== '' ? 'Limpiar filtros' : undefined
           }
           onEmptyAction={
-            searchInput || roleFilter || activeFilter !== ''
+            searchInput || activeFilter !== ''
               ? () => {
                   setSearchInput('');
                   setDebouncedSearch('');
-                  setRoleFilter('');
                   setActiveFilter('');
                   setPage(1);
                 }
@@ -268,113 +232,70 @@ export default function UsersManagementPage() {
             <table className="adm-table flush">
               <thead>
                 <tr>
-                  <th>Usuario / Correo</th>
-                  <th>Origen</th>
-                  <th>Registro</th>
-                  <th>Último acceso</th>
-                  <th>Rol</th>
-                  <th>Estado</th>
+                  <th>Usuario</th>
+                  <th>Correo</th>
+                  <th>Fecha de registro</th>
+                  <th>Fecha de última consulta</th>
                   <th className="r">Acciones</th>
                 </tr>
               </thead>
               <tbody>
-                {users.map((u) => {
-                  const isSelf = Number(currentUser?.id) === Number(u.id);
-
-                  return (
-                    <tr key={u.id}>
-                      <td>
-                        <div className="adm-cell">
-                          <div className="adm-avatar sm">
-                            {u.name ? u.name.slice(0, 2).toUpperCase() : 'US'}
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <b>{u.name}</b>
-                              {isSelf && (
-                                <span className="adm-chip accent">
-                                  Tú (Sesión actual)
-                                </span>
-                              )}
-                            </div>
-                            <small className="adm-mono">{u.email}</small>
-                          </div>
+                {users.map((u) => (
+                  <tr
+                    key={u.id}
+                    onClick={() => setSelectedUserId(u.id)}
+                    title="Haz clic para abrir la tarjeta con todos los detalles del usuario"
+                    className="cursor-pointer transition-colors hover:bg-white/[0.04]"
+                  >
+                    <td>
+                      <div className="adm-cell">
+                        <div className="adm-avatar sm">
+                          {u.name ? u.name.slice(0, 2).toUpperCase() : 'US'}
                         </div>
-                      </td>
+                        <div>
+                          <b className="text-[var(--adm-texto)]">{u.name}</b>
+                        </div>
+                      </div>
+                    </td>
 
-                      <td>
-                        <span className="adm-chip">{u.origin || 'Local'}</span>
-                      </td>
+                    <td className="adm-mono text-[13px] text-[var(--adm-texto-suave)]">
+                      {u.email}
+                    </td>
 
-                      <td className="adm-mono text-[12px]">
-                        {formatDate(u.created_at)}
-                      </td>
+                    <td className="adm-mono text-[13px] text-[var(--adm-texto-suave)]">
+                      {formatDateDDMMYYYY(u.created_at)}
+                    </td>
 
-                      <td className="adm-mono text-[12px]">
-                        {formatDate(u.last_login_at)}
-                      </td>
+                    <td className="adm-mono text-[13px] text-[var(--adm-texto-suave)]">
+                      {formatDateDDMMYYYY(u.last_message_at)}
+                    </td>
 
-                      <td>
-                        <select
-                          aria-label={`Cambiar rol de ${u.name}`}
-                          value={u.role}
-                          disabled={isSelf}
-                          onChange={(e) => requestRoleChange(u, e.target.value)}
-                          title={
-                            isSelf
-                              ? 'Por seguridad no puedes degradar tu propio rol de administrador'
-                              : 'Cambiar nivel de acceso'
-                          }
-                          className="adm-select !w-auto !py-1.5 !text-[12px]"
-                        >
-                          <option value="user">Usuario (user)</option>
-                          <option value="admin">Administrador (admin)</option>
-                        </select>
-                      </td>
-
-                      <td>
-                        <Badge
-                          variant="status"
-                          status={u.active ? 'activo' : 'inactivo'}
-                        >
-                          {u.active ? 'Activo' : 'Inactivo'}
-                        </Badge>
-                      </td>
-
-                      <td className="r">
-                        {isSelf ? (
-                          <span
-                            className="adm-mono inline-flex items-center gap-1 text-[11px]"
-                            title="Protección anti-autobloqueo activa"
-                          >
-                            <Lock size={13} />
-                            Protegido
-                          </span>
+                    <td
+                      className="r"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => requestToggleActive(u)}
+                        className={`adm-btn sm ${
+                          u.active ? 'danger' : 'reactivate'
+                        }`}
+                      >
+                        {u.active ? (
+                          <>
+                            <UserX size={13} />
+                            <span>Suspender</span>
+                          </>
                         ) : (
-                          <button
-                            type="button"
-                            onClick={() => requestToggleActive(u)}
-                            className={`adm-btn sm ${
-                              u.active ? 'danger' : 'secondary'
-                            }`}
-                          >
-                            {u.active ? (
-                              <>
-                                <UserX size={13} />
-                                <span>Desactivar</span>
-                              </>
-                            ) : (
-                              <>
-                                <UserCheck size={13} />
-                                <span>Activar</span>
-                              </>
-                            )}
-                          </button>
+                          <>
+                            <UserCheck size={13} />
+                            <span>Reactivar</span>
+                          </>
                         )}
-                      </td>
-                    </tr>
-                  );
-                })}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
@@ -411,13 +332,22 @@ export default function UsersManagementPage() {
       <section className="adm-card adm-note">
         <Shield size={16} className="mt-0.5 shrink-0 text-[var(--ac2)]" />
         <div>
-          <b>Reglas de Seguridad e Integridad Activas:</b> El servidor impide
-          automáticamente que desactives tu propia cuenta o revoques tu propio
-          rol de administrador (<code>400 Bad Request</code>), así como eliminar
-          o degradar al último administrador activo del sistema (
-          <code>409 Conflict</code>).
+          <b>Regla de Administrador Único y Suspensión de Cuentas:</b> El
+          sistema admite únicamente un Administrador (el dueño del repositorio),
+          quien está excluido de esta lista. Al <b>Suspender</b> a un usuario,
+          su cuenta queda bloqueada para iniciar sesión, volver a registrarse o
+          enviar correos mediante el formulario de contacto.
         </div>
       </section>
+
+      {/* Card Modal de Detalle del Usuario */}
+      <UserDetailCardModal
+        user={selectedUser}
+        isOpen={Boolean(selectedUser)}
+        onClose={() => setSelectedUserId(null)}
+        onToggleStatus={(u) => requestToggleActive(u)}
+        updating={submittingAction}
+      />
 
       <ConfirmModal
         isOpen={Boolean(pendingAction)}

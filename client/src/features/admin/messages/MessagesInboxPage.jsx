@@ -4,6 +4,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import {
+  Search,
+  X,
   Mail,
   MailOpen,
   Send,
@@ -59,7 +61,7 @@ function formatDateTime(dateStr) {
 
 export default function MessagesInboxPage() {
   const { id } = useParams();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const toast = useToast();
   const { refreshUnreadMessages } = useAdminFormContext();
@@ -76,12 +78,31 @@ export default function MessagesInboxPage() {
   });
   const [unreadCount, setUnreadCount] = useState(0);
 
-  // Filters
+  // Filters (including search by user name or email)
+  const urlSearchParam = searchParams.get('search') || '';
+  const [searchInput, setSearchInput] = useState(urlSearchParam);
+  const [debouncedSearch, setDebouncedSearch] = useState(urlSearchParam.trim());
+  const [prevUrlSearch, setPrevUrlSearch] = useState(urlSearchParam);
   const [typeFilter, setTypeFilter] = useState(searchParams.get('type') || '');
   const [statusFilter, setStatusFilter] = useState(
     searchParams.get('status') || ''
   );
   const [page, setPage] = useState(1);
+
+  if (urlSearchParam !== prevUrlSearch) {
+    setPrevUrlSearch(urlSearchParam);
+    setSearchInput(urlSearchParam);
+    setDebouncedSearch(urlSearchParam.trim());
+    setPage(1);
+  }
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchInput.trim());
+      setPage(1);
+    }, 280);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
 
   // Detail states
   const [detailStatus, setDetailStatus] = useState('idle');
@@ -109,6 +130,7 @@ export default function MessagesInboxPage() {
         page: String(page),
         limit: '15',
       });
+      if (debouncedSearch) params.set('search', debouncedSearch);
       if (typeFilter) params.set('type', typeFilter);
       if (statusFilter) params.set('status', statusFilter);
 
@@ -131,7 +153,7 @@ export default function MessagesInboxPage() {
       setListError(err.message || 'No se pudo cargar la bandeja de mensajes.');
       setListStatus('error');
     }
-  }, [page, typeFilter, statusFilter]);
+  }, [page, debouncedSearch, typeFilter, statusFilter]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -251,6 +273,19 @@ export default function MessagesInboxPage() {
     }
   };
 
+  const clearAllFilters = () => {
+    setSearchInput('');
+    setDebouncedSearch('');
+    setTypeFilter('');
+    setStatusFilter('');
+    setPage(1);
+    if (searchParams.has('search')) {
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.delete('search');
+      setSearchParams(nextParams, { replace: true });
+    }
+  };
+
   const renderExtraMetadata = (msg) => {
     const extra = msg?.extra && typeof msg.extra === 'object' ? msg.extra : {};
     const type = msg?.type || 'consulta';
@@ -361,6 +396,10 @@ export default function MessagesInboxPage() {
     );
   };
 
+  const hasActiveFilters = Boolean(
+    debouncedSearch || typeFilter || statusFilter
+  );
+
   return (
     <div id="v-mensajes" className="adm-view is-on flex flex-col gap-5">
       <UnsavedChangesModal blocker={blocker} />
@@ -384,9 +423,51 @@ export default function MessagesInboxPage() {
             </p>
           </div>
         </div>
+      </div>
 
-        {/* Filtros */}
-        <div className="adm-actions">
+      {/* Barra de Búsqueda por nombre de usuario o correo + Filtros */}
+      <section className="adm-card adm-toolbar">
+        <div className="relative flex-1">
+          <Search
+            size={15}
+            className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-[var(--adm-texto-suave)]"
+          />
+          <input
+            type="text"
+            value={searchInput}
+            onChange={(e) => {
+              const val = e.target.value;
+              setSearchInput(val);
+              if (!val && searchParams.has('search')) {
+                const nextParams = new URLSearchParams(searchParams);
+                nextParams.delete('search');
+                setSearchParams(nextParams, { replace: true });
+              }
+            }}
+            placeholder="Buscar consultas por nombre de usuario o correo electrónico..."
+            className="adm-input !pr-9 !pl-9"
+          />
+          {searchInput && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearchInput('');
+                setDebouncedSearch('');
+                if (searchParams.has('search')) {
+                  const nextParams = new URLSearchParams(searchParams);
+                  nextParams.delete('search');
+                  setSearchParams(nextParams, { replace: true });
+                }
+              }}
+              aria-label="Limpiar búsqueda"
+              className="absolute top-1/2 right-2.5 grid h-6 w-6 -translate-y-1/2 cursor-pointer place-items-center rounded-md text-[var(--adm-texto-suave)] hover:text-[var(--adm-texto)]"
+            >
+              <X size={14} />
+            </button>
+          )}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2.5">
           <select
             aria-label="Filtrar por tipo de consulta"
             value={typeFilter}
@@ -418,7 +499,7 @@ export default function MessagesInboxPage() {
             <option value="cerrado">Cerrado</option>
           </select>
         </div>
-      </div>
+      </section>
 
       {/* Contenedor Maestro-Detalle */}
       <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-12">
@@ -435,22 +516,12 @@ export default function MessagesInboxPage() {
             skeletonRows={5}
             emptyTitle="No se encontraron consultas"
             emptyDescription={
-              typeFilter || statusFilter
-                ? 'No hay mensajes que coincidan con los filtros seleccionados.'
+              hasActiveFilters
+                ? 'No hay mensajes que coincidan con el usuario, correo o filtros seleccionados.'
                 : 'Aún no has recibido mensajes ni solicitudes desde el formulario de contacto.'
             }
-            emptyActionLabel={
-              typeFilter || statusFilter ? 'Limpiar filtros' : undefined
-            }
-            onEmptyAction={
-              typeFilter || statusFilter
-                ? () => {
-                    setTypeFilter('');
-                    setStatusFilter('');
-                    setPage(1);
-                  }
-                : undefined
-            }
+            emptyActionLabel={hasActiveFilters ? 'Limpiar filtros' : undefined}
+            onEmptyAction={hasActiveFilters ? clearAllFilters : undefined}
           >
             <div>
               {messages.map((msg) => {
@@ -461,7 +532,12 @@ export default function MessagesInboxPage() {
                   <button
                     key={msg.id}
                     type="button"
-                    onClick={() => navigate(`/admin/mensajes/${msg.id}`)}
+                    onClick={() => {
+                      const querySuffix = debouncedSearch
+                        ? `?search=${encodeURIComponent(debouncedSearch)}`
+                        : '';
+                      navigate(`/admin/mensajes/${msg.id}${querySuffix}`);
+                    }}
                     className={`adm-msg-row w-full text-left ${
                       isSelected ? 'is-selected' : ''
                     }`}
@@ -550,7 +626,12 @@ export default function MessagesInboxPage() {
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--adm-borde)] pb-4">
               <button
                 type="button"
-                onClick={() => navigate('/admin/mensajes')}
+                onClick={() => {
+                  const querySuffix = debouncedSearch
+                    ? `?search=${encodeURIComponent(debouncedSearch)}`
+                    : '';
+                  navigate(`/admin/mensajes${querySuffix}`);
+                }}
                 className="adm-link inline-flex items-center gap-1.5 text-[13px] font-medium"
               >
                 <ArrowLeft size={15} />

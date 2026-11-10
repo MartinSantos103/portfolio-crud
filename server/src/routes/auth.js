@@ -61,13 +61,22 @@ router.post('/register', loginLimiter, async (req, res, next) => {
 
     const existingUser = await findUserByEmail(email);
     if (existingUser) {
+      if (!existingUser.active) {
+        return res.status(403).json({
+          error: {
+            code: 'ACCOUNT_SUSPENDED',
+            message:
+              'Tu cuenta ha sido suspendida por el administrador. No es posible registrarse ni enviar correos con esta dirección.',
+          },
+        });
+      }
       return res.status(409).json({
         error: { code: 'USER_EXISTS', message: 'El correo electrónico ya se encuentra registrado' },
       });
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
-    const newUser = await createUser({ name, email, passwordHash, role: 'user' });
+    const newUser = await createUser({ name, email, passwordHash });
 
     return res.status(201).json({
       ok: true,
@@ -92,11 +101,17 @@ router.post('/login', loginLimiter, async (req, res) => {
   const user = await findUserByEmail(email);
   const matches = await bcrypt.compare(password, user?.password_hash ?? DUMMY_HASH);
 
+  if (user && !user.active) {
+    return res.status(403).json({
+      error: {
+        code: 'ACCOUNT_SUSPENDED',
+        message: 'Tu cuenta se encuentra suspendida. No puedes iniciar sesión ni operar en la plataforma.',
+      },
+    });
+  }
+
   if (!user || !user.password_hash || !matches) {
     return res.status(401).json({ error: { code: 'INVALID_CREDENTIALS', message: 'Correo o contraseña incorrectos' } });
-  }
-  if (!user.active) {
-    return res.status(403).json({ error: { code: 'ACCOUNT_DISABLED', message: 'La cuenta está desactivada' } });
   }
 
   await touchLastLogin(user.id);
@@ -153,7 +168,7 @@ router.post('/google', loginLimiter, async (req, res, next) => {
     if (!user) {
       user = await findUserByEmail(email);
       if (user) {
-        if (!user.google_id) {
+        if (!user.google_id && user.active) {
           user = await linkGoogleId(user.id, googleId);
         }
       } else {
@@ -161,14 +176,17 @@ router.post('/google', loginLimiter, async (req, res, next) => {
           name: displayName.slice(0, 100),
           email,
           googleId,
-          role: 'user',
         });
       }
     }
 
     if (!user.active) {
       return res.status(403).json({
-        error: { code: 'ACCOUNT_DISABLED', message: 'La cuenta está desactivada' },
+        error: {
+          code: 'ACCOUNT_SUSPENDED',
+          message:
+            'Tu cuenta se encuentra suspendida por el administrador. No tienes permitido registrarte ni iniciar sesión.',
+        },
       });
     }
 
@@ -185,8 +203,16 @@ router.post('/google', loginLimiter, async (req, res, next) => {
 
 router.get('/me', requireAuth, async (req, res) => {
   const user = await findUserById(req.user.id);
-  if (!user || !user.active) {
+  if (!user) {
     return res.status(401).json({ error: { code: 'UNAUTHORIZED', message: 'La sesión ya no es válida' } });
+  }
+  if (!user.active) {
+    return res.status(403).json({
+      error: {
+        code: 'ACCOUNT_SUSPENDED',
+        message: 'Tu cuenta ha sido suspendida.',
+      },
+    });
   }
   return res.json({ user: toPublicUser(user) });
 });

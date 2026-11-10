@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { AlertTriangle, X } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, X } from 'lucide-react';
 import Button from './Button.jsx';
 
 export default function ConfirmModal({
@@ -27,7 +27,8 @@ export default function ConfirmModal({
   if (!isOpen) return null;
 
   const isDanger = tone === 'danger';
-  const toneColor = isDanger ? 'var(--bad)' : 'var(--warn)';
+  const isSuccess = tone === 'success' || tone === 'reactivate';
+  const toneColor = isDanger ? 'var(--bad)' : isSuccess ? 'var(--ok)' : 'var(--warn)';
 
   return (
     <div
@@ -47,7 +48,7 @@ export default function ConfirmModal({
                 color: toneColor,
               }}
             >
-              <AlertTriangle size={20} />
+              {isSuccess ? <CheckCircle2 size={20} /> : <AlertTriangle size={20} />}
             </span>
             <h2
               id="confirm-modal-title"
@@ -93,10 +94,16 @@ export default function ConfirmModal({
                     borderColor: 'var(--bad)',
                     color: '#0a0c1b',
                   }
+                : isSuccess
+                ? {
+                    backgroundColor: 'var(--ok)',
+                    borderColor: 'var(--ok)',
+                    color: '#0a0c1b',
+                  }
                 : undefined
             }
             className={`btn btn-sm font-semibold ${
-              isDanger ? '' : 'p'
+              isDanger || isSuccess ? '' : 'p'
             }`}
           >
             {loading ? 'Procesando...' : confirmLabel}
