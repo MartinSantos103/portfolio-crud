@@ -654,7 +654,6 @@ export default function ProfileEditPage() {
 
   const {
     fields: socialFields,
-    append: appendSocial,
     remove: removeSocial,
   } = useFieldArray({ control, name: 'social_links_list' });
 
@@ -1073,30 +1072,10 @@ export default function ProfileEditPage() {
 
           {/* Bloque integrado de Redes Sociales dentro de Identidad y Presentación */}
           <div className="mt-2 flex flex-col gap-4 border-t border-[var(--adm-borde)] pt-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="adm-h3">
-                  Enlaces Profesionales y Redes Sociales
-                </h3>
-                <p className="adm-sub">
-                  URLs validadas con https:// para GitHub, LinkedIn y perfiles
-                  adicionales.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() =>
-                  appendSocial({
-                    id: `link-${Date.now().toString(36)}`,
-                    name: 'Sitio Web',
-                    url: 'https://',
-                  })
-                }
-                className="adm-btn secondary sm"
-              >
-                <Plus size={14} />
-                <span>Agregar enlace</span>
-              </button>
+            <div>
+              <h3 className="adm-h3">
+                Enlaces Profesionales y Redes Sociales
+              </h3>
             </div>
 
             <div className="flex flex-col gap-3">

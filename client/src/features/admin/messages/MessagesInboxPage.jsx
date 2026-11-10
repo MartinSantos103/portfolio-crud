@@ -78,7 +78,6 @@ export default function MessagesInboxPage() {
     total: 0,
     totalPages: 1,
   });
-  const [unreadCount, setUnreadCount] = useState(0);
   const [typeCounts, setTypeCounts] = useState({
     todos: 0,
     consulta: 0,
@@ -160,9 +159,6 @@ export default function MessagesInboxPage() {
           totalPages: 1,
         }
       );
-      if (typeof res.unreadCount === 'number') {
-        setUnreadCount(res.unreadCount);
-      }
       if (res.typeCounts) {
         setTypeCounts(res.typeCounts);
       }
@@ -204,7 +200,6 @@ export default function MessagesInboxPage() {
             setMessages((prev) =>
               prev.map((m) => (m.id === msg.id ? { ...m, status: 'leido' } : m))
             );
-            setUnreadCount((prev) => Math.max(0, prev - 1));
             refreshUnreadMessages();
           } catch {
             // Ignorar fallo silencioso en auto-leído y mostrar igual el mensaje
@@ -443,11 +438,6 @@ export default function MessagesInboxPage() {
           <div>
             <div className="flex flex-wrap items-center gap-2.5">
               <h1 className="adm-h1">Mensajes y Consultas</h1>
-              {unreadCount > 0 && (
-                <Badge variant="status" status="nuevo">
-                  {unreadCount} sin leer
-                </Badge>
-              )}
             </div>
             <p className="adm-sub">
               Bandeja de entrada de contactos, solicitudes de cotización y
