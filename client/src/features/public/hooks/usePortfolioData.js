@@ -14,6 +14,23 @@ import {
 } from '../data/portfolioData.js';
 
 const CACHE_KEY = 'pf_public_cache_v1';
+export const PROFILE_UPDATED_EVENT = 'portfolio:profile-updated';
+
+export function formatDocumentTitle(profile) {
+  const fullName =
+    (profile?.fullName || profile?.full_name || PROFILE_DATA.fullName || '').trim();
+  const role = (profile?.role || profile?.headline || '').trim();
+  if (!fullName) return PROFILE_DATA.fullName;
+  return role ? `${fullName} — ${role}` : fullName;
+}
+
+export function syncDocumentTitle(profile) {
+  if (typeof document === 'undefined' || !profile) return;
+  const nextTitle = formatDocumentTitle(profile);
+  if (nextTitle && document.title !== nextTitle) {
+    document.title = nextTitle;
+  }
+}
 
 export function getCachedPublicData() {
   if (typeof window === 'undefined') return null;
@@ -88,6 +105,12 @@ export function updatePortfolioProfileCache(remoteProfile) {
     trajectory: mapped.trajectory,
     technologies: mapped.technologies,
   });
+  syncDocumentTitle(mapped.profile);
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(
+      new CustomEvent(PROFILE_UPDATED_EVENT, { detail: mapped })
+    );
+  }
 }
 
 export function getCachedProfile() {
@@ -282,6 +305,7 @@ export function usePortfolioData() {
         cacheUpdates.about = mapped.about;
         cacheUpdates.trajectory = mapped.trajectory;
         cacheUpdates.technologies = mapped.technologies;
+        syncDocumentTitle(mapped.profile);
       }
 
       if (projectsRes.status === 'fulfilled') {
@@ -334,6 +358,49 @@ export function usePortfolioData() {
 
     return () => {
       isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isInitialLoading && profile?.fullName) {
+      syncDocumentTitle(profile);
+    }
+  }, [isInitialLoading, profile]);
+
+  useEffect(() => {
+    const handleProfileUpdated = (event) => {
+      const mapped = event?.detail;
+      if (!mapped) return;
+      if (mapped.profile) {
+        setProfile(mapped.profile);
+        syncDocumentTitle(mapped.profile);
+      }
+      if (mapped.about) setAbout(mapped.about);
+      if (mapped.trajectory) setTrajectory(mapped.trajectory);
+      if (mapped.technologies) setTechnologies(mapped.technologies);
+    };
+
+    const handleStorageChange = (event) => {
+      if (event.key !== CACHE_KEY || !event.newValue) return;
+      try {
+        const parsed = JSON.parse(event.newValue);
+        if (parsed?.profile) {
+          setProfile(parsed.profile);
+          syncDocumentTitle(parsed.profile);
+        }
+        if (parsed?.about) setAbout(parsed.about);
+        if (parsed?.trajectory) setTrajectory(parsed.trajectory);
+        if (parsed?.technologies) setTechnologies(parsed.technologies);
+      } catch {
+        // Ignorar errores de parseo de storage externo
+      }
+    };
+
+    window.addEventListener(PROFILE_UPDATED_EVENT, handleProfileUpdated);
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+      window.removeEventListener(PROFILE_UPDATED_EVENT, handleProfileUpdated);
+      window.removeEventListener('storage', handleStorageChange);
     };
   }, []);
 

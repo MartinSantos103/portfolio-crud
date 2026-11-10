@@ -717,6 +717,10 @@ export default function ProfileEditPage() {
         ];
       }
 
+      if (res?.data) {
+        updatePortfolioProfileCache(res.data);
+      }
+
       reset({
         full_name: data.full_name || '',
         headline: data.headline || '',

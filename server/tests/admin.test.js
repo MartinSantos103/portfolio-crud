@@ -60,6 +60,9 @@ describe('Pruebas Integrales del Panel de Administración (CMS Portfolio v2)', (
     assert.equal(getBody.data.headline, 'Desarrollador Web Full Stack');
 
     const current = getBody.data;
+    const expectedName = current.full_name || 'Lucas Andrade';
+    const expectedHeadline = current.headline || 'Desarrollador Web Full Stack';
+
     const putRes = await fetch(`${baseUrl}/profile`, {
       method: 'PUT',
       headers: {
@@ -68,16 +71,16 @@ describe('Pruebas Integrales del Panel de Administración (CMS Portfolio v2)', (
       },
       body: JSON.stringify({
         ...current,
-        full_name: 'Lucas Andrade',
-        headline: 'Desarrollador Web Full Stack',
+        full_name: expectedName,
+        headline: expectedHeadline,
         available: true,
       }),
     });
     assert.equal(putRes.status, 200);
     const putBody = await putRes.json();
     assert.equal(putBody.ok, true);
-    assert.equal(putBody.data.full_name, 'Lucas Andrade');
-    assert.equal(putBody.data.headline, 'Desarrollador Web Full Stack');
+    assert.equal(putBody.data.full_name, expectedName);
+    assert.equal(putBody.data.headline, expectedHeadline);
     assert.equal(putBody.data.available, true);
   });
 

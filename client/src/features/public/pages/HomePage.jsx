@@ -11,7 +11,10 @@ import ServicesSection from '../components/ServicesSection.jsx';
 import ContactSection from '../components/ContactSection.jsx';
 import AuthModal from '../../auth/pages/AuthModal.jsx';
 import SuspendedAccountModal from '../../../components/ui/SuspendedAccountModal.jsx';
-import { usePortfolioData } from '../hooks/usePortfolioData.js';
+import {
+  usePortfolioData,
+  syncDocumentTitle,
+} from '../hooks/usePortfolioData.js';
 import { useAuth } from '../../auth/index.js';
 import { apiFetch } from '../../../services/api.js';
 import { trackPortfolioEvent } from '../../../services/analytics.js';
@@ -81,11 +84,10 @@ export default function HomePage({ initialSection = null }) {
   });
 
   useEffect(() => {
-    if (profile?.fullName) {
-      const roleSuffix = profile.role ? ` - ${profile.role}` : '';
-      document.title = `${profile.fullName}${roleSuffix}`;
+    if (!isInitialLoading && profile?.fullName) {
+      syncDocumentTitle(profile);
     }
-  }, [profile?.fullName, profile?.role]);
+  }, [isInitialLoading, profile]);
 
   useEffect(() => {
     trackPortfolioEvent({ type: 'visit', path: window.location.pathname || '/' });

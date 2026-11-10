@@ -4,15 +4,14 @@ import Navbar from '../../../components/layout/Navbar.jsx';
 import Footer from '../../../components/layout/Footer.jsx';
 import AuthModal from './AuthModal.jsx';
 import { NAV_LINKS } from '../../public/data/portfolioData.js';
-import { getCachedProfile } from '../../public/hooks/usePortfolioData.js';
+import { usePortfolioData } from '../../public/hooks/usePortfolioData.js';
 
 /**
  * Vista dedicada para la ruta /registro.
  */
 export default function Register() {
   const navigate = useNavigate();
-  const profile = getCachedProfile();
-  const dynamicCopyright = `© ${new Date().getFullYear()} ${profile.fullName || 'Lucas Andrade'}. Hecho con dedicación.`;
+  const { profile, footer } = usePortfolioData();
 
   return (
     <div className="relative min-h-screen bg-[var(--fondo)] text-[var(--texto)]">
@@ -27,7 +26,7 @@ export default function Register() {
           onSuccess={(user) => navigate(user?.role === 'admin' ? '/admin' : '/', { replace: true })}
         />
       </main>
-      <Footer copyright={dynamicCopyright} socialLinks={profile.socialLinks} />
+      <Footer copyright={footer.copyright} socialLinks={profile.socialLinks} />
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { createBrowserRouter, RouterProvider, Outlet, Navigate } from 'react-router-dom';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import Placeholder from '../pages/Placeholder.jsx';
@@ -21,10 +22,60 @@ import ServicesListPage from '../features/admin/services/ServicesListPage.jsx';
 import ServiceFormPage from '../features/admin/services/ServiceFormPage.jsx';
 import MessagesInboxPage from '../features/admin/messages/MessagesInboxPage.jsx';
 import UsersManagementPage from '../features/users/UsersManagementPage.jsx';
+import { apiFetch } from '../services/api.js';
+import {
+  getCachedPublicData,
+  updatePortfolioProfileCache,
+  syncDocumentTitle,
+  PROFILE_UPDATED_EVENT,
+} from '../features/public/hooks/usePortfolioData.js';
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 
 function RootProvidersLayout() {
+  useEffect(() => {
+    let isMounted = true;
+    const cached = getCachedPublicData();
+    if (cached?.profile) {
+      syncDocumentTitle(cached.profile);
+    }
+
+    apiFetch('/profile')
+      .then((res) => {
+        if (isMounted && res?.data) {
+          updatePortfolioProfileCache(res.data);
+        }
+      })
+      .catch(() => {});
+
+    const handleProfileUpdated = (event) => {
+      if (event?.detail?.profile) {
+        syncDocumentTitle(event.detail.profile);
+      }
+    };
+
+    const handleStorageChange = (event) => {
+      if (event.key !== 'pf_public_cache_v1' || !event.newValue) return;
+      try {
+        const parsed = JSON.parse(event.newValue);
+        if (parsed?.profile) {
+          syncDocumentTitle(parsed.profile);
+        }
+      } catch {
+        // Ignorar errores de parseo
+      }
+    };
+
+    window.addEventListener(PROFILE_UPDATED_EVENT, handleProfileUpdated);
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      isMounted = false;
+      window.removeEventListener(PROFILE_UPDATED_EVENT, handleProfileUpdated);
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
+
   return (
     <GoogleOAuthProvider clientId={googleClientId}>
       <AuthProvider>

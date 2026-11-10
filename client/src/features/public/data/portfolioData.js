@@ -34,7 +34,7 @@ export const NAV_LINKS = [
 ];
 
 export const PROFILE_DATA = {
-  fullName: 'Lucass Andrade',
+  fullName: 'Lucas Andrade',
   greeting: 'Hola, soy',
   role: 'Desarrollador Web Full Stack',
   shortDescription: 'Desarrollo software robusto, eficiente, escalable, intuitivo, seguro y mantenible.',
@@ -285,7 +285,7 @@ export const CONTACT_DATA = {
 };
 
 export const FOOTER_DATA = {
-  copyright: '© 2026 Lucass Andrade. Hecho con dedicación.',
+  copyright: '© 2026 Lucas Andrade. Hecho con dedicación.',
 };
 
 /**
