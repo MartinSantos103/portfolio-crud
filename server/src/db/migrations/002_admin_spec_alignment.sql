@@ -33,6 +33,15 @@ ALTER TABLE profile
 ALTER TABLE services
   ADD COLUMN IF NOT EXISTS items JSONB NOT NULL DEFAULT '[]'::jsonb;
 
--- 5. Eventos: índice para optimizar consultas parametrizadas por fecha y sesión autenticada
+-- 5. Eventos y Mensajes: índices para optimizar consultas parametrizadas por fecha, usuario, proyecto y correo
 CREATE INDEX IF NOT EXISTS idx_events_created_session_user
   ON events (created_at, session_id, user_id);
+
+CREATE INDEX IF NOT EXISTS events_user_type_idx
+  ON events (user_id, type);
+
+CREATE INDEX IF NOT EXISTS events_project_type_idx
+  ON events (project_id, type);
+
+CREATE INDEX IF NOT EXISTS messages_email_lower_idx
+  ON messages (lower(email));

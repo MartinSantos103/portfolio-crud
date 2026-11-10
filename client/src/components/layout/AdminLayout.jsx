@@ -72,7 +72,7 @@ const BREADCRUMB_LABELS = {
 function ReLoginModal({ isOpen, onClose }) {
   const { user, login } = useAuth();
   const toast = useToast();
-  const [email, setEmail] = useState(user?.email || 'admin@pf.local');
+  const [email, setEmail] = useState(user?.email || 'martinsantos4890@gmail.com');
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -320,7 +320,7 @@ function AdminLayoutInner() {
                 {user?.name || 'Administrador'}
               </b>
               <small className="adm-mono block truncate text-[11px]">
-                {user?.email || 'admin@pf.local'}
+                {user?.email || 'martinsantos4890@gmail.com'}
               </small>
             </div>
           </div>

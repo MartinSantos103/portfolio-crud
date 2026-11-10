@@ -26,13 +26,18 @@ CREATE TABLE IF NOT EXISTS profile (
   id            SMALLINT PRIMARY KEY DEFAULT 1 CHECK (id = 1),
   full_name     TEXT,
   headline      TEXT,
+  short_bio     TEXT NOT NULL DEFAULT '',
   bio           TEXT,
   photo_url     TEXT,
   location      TEXT,
   contact_email TEXT,
+  cv_url        TEXT NOT NULL DEFAULT '',
+  available     BOOLEAN NOT NULL DEFAULT TRUE,
   social_links  JSONB NOT NULL DEFAULT '{}'::jsonb,
   skills        JSONB NOT NULL DEFAULT '[]'::jsonb,
+  stack         JSONB NOT NULL DEFAULT '[]'::jsonb,
   experience    JSONB NOT NULL DEFAULT '[]'::jsonb,
+  education     JSONB NOT NULL DEFAULT '[]'::jsonb,
   updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
@@ -41,6 +46,7 @@ CREATE TABLE IF NOT EXISTS services (
   title       TEXT        NOT NULL,
   description TEXT        NOT NULL DEFAULT '',
   icon        TEXT,
+  items       JSONB       NOT NULL DEFAULT '[]'::jsonb,
   sort_order  INTEGER     NOT NULL DEFAULT 0,
   active      BOOLEAN     NOT NULL DEFAULT TRUE,
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -50,8 +56,12 @@ CREATE TABLE IF NOT EXISTS services (
 CREATE TABLE IF NOT EXISTS projects (
   id              INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   title           TEXT        NOT NULL,
+  slug            TEXT        NOT NULL DEFAULT '',
   summary         TEXT        NOT NULL DEFAULT '',   -- previsualización, visible para todos
-  description     TEXT        NOT NULL DEFAULT '',   -- detalle completo, solo usuarios con sesión
+  description     TEXT        NOT NULL DEFAULT '',   -- detalle corto de tarjeta
+  problem         TEXT        NOT NULL DEFAULT '',
+  solution        TEXT        NOT NULL DEFAULT '',
+  tech_decisions  TEXT        NOT NULL DEFAULT '',
   technologies    TEXT[]      NOT NULL DEFAULT '{}',
   repo_url        TEXT,
   live_url        TEXT,
@@ -77,8 +87,9 @@ CREATE TABLE IF NOT EXISTS demos (
   project_id  INTEGER     NOT NULL REFERENCES projects (id) ON DELETE CASCADE,
   title       TEXT        NOT NULL,
   description TEXT        NOT NULL DEFAULT '',
-  type        TEXT        NOT NULL CHECK (type IN ('iframe', 'video', 'images')),
-  url         TEXT        NOT NULL,
+  type        TEXT        NOT NULL CHECK (type IN ('iframe', 'video', 'images', 'imagenes')),
+  url         TEXT        NOT NULL DEFAULT '',
+  urls        JSONB       NOT NULL DEFAULT '[]'::jsonb,
   sort_order  INTEGER     NOT NULL DEFAULT 0,
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -100,6 +111,7 @@ CREATE TABLE IF NOT EXISTS messages (
 CREATE INDEX IF NOT EXISTS messages_status_created_idx ON messages (status, created_at DESC);
 CREATE INDEX IF NOT EXISTS messages_type_idx ON messages (type);
 CREATE INDEX IF NOT EXISTS messages_user_idx ON messages (user_id);
+CREATE INDEX IF NOT EXISTS messages_email_lower_idx ON messages (lower(email));
 
 CREATE TABLE IF NOT EXISTS message_replies (
   id         INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -121,3 +133,6 @@ CREATE TABLE IF NOT EXISTS events (
 );
 CREATE INDEX IF NOT EXISTS events_created_idx ON events (created_at);
 CREATE INDEX IF NOT EXISTS events_type_created_idx ON events (type, created_at);
+CREATE INDEX IF NOT EXISTS idx_events_created_session_user ON events (created_at, session_id, user_id);
+CREATE INDEX IF NOT EXISTS events_user_type_idx ON events (user_id, type);
+CREATE INDEX IF NOT EXISTS events_project_type_idx ON events (project_id, type);

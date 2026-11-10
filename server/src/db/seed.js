@@ -77,7 +77,7 @@ const INITIAL_EDUCATION = [
 ];
 
 const INITIAL_SOCIAL_LINKS = {
-  github: 'https://github.com',
+  github: 'https://github.com/MartinSantos103',
   linkedin: 'https://linkedin.com',
 };
 
@@ -85,7 +85,7 @@ const INITIAL_SERVICES = [
   {
     title: 'Sitios y landing pages',
     description:
-      'Páginas rápidas, bien posicionadas y adaptadas a celular para presentar tu marca o producto.',
+      'Diseño y desarrollo de páginas web rápidas, optimizadas para buscadores y adaptadas a dispositivos móviles para presentar tu marca o producto.',
     icon: 'sitios-landing',
     items: ['Diseño responsive', 'Optimización de carga', 'Formulario de contacto'],
     sort_order: 1,
@@ -131,6 +131,13 @@ const INITIAL_PROJECTS = [
     featured: true,
     published: true,
     sort_order: 1,
+    demo: {
+      title: 'Vista interactiva de Tienda en línea',
+      description: 'Demostración interactiva embebida en iframe con catálogo y carrito.',
+      type: 'iframe',
+      url: 'https://example.com',
+      sort_order: 1,
+    },
   },
   {
     title: 'Gestor de turnos',
@@ -192,16 +199,45 @@ const INITIAL_PROJECTS = [
     published: true,
     sort_order: 4,
   },
+  {
+    title: 'Infinite SkyReach',
+    slug: 'infinite-skyreach',
+    summary:
+      'Videojuego arcade vertical desarrollado en JavaScript y HTML5 Canvas, publicado con despliegue continuo en GitHub Pages.',
+    description:
+      'Videojuego arcade vertical desarrollado en JavaScript y HTML5 Canvas, publicado con despliegue continuo en GitHub Pages.',
+    problem:
+      'Desarrollar una experiencia de juego fluida en el navegador sin dependencias pesadas, manteniendo 60 FPS constantes, detección precisa de colisiones y progresión dinámica de dificultad.',
+    solution:
+      'Se implementó un bucle de juego propio sobre HTML5 Canvas en JavaScript modular con generación procedimental de plataformas, física ligera y controles responsivos.',
+    tech_decisions:
+      'Uso de JavaScript puro (ES6+) y RequestAnimationFrame para minimizar latencia de entrada y lograr carga instantánea mediante GitHub Pages.',
+    technologies: ['javascript'],
+    repo_url: 'https://github.com/MartinSantos103/Infinite-SkyReach',
+    live_url: 'https://martinsantos103.github.io/Infinite-SkyReach/',
+    featured: true,
+    published: true,
+    sort_order: 5,
+    demo: {
+      title: 'Vista previa del Juego',
+      description:
+        'Demostración jugable en tiempo real de Infinite SkyReach embebida directamente desde GitHub Pages.',
+      type: 'iframe',
+      url: 'https://martinsantos103.github.io/Infinite-SkyReach/',
+      sort_order: 1,
+    },
+  },
 ];
 
 async function runSeed() {
   const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production';
   const hasForceFlag = process.argv.includes('--force');
+  const isAdminOnly = process.argv.includes('--admin-only');
+  const forceDevUsers = process.argv.includes('--dev-users');
 
   if (isProduction && !hasForceFlag) {
     console.error('⛔ ERROR: Se detectó un entorno de producción.');
-    console.error('El script de seed inserta o altera datos de desarrollo.');
-    console.error('Para forzar la ejecución en producción, ejecuta: npm run seed -- --force');
+    console.error('Para ejecutar el seed en producción, utiliza: npm run seed -- --force');
     process.exit(1);
   }
 
@@ -209,29 +245,66 @@ async function runSeed() {
   const client = await pool.connect();
 
   try {
-    console.log('🔄 Aplicando esquema y migraciones (schema.sql + 002_admin_spec_alignment.sql)...');
+    console.log('🔄 Aplicando esquema y migraciones (schema.sql + 002 + 003)...');
     await applySchema(client);
     console.log('✅ Tablas, columnas e índices verificados/creados correctamente.');
 
-    console.log('🔄 Generando credenciales de prueba con bcrypt...');
-    const adminHash = await bcrypt.hash('admin123', 10);
-    const userHash = await bcrypt.hash('user123', 10);
-
-    await client.query(
-      `
-      INSERT INTO users (name, email, password_hash, role, active)
-      VALUES 
-        ('Administrador', 'admin@pf.local', $1, 'admin', TRUE),
-        ('Usuario Prueba', 'user@pf.local', $2, 'user', TRUE)
-      ON CONFLICT (lower(email)) DO UPDATE SET
-        name = EXCLUDED.name,
-        password_hash = EXCLUDED.password_hash,
-        role = EXCLUDED.role,
-        active = EXCLUDED.active;
-    `,
-      [adminHash, userHash]
+    // Verificar si en esta base ya existe admin@pf.local como admin (entorno dev)
+    const { rows: existingDevAdminRows } = await client.query(
+      `SELECT id FROM users WHERE lower(email) = 'admin@pf.local' AND role = 'admin'`
     );
-    console.log('✅ Usuarios de prueba creados/actualizados (admin@pf.local y user@pf.local).');
+    const isDevBranchWithTestUsers = forceDevUsers || existingDevAdminRows.length > 0;
+
+    if (isDevBranchWithTestUsers) {
+      console.log('🔄 Entorno dev detectado: conservando cuentas de prueba (admin@pf.local y user@pf.local)...');
+      const adminHash = await bcrypt.hash('admin123', 10);
+      const userHash = await bcrypt.hash('user123', 10);
+      const realUserHash = await bcrypt.hash('chikawa', 10);
+
+      await client.query(
+        `
+        INSERT INTO users (name, email, password_hash, role, active)
+        VALUES 
+          ('Administrador', 'admin@pf.local', $1, 'admin', TRUE),
+          ('Usuario Prueba', 'user@pf.local', $2, 'user', TRUE)
+        ON CONFLICT (lower(email)) DO UPDATE SET
+          name = EXCLUDED.name,
+          password_hash = EXCLUDED.password_hash,
+          role = EXCLUDED.role,
+          active = EXCLUDED.active;
+      `,
+        [adminHash, userHash]
+      );
+
+      // Si martinsantos4890@gmail.com existe en dev, asegurar que también tenga su contraseña configurada
+      await client.query(
+        `UPDATE users SET password_hash = $1 WHERE lower(email) = 'martinsantos4890@gmail.com' AND password_hash IS NULL`,
+        [realUserHash]
+      );
+      console.log('✅ Cuentas de desarrollo verificadas (admin@pf.local y user@pf.local).');
+    } else {
+      console.log('🔄 Configurando cuenta única de Administrador principal (martinsantos4890@gmail.com)...');
+      const realAdminHash = await bcrypt.hash('chikawa', 10);
+
+      await client.query(
+        `
+        INSERT INTO users (name, email, password_hash, role, active)
+        VALUES ('Martin Santos', 'martinsantos4890@gmail.com', $1, 'admin', TRUE)
+        ON CONFLICT (lower(email)) DO UPDATE SET
+          name = EXCLUDED.name,
+          password_hash = EXCLUDED.password_hash,
+          role = 'admin',
+          active = TRUE;
+      `,
+        [realAdminHash]
+      );
+      console.log('✅ Administrador principal configurado (martinsantos4890@gmail.com). Sin usuarios de prueba.');
+    }
+
+    if (isAdminOnly) {
+      console.log('🎉 Seed en modo --admin-only completado exitosamente.');
+      return;
+    }
 
     const fullBio = [
       'Soy desarrollador web full stack con foco en el ecosistema JavaScript. Disfruto construir productos desde la base de datos hasta los detalles de la interfaz, cuidando que el código sea legible y fácil de mantener.',
@@ -323,6 +396,18 @@ async function runSeed() {
         );
       }
       console.log('✅ Servicios iniciales creados.');
+    } else {
+      // Saneamiento de descripciones de prueba en servicios existentes
+      for (const srv of INITIAL_SERVICES) {
+        await client.query(
+          `UPDATE services
+           SET description = $1, updated_at = now()
+           WHERE LOWER(title) = LOWER($2)
+             AND (description = '' OR description = '1111111111235' OR description ~ '^[0-9]+$')`,
+          [srv.description, srv.title]
+        );
+      }
+      console.log('✅ Servicios existentes verificados y depurados.');
     }
 
     const { rows: projectCountRows } = await client.query('SELECT COUNT(*)::int AS count FROM projects');
@@ -352,20 +437,109 @@ async function runSeed() {
           ]
         );
 
-        if (proj.sort_order === 1 && insertedProj[0]?.id) {
+        if (proj.demo && insertedProj[0]?.id) {
           await client.query(
             `INSERT INTO demos (project_id, title, description, type, url, urls, sort_order)
-             VALUES ($1, $2, $3, 'iframe', $4, '[]'::jsonb, 1)`,
+             VALUES ($1, $2, $3, $4, $5, '[]'::jsonb, $6)`,
             [
               insertedProj[0].id,
-              'Vista interactiva de Tienda en línea',
-              'Demostración interactiva embebida en iframe con catálogo y carrito.',
-              'https://example.com',
+              proj.demo.title,
+              proj.demo.description,
+              proj.demo.type,
+              proj.demo.url,
+              proj.demo.sort_order,
             ]
           );
         }
       }
-      console.log('✅ Proyectos y demos iniciales creados.');
+      console.log('✅ Proyectos iniciales (incluyendo Infinite SkyReach) y sus demos creados.');
+    } else {
+      // Asegurar que Infinite SkyReach esté presente y con sus campos técnicos completos
+      const skyReach = INITIAL_PROJECTS.find((p) => p.slug === 'infinite-skyreach');
+      if (skyReach) {
+        const { rows: existingSky } = await client.query(
+          `SELECT id, problem, solution, tech_decisions FROM projects WHERE slug = $1 OR LOWER(title) = LOWER($2) LIMIT 1`,
+          [skyReach.slug, skyReach.title]
+        );
+
+        let skyProjectId;
+        if (existingSky.length === 0) {
+          const { rows: insertedSky } = await client.query(
+            `INSERT INTO projects (
+              title, slug, summary, description, problem, solution, tech_decisions,
+              technologies, repo_url, live_url, featured, published, sort_order
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+            RETURNING id`,
+            [
+              skyReach.title,
+              skyReach.slug,
+              skyReach.summary,
+              skyReach.description,
+              skyReach.problem,
+              skyReach.solution,
+              skyReach.tech_decisions,
+              skyReach.technologies,
+              skyReach.repo_url,
+              skyReach.live_url,
+              skyReach.featured,
+              skyReach.published,
+              skyReach.sort_order,
+            ]
+          );
+          skyProjectId = insertedSky[0]?.id;
+        } else {
+          skyProjectId = existingSky[0].id;
+          await client.query(
+            `UPDATE projects
+             SET
+               summary = CASE WHEN summary = '' OR summary LIKE 'Repositorio Infinite SkyReach%' THEN $1 ELSE summary END,
+               description = CASE WHEN description = '' OR description LIKE 'Repositorio Infinite SkyReach%' THEN $2 ELSE description END,
+               problem = CASE WHEN problem = '' THEN $3 ELSE problem END,
+               solution = CASE WHEN solution = '' THEN $4 ELSE solution END,
+               tech_decisions = CASE WHEN tech_decisions = '' THEN $5 ELSE tech_decisions END,
+               featured = TRUE,
+               published = TRUE,
+               updated_at = now()
+             WHERE id = $6`,
+            [
+              skyReach.summary,
+              skyReach.description,
+              skyReach.problem,
+              skyReach.solution,
+              skyReach.tech_decisions,
+              skyProjectId,
+            ]
+          );
+        }
+
+        if (skyProjectId && skyReach.demo) {
+          const { rows: existingDemo } = await client.query(
+            `SELECT id, description FROM demos WHERE project_id = $1 LIMIT 1`,
+            [skyProjectId]
+          );
+          if (existingDemo.length === 0) {
+            await client.query(
+              `INSERT INTO demos (project_id, title, description, type, url, urls, sort_order)
+               VALUES ($1, $2, $3, $4, $5, '[]'::jsonb, $6)`,
+              [
+                skyProjectId,
+                skyReach.demo.title,
+                skyReach.demo.description,
+                skyReach.demo.type,
+                skyReach.demo.url,
+                skyReach.demo.sort_order,
+              ]
+            );
+          } else if (!existingDemo[0].description) {
+            await client.query(
+              `UPDATE demos SET description = $1, sort_order = 1 WHERE id = $2`,
+              [skyReach.demo.description, existingDemo[0].id]
+            );
+          }
+        }
+      }
+      console.log('✅ Proyectos existentes e Infinite SkyReach verificados y depurados.');
     }
 
     console.log('🎉 Seed completado exitosamente.');

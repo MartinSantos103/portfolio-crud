@@ -180,6 +180,13 @@ describe('Pruebas del Módulo de Mensajes y Notificaciones', () => {
     const detailData = await adminCheckRes.json();
     assert.equal(detailData.data.extra.tema_tecnico, 'Optimización de consultas SQL y Postgres');
     assert.equal(detailData.data.extra.modalidad, undefined);
+
+    await fetch(`${baseUrl}/messages/${data.data.id}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${adminToken}`,
+      },
+    });
   });
 
   test('7. PATCH /api/messages/:id/status - Administrador puede actualizar el estado (200)', async () => {

@@ -28,28 +28,41 @@ function getApiBaseUrl() {
 
 export const API_URL = getApiBaseUrl();
 
-export async function apiFetch(path, options = {}) {
-  const token = localStorage.getItem('token');
-  const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
+const inflightGetRequests = new Map();
 
+async function executeApiFetch(path, options = {}, token = null) {
+  const method = (options.method || 'GET').toUpperCase();
+  const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
+  const hasJsonBody = options.body !== undefined && options.body !== null && !isFormData;
+
+  const maxAttempts = method === 'GET' ? 2 : 1;
   let res;
-  try {
-    res = await fetch(`${API_URL}/api${path}`, {
-      ...options,
-      headers: {
-        ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        ...options.headers,
-      },
-    });
-  } catch (err) {
-    if (err instanceof TypeError && err.message?.toLowerCase().includes('fetch')) {
-      throw new Error(
-        `No se pudo conectar con el backend (${API_URL}). Verificá que el servidor esté encendido (npm run dev en carpeta server).`,
-        { cause: err }
-      );
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    try {
+      res = await fetch(`${API_URL}/api${path}`, {
+        ...options,
+        headers: {
+          ...(hasJsonBody ? { 'Content-Type': 'application/json' } : {}),
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          ...options.headers,
+        },
+      });
+    } catch (err) {
+      if (err instanceof TypeError && err.message?.toLowerCase().includes('fetch')) {
+        throw new Error(
+          `No se pudo conectar con el backend (${API_URL}). Verificá que el servidor esté encendido (npm run dev en carpeta server).`,
+          { cause: err }
+        );
+      }
+      throw err;
     }
-    throw err;
+
+    if (res.ok || res.status < 500 || attempt === maxAttempts - 1) {
+      break;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 350));
   }
 
   if (!res.ok) {
@@ -83,4 +96,25 @@ export async function apiFetch(path, options = {}) {
   }
 
   return res.json();
+}
+
+export function apiFetch(path, options = {}) {
+  const token = typeof localStorage !== 'undefined' ? localStorage.getItem('token') : null;
+  const method = (options.method || 'GET').toUpperCase();
+
+  if (method === 'GET' && !options.signal) {
+    const cacheKey = `${path}::${token || ''}`;
+    if (inflightGetRequests.has(cacheKey)) {
+      return inflightGetRequests.get(cacheKey);
+    }
+
+    const requestPromise = executeApiFetch(path, options, token).finally(() => {
+      inflightGetRequests.delete(cacheKey);
+    });
+
+    inflightGetRequests.set(cacheKey, requestPromise);
+    return requestPromise;
+  }
+
+  return executeApiFetch(path, options, token);
 }

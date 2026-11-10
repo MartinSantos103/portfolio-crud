@@ -9,7 +9,7 @@ WHERE role = 'admin'
     SELECT id
     FROM users
     WHERE role = 'admin'
-    ORDER BY (lower(email) = 'admin@pf.local') DESC, id ASC
+    ORDER BY (lower(email) = 'martinsantos4890@gmail.com') DESC, (lower(email) = 'admin@pf.local') DESC, id ASC
     LIMIT 1
   );
 

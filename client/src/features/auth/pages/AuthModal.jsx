@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
-import { GoogleLogin } from '@react-oauth/google';
+import { useGoogleOAuth } from '@react-oauth/google';
 import { Eye, EyeOff } from 'lucide-react';
 import Button from '../../../components/ui/Button.jsx';
 import FormField from '../../../components/ui/FormField.jsx';
@@ -9,10 +9,71 @@ import SuspendedAccountModal from '../../../components/ui/SuspendedAccountModal.
 import { useAuth } from '../index.js';
 import { apiFetch } from '../../../services/api.js';
 
+function getGoogleGsiState() {
+  if (typeof window === 'undefined') {
+    return { initializedClientId: null, onSuccess: null, onError: null };
+  }
+  if (!window.__pfGoogleGsiState) {
+    window.__pfGoogleGsiState = {
+      initializedClientId: null,
+      onSuccess: null,
+      onError: null,
+    };
+  }
+  return window.__pfGoogleGsiState;
+}
+
+function GoogleSignInButton({ onSuccess, onError }) {
+  const containerRef = useRef(null);
+  const { clientId, scriptLoadedSuccessfully } = useGoogleOAuth();
+
+  useEffect(() => {
+    const gsiState = getGoogleGsiState();
+    gsiState.onSuccess = onSuccess;
+    gsiState.onError = onError;
+  }, [onSuccess, onError]);
+
+  useEffect(() => {
+    if (!scriptLoadedSuccessfully || !clientId || !window.google?.accounts?.id) {
+      return;
+    }
+
+    const gsiState = getGoogleGsiState();
+    if (gsiState.initializedClientId !== clientId) {
+      window.google.accounts.id.initialize({
+        client_id: clientId,
+        callback: (credentialResponse) => {
+          const current = getGoogleGsiState();
+          if (!credentialResponse?.credential) {
+            current.onError?.();
+            return;
+          }
+          current.onSuccess?.(credentialResponse);
+        },
+      });
+      gsiState.initializedClientId = clientId;
+    }
+
+    if (containerRef.current) {
+      window.google.accounts.id.renderButton(containerRef.current, {
+        type: 'standard',
+        theme: 'filled_black',
+        size: 'large',
+        text: 'continue_with',
+        shape: 'pill',
+        width: '380',
+        locale: 'es',
+      });
+    }
+  }, [clientId, scriptLoadedSuccessfully]);
+
+  return <div ref={containerRef} style={{ height: 40 }} />;
+}
+
 /**
  * Ventana modal emergente de Inicio de sesión y Registro tematizada según
  * Portfolio_animado_v4.html (.ov, .am, .tabs, .xb), conservando intacta la lógica
- * real de autenticación (useAuth().login, useAuth().loginWithGoogle, /auth/register, credenciales demo del seed).
+ * real de autenticación (useAuth().login, useAuth().loginWithGoogle, /auth/register).
  * Si la cuenta está suspendida, despliega la ventana emergente SuspendedAccountModal.
  */
 export default function AuthModal({
@@ -142,13 +203,6 @@ export default function AuthModal({
 
   const handleGoogleError = () => {
     setErrorMsg('Se canceló o falló la autenticación con Google.');
-  };
-
-  const fillDemoCredentials = (demoEmail, demoPass) => {
-    setMode('login');
-    setEmail(demoEmail);
-    setPassword(demoPass);
-    setErrorMsg('');
   };
 
   return (
@@ -334,39 +388,10 @@ export default function AuthModal({
                 </div>
 
                 <div className="flex w-full justify-center overflow-hidden rounded-full">
-                  <GoogleLogin
+                  <GoogleSignInButton
                     onSuccess={handleGoogleSuccess}
                     onError={handleGoogleError}
-                    theme="filled_black"
-                    shape="pill"
-                    size="large"
-                    width="380"
-                    text="continue_with"
-                    locale="es"
                   />
-                </div>
-              </div>
-
-              {/* Accesos rápidos a cuentas de prueba del seed */}
-              <div className="flex flex-col gap-[8px] border-t border-[var(--bd)] pt-[12px]">
-                <span className="font-mono-ui text-[11px] text-[var(--mut)]">
-                  Cuentas de prueba (seed):
-                </span>
-                <div className="flex flex-wrap gap-[8px]">
-                  <button
-                    type="button"
-                    onClick={() => fillDemoCredentials('user@pf.local', 'user123')}
-                    className="font-mono-ui cursor-pointer rounded-[8px] border border-[var(--bd)] bg-[var(--card)]/90 px-[10px] py-[5px] text-[11px] text-[var(--mut)] transition-colors hover:border-[var(--ac)] hover:bg-[rgba(var(--ar),0.12)] hover:text-[var(--tx)]"
-                  >
-                    Usuario (user@pf.local)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => fillDemoCredentials('admin@pf.local', 'admin123')}
-                    className="font-mono-ui cursor-pointer rounded-[8px] border border-[var(--bd)] bg-[var(--card)]/90 px-[10px] py-[5px] text-[11px] text-[var(--mut)] transition-colors hover:border-[var(--ac)] hover:bg-[rgba(var(--ar),0.12)] hover:text-[var(--tx)]"
-                  >
-                    Admin (admin@pf.local)
-                  </button>
                 </div>
               </div>
             </Motion.div>
