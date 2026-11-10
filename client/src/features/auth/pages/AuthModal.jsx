@@ -341,7 +341,7 @@ export default function AuthModal({
                     shape="pill"
                     size="large"
                     width="380"
-                    text={mode === 'login' ? 'signin_with' : 'signup_with'}
+                    text="continue_with"
                     locale="es"
                   />
                 </div>

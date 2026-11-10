@@ -1,0 +1,14 @@
+{
+  "name": "portfolio-crud-root",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Portfolio CRUD - Full Stack Project",
+  "scripts": {
+    "dev": "node -e \"const { spawn } = require('child_process'); const s = spawn('npm', ['run', 'dev'], { cwd: 'server', stdio: 'inherit', shell: true }); const c = spawn('npm', ['run', 'dev'], { cwd: 'client', stdio: 'inherit', shell: true }); process.on('SIGINT', () => { s.kill(); c.kill(); process.exit(); });\"",
+    "dev:server": "npm --prefix server run dev",
+    "dev:client": "npm --prefix client run dev",
+    "build": "npm --prefix client run build",
+    "lint": "npm --prefix client run lint",
+    "test": "npm --prefix server test"
+  }
+}
