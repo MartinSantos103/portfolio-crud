@@ -24,6 +24,7 @@ import { apiFetch } from '../../../services/api.js';
 import { useToast } from '../../../components/ui/Toast.jsx';
 import Badge from '../../../components/ui/Badge.jsx';
 import DataState from '../../../components/ui/DataState.jsx';
+import FilterTabs from '../../../components/ui/FilterTabs.jsx';
 import { VALIDATION_MESSAGES } from '../../../utils/validationConstants.js';
 import { useAdminFormContext } from '../context/AdminFormContext.jsx';
 import {
@@ -78,6 +79,12 @@ export default function MessagesInboxPage() {
     totalPages: 1,
   });
   const [unreadCount, setUnreadCount] = useState(0);
+  const [typeCounts, setTypeCounts] = useState({
+    todos: 0,
+    consulta: 0,
+    cotizacion: 0,
+    asesoria: 0,
+  });
 
   // Filters (including search by user name or email)
   const urlSearchParam = searchParams.get('search') || '';
@@ -155,6 +162,9 @@ export default function MessagesInboxPage() {
       );
       if (typeof res.unreadCount === 'number') {
         setUnreadCount(res.unreadCount);
+      }
+      if (res.typeCounts) {
+        setTypeCounts(res.typeCounts);
       }
       setListStatus(items.length === 0 ? 'sin_datos' : 'con_datos');
     } catch (err) {
@@ -490,22 +500,7 @@ export default function MessagesInboxPage() {
           )}
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5">
-          <select
-            aria-label="Filtrar por tipo de consulta"
-            value={typeFilter}
-            onChange={(e) => {
-              setTypeFilter(e.target.value);
-              setPage(1);
-            }}
-            className="adm-select !w-auto"
-          >
-            <option value="">Todos los tipos</option>
-            <option value="consulta">Consulta general</option>
-            <option value="cotizacion">Cotización</option>
-            <option value="asesoria">Asesoría</option>
-          </select>
-
+        <div className="flex items-center gap-2.5">
           <select
             aria-label="Filtrar por estado"
             value={statusFilter}
@@ -522,6 +517,29 @@ export default function MessagesInboxPage() {
             <option value="cerrado">Cerrado</option>
           </select>
         </div>
+
+        <FilterTabs
+          activeId={typeFilter}
+          onChange={(val) => {
+            setTypeFilter(val);
+            setPage(1);
+          }}
+          tabs={[
+            { id: '', label: `Todos (${typeCounts.todos})` },
+            {
+              id: 'consulta',
+              label: `Consulta general (${typeCounts.consulta})`,
+            },
+            {
+              id: 'cotizacion',
+              label: `Cotización (${typeCounts.cotizacion})`,
+            },
+            {
+              id: 'asesoria',
+              label: `Asesoría (${typeCounts.asesoria})`,
+            },
+          ]}
+        />
       </section>
 
       {/* Contenedor Maestro-Detalle */}

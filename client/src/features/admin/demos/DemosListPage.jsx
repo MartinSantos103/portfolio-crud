@@ -14,6 +14,7 @@ import { apiFetch } from '../../../services/api.js';
 import { useToast } from '../../../components/ui/Toast.jsx';
 import DataState from '../../../components/ui/DataState.jsx';
 import ConfirmModal from '../../../components/ui/ConfirmModal.jsx';
+import FilterTabs from '../../../components/ui/FilterTabs.jsx';
 
 const TYPE_LABELS = {
   iframe: 'Iframe interactivo',
@@ -216,23 +217,16 @@ export default function DemosListPage() {
           </select>
         </div>
 
-        <div className="push">
-          {[
-            { id: 'todos', label: `Todos los tipos (${typeCounts.todos})` },
+        <FilterTabs
+          activeId={selectedType}
+          onChange={setSelectedType}
+          tabs={[
+            { id: 'todos', label: `Todos (${typeCounts.todos})` },
             { id: 'iframe', label: `Iframe (${typeCounts.iframe})` },
             { id: 'video', label: `Video (${typeCounts.video})` },
             { id: 'imagenes', label: `Imágenes (${typeCounts.imagenes})` },
-          ].map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              onClick={() => setSelectedType(t.id)}
-              className={`adm-tab ${selectedType === t.id ? 'is-active' : ''}`}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
+          ]}
+        />
       </section>
 
       {/* Listado */}

@@ -7,6 +7,7 @@ import DataState from '../../../components/ui/DataState.jsx';
 import Badge from '../../../components/ui/Badge.jsx';
 import IconSlot from '../../../components/ui/IconSlot.jsx';
 import ConfirmModal from '../../../components/ui/ConfirmModal.jsx';
+import FilterTabs from '../../../components/ui/FilterTabs.jsx';
 
 export default function ServicesListPage() {
   const navigate = useNavigate();
@@ -172,22 +173,15 @@ export default function ServicesListPage() {
           />
         </div>
 
-        <div className="push">
-          {[
+        <FilterTabs
+          activeId={activeFilter}
+          onChange={setActiveFilter}
+          tabs={[
             { id: 'todos', label: `Todos (${statusCounts.todos})` },
             { id: 'publicados', label: `Publicados (${statusCounts.publicados})` },
             { id: 'borradores', label: `Borradores (${statusCounts.borradores})` },
-          ].map((f) => (
-            <button
-              key={f.id}
-              type="button"
-              onClick={() => setActiveFilter(f.id)}
-              className={`adm-tab ${activeFilter === f.id ? 'is-active' : ''}`}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
+          ]}
+        />
       </section>
 
       <DataState

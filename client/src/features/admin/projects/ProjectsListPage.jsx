@@ -16,6 +16,7 @@ import { useToast } from '../../../components/ui/Toast.jsx';
 import DataState from '../../../components/ui/DataState.jsx';
 import Badge from '../../../components/ui/Badge.jsx';
 import ConfirmModal from '../../../components/ui/ConfirmModal.jsx';
+import FilterTabs from '../../../components/ui/FilterTabs.jsx';
 
 export default function ProjectsListPage() {
   const navigate = useNavigate();
@@ -192,22 +193,15 @@ export default function ProjectsListPage() {
           />
         </div>
 
-        <div className="push">
-          {[
+        <FilterTabs
+          activeId={activeFilter}
+          onChange={setActiveFilter}
+          tabs={[
             { id: 'todos', label: `Todos (${statusCounts.todos})` },
             { id: 'publicados', label: `Publicados (${statusCounts.publicados})` },
             { id: 'borradores', label: `Borradores (${statusCounts.borradores})` },
-          ].map((f) => (
-            <button
-              key={f.id}
-              type="button"
-              onClick={() => setActiveFilter(f.id)}
-              className={`adm-tab ${activeFilter === f.id ? 'is-active' : ''}`}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
+          ]}
+        />
       </section>
 
       {/* Tabla simplificada de alta legibilidad */}

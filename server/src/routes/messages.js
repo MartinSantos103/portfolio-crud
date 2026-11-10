@@ -219,6 +219,34 @@ router.get('/', requireAuth, requireRole('admin'), async (req, res, next) => {
     const countSql = `SELECT COUNT(*)::int AS total FROM messages ${whereClause}`;
     const unreadSql = `SELECT COUNT(*)::int AS unread FROM messages WHERE status = 'nuevo'`;
 
+    const typeCountConditions = [];
+    const typeCountParams = [];
+
+    if (search && String(search).trim()) {
+      typeCountParams.push(`%${String(search).trim().toLowerCase()}%`);
+      typeCountConditions.push(
+        `(LOWER(name) LIKE $${typeCountParams.length} OR LOWER(email) LIKE $${typeCountParams.length})`
+      );
+    }
+
+    if (status && ESTADOS_VALIDOS.includes(status)) {
+      typeCountParams.push(status);
+      typeCountConditions.push(`status = $${typeCountParams.length}`);
+    }
+
+    const typeCountWhere =
+      typeCountConditions.length > 0 ? `WHERE ${typeCountConditions.join(' AND ')}` : '';
+
+    const typeCountSql = `
+      SELECT
+        COUNT(*)::int AS total,
+        COUNT(CASE WHEN type = 'consulta' THEN 1 END)::int AS consulta,
+        COUNT(CASE WHEN type = 'cotizacion' THEN 1 END)::int AS cotizacion,
+        COUNT(CASE WHEN type = 'asesoria' THEN 1 END)::int AS asesoria
+      FROM messages
+      ${typeCountWhere}
+    `;
+
     const params = [...filterParams, safeLimit, safeOffset];
     const limitParam = `$${filterParams.length + 1}`;
     const offsetParam = `$${filterParams.length + 2}`;
@@ -231,19 +259,28 @@ router.get('/', requireAuth, requireRole('admin'), async (req, res, next) => {
       LIMIT ${limitParam} OFFSET ${offsetParam};
     `;
 
-    const [countRes, unreadRes, listRes] = await Promise.all([
+    const [countRes, unreadRes, listRes, typeCountRes] = await Promise.all([
       query(countSql, filterParams),
       query(unreadSql),
       query(listSql, params),
+      query(typeCountSql, typeCountParams),
     ]);
 
     const total = countRes.rows[0]?.total ?? 0;
     const totalPages = Math.max(Math.ceil(total / safeLimit), 1);
+    const typeCountsRow = typeCountRes.rows[0] || {};
+    const typeCounts = {
+      todos: typeCountsRow.total ?? 0,
+      consulta: typeCountsRow.consulta ?? 0,
+      cotizacion: typeCountsRow.cotizacion ?? 0,
+      asesoria: typeCountsRow.asesoria ?? 0,
+    };
 
     return res.json({
       ok: true,
       data: listRes.rows,
       unreadCount: unreadRes.rows[0]?.unread ?? 0,
+      typeCounts,
       pagination: {
         page: safePage,
         limit: safeLimit,
