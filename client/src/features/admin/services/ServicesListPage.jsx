@@ -1,12 +1,18 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, ArrowUp, ArrowDown, Edit3, Trash2 } from 'lucide-react';
+import { Plus, Search, ArrowUp, ArrowDown, Edit3, Trash2 } from 'lucide-react';
 import { apiFetch } from '../../../services/api.js';
 import { useToast } from '../../../components/ui/Toast.jsx';
 import DataState from '../../../components/ui/DataState.jsx';
 import Badge from '../../../components/ui/Badge.jsx';
 import IconSlot from '../../../components/ui/IconSlot.jsx';
 import ConfirmModal from '../../../components/ui/ConfirmModal.jsx';
+
+const STATUS_FILTERS = [
+  { id: 'todos', label: 'Todos' },
+  { id: 'publicados', label: 'Publicados' },
+  { id: 'borradores', label: 'Borradores' },
+];
 
 export default function ServicesListPage() {
   const navigate = useNavigate();
@@ -15,6 +21,8 @@ export default function ServicesListPage() {
   const [services, setServices] = useState([]);
   const [status, setStatus] = useState('cargando');
   const [errorMsg, setErrorMsg] = useState('');
+  const [search, setSearch] = useState('');
+  const [activeFilter, setActiveFilter] = useState('todos');
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -38,6 +46,34 @@ export default function ServicesListPage() {
     }, 0);
     return () => clearTimeout(timer);
   }, [loadServices]);
+
+  const statusCounts = useMemo(() => {
+    let publicados = 0;
+    let borradores = 0;
+    for (const s of services) {
+      if (s.active) publicados++;
+      else borradores++;
+    }
+    return {
+      todos: services.length,
+      publicados,
+      borradores,
+    };
+  }, [services]);
+
+  const filteredServices = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return services.filter((s) => {
+      if (activeFilter === 'publicados' && !s.active) return false;
+      if (activeFilter === 'borradores' && s.active) return false;
+      if (q) {
+        const title = String(s.title || '').toLowerCase();
+        const desc = String(s.description || '').toLowerCase();
+        if (!title.includes(q) && !desc.includes(q)) return false;
+      }
+      return true;
+    });
+  }, [services, search, activeFilter]);
 
   const handleReorder = async (serviceId, direction) => {
     try {
@@ -72,8 +108,8 @@ export default function ServicesListPage() {
       });
       toast.success(
         nextActive
-          ? `Servicio «${service.title}» ahora es visible`
-          : `Servicio «${service.title}» ahora está oculto`
+          ? `Servicio «${service.title}» publicado correctamente`
+          : `Servicio «${service.title}» cambiado a borrador`
       );
     } catch (err) {
       setServices(prevSnapshot);
@@ -125,6 +161,40 @@ export default function ServicesListPage() {
         </div>
       </div>
 
+      {/* Barra de Búsqueda y Filtros de Estado */}
+      <section className="adm-card adm-toolbar">
+        <div className="relative flex-1 sm:max-w-[360px]">
+          <Search
+            size={15}
+            className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-[var(--adm-texto-suave)]"
+          />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Buscar por título o descripción…"
+            className="adm-input !pl-9"
+          />
+        </div>
+
+        <div className="push">
+          {[
+            { id: 'todos', label: `Todos (${statusCounts.todos})` },
+            { id: 'publicados', label: `Publicados (${statusCounts.publicados})` },
+            { id: 'borradores', label: `Borradores (${statusCounts.borradores})` },
+          ].map((f) => (
+            <button
+              key={f.id}
+              type="button"
+              onClick={() => setActiveFilter(f.id)}
+              className={`adm-tab ${activeFilter === f.id ? 'is-active' : ''}`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+      </section>
+
       <DataState
         status={status}
         skeletonType="table"
@@ -132,8 +202,19 @@ export default function ServicesListPage() {
         onRetry={loadServices}
         emptyTitle="Aún no hay servicios cargados"
         emptyDescription="Agregá tu primer servicio profesional para habilitar las solicitudes de cotización."
-        emptyActionLabel="+ Crear el primero"
-        onEmptyAction={() => navigate('/admin/servicios/nuevo')}
+        emptyActionLabel={
+          search.trim() || activeFilter !== 'todos'
+            ? 'Limpiar filtros'
+            : '+ Crear el primero'
+        }
+        onEmptyAction={
+          search.trim() || activeFilter !== 'todos'
+            ? () => {
+                setSearch('');
+                setActiveFilter('todos');
+              }
+            : () => navigate('/admin/servicios/nuevo')
+        }
       >
         <section className="adm-card flush">
           <div className="overflow-x-auto">
@@ -147,24 +228,49 @@ export default function ServicesListPage() {
                 </tr>
               </thead>
               <tbody>
-                {services.map((service, index) => (
+                {filteredServices.length === 0 && (
+                  <tr>
+                    <td colSpan={4} className="adm-empty">
+                      No se encontraron servicios que coincidan con la búsqueda o filtro.
+                    </td>
+                  </tr>
+                )}
+                {filteredServices.map((service, index) => (
                   <tr key={service.id}>
                     <td>
                       <div className="adm-order">
                         <button
                           type="button"
-                          disabled={index === 0}
+                          disabled={
+                            index === 0 ||
+                            Boolean(search.trim()) ||
+                            activeFilter !== 'todos'
+                          }
                           onClick={() => handleReorder(service.id, 'up')}
                           aria-label={`Subir ${service.title}`}
+                          title={
+                            search.trim() || activeFilter !== 'todos'
+                              ? 'El reordenamiento se desactiva al filtrar o buscar'
+                              : undefined
+                          }
                           className="adm-iconbtn"
                         >
                           <ArrowUp size={13} />
                         </button>
                         <button
                           type="button"
-                          disabled={index === services.length - 1}
+                          disabled={
+                            index === filteredServices.length - 1 ||
+                            Boolean(search.trim()) ||
+                            activeFilter !== 'todos'
+                          }
                           onClick={() => handleReorder(service.id, 'down')}
                           aria-label={`Bajar ${service.title}`}
+                          title={
+                            search.trim() || activeFilter !== 'todos'
+                              ? 'El reordenamiento se desactiva al filtrar o buscar'
+                              : undefined
+                          }
                           className="adm-iconbtn"
                         >
                           <ArrowDown size={13} />
@@ -203,7 +309,7 @@ export default function ServicesListPage() {
                         />
                         <Badge
                           variant="status"
-                          status={service.active ? 'visible' : 'oculto'}
+                          status={service.active ? 'publicado' : 'borrador'}
                         />
                       </div>
                     </td>

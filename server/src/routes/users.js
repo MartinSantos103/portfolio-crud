@@ -103,11 +103,19 @@ const ENRICHED_USER_SELECT = `
  * GET /api/users
  * Listado paginado y filtrable de usuarios registrados.
  * El Administrador (dueño del repositorio) nunca aparece en los registros de usuarios.
- * Query params: ?search=...&active=true|false&page=1&limit=20
+ * Query params: ?search=...&active=true|false&status_priority=habilitada|suspendida&sort_by=registro|consulta&order=desc|asc&page=1&limit=20
  */
 router.get('/', requireAuth, requireRole('admin'), async (req, res, next) => {
   try {
-    const { search, active, page = 1, limit = 20 } = req.query;
+    const {
+      search,
+      active,
+      status_priority = 'habilitada',
+      sort_by = 'registro',
+      order = 'desc',
+      page = 1,
+      limit = 20,
+    } = req.query;
     // El Admin nunca aparece en el listado de usuarios registrados
     const conditions = [`u.role = 'user'`];
     const filterParams = [];
@@ -134,10 +142,29 @@ router.get('/', requireAuth, requireRole('admin'), async (req, res, next) => {
     const limitParam = `$${filterParams.length + 1}`;
     const offsetParam = `$${filterParams.length + 2}`;
 
+    const statusPriorityClause =
+      String(status_priority).toLowerCase() === 'suspendida'
+        ? '(CASE WHEN u.active = false THEN 0 ELSE 1 END) ASC'
+        : '(CASE WHEN u.active = true THEN 0 ELSE 1 END) ASC';
+
+    const isAsc = String(order).toLowerCase() === 'asc';
+    const dateSortClause =
+      String(sort_by).toLowerCase() === 'consulta'
+        ? isAsc
+          ? 'u.last_message_at ASC NULLS FIRST'
+          : 'u.last_message_at DESC NULLS LAST'
+        : isAsc
+          ? 'u.created_at ASC'
+          : 'u.created_at DESC';
+
     const listSql = `
-      ${ENRICHED_USER_SELECT}
+      WITH user_data AS (
+        ${ENRICHED_USER_SELECT}
+      )
+      SELECT *
+      FROM user_data u
       ${whereClause}
-      ORDER BY u.created_at DESC, u.id ASC
+      ORDER BY ${statusPriorityClause}, ${dateSortClause}, u.id ASC
       LIMIT ${limitParam} OFFSET ${offsetParam};
     `;
 

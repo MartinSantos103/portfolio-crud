@@ -1,7 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Search,
-  Shield,
+  ArrowUp,
+  ArrowDown,
   UserCheck,
   UserX,
   ChevronLeft,
@@ -43,8 +44,13 @@ export default function UsersManagementPage() {
   // Filters
   const [searchInput, setSearchInput] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [activeFilter, setActiveFilter] = useState('');
   const [page, setPage] = useState(1);
+
+  // Ordenamiento y prioridad
+  const [statusPriority, setStatusPriority] = useState('habilitada'); // 'habilitada' | 'suspendida'
+  const [activeDateSort, setActiveDateSort] = useState('registro'); // 'registro' | 'consulta'
+  const [registroOrder, setRegistroOrder] = useState('desc'); // 'desc' | 'asc' (descendente por defecto)
+  const [consultaOrder, setConsultaOrder] = useState('desc'); // 'desc' | 'asc'
 
   // Selected user for detail card modal
   const [selectedUserId, setSelectedUserId] = useState(null);
@@ -68,9 +74,11 @@ export default function UsersManagementPage() {
       const params = new URLSearchParams({
         page: String(page),
         limit: '20',
+        status_priority: statusPriority,
+        sort_by: activeDateSort,
+        order: activeDateSort === 'registro' ? registroOrder : consultaOrder,
       });
       if (debouncedSearch) params.set('search', debouncedSearch);
-      if (activeFilter !== '') params.set('active', activeFilter);
 
       const res = await apiFetch(`/users?${params.toString()}`);
       // El Admin nunca aparece en los registros de usuarios
@@ -89,7 +97,14 @@ export default function UsersManagementPage() {
       setErrorMsg(err.message || 'No se pudo cargar el listado de usuarios.');
       setStatus('error');
     }
-  }, [page, debouncedSearch, activeFilter]);
+  }, [
+    page,
+    debouncedSearch,
+    statusPriority,
+    activeDateSort,
+    registroOrder,
+    consultaOrder,
+  ]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -142,9 +157,67 @@ export default function UsersManagementPage() {
     });
   };
 
+  const handleToggleStatusPriority = () => {
+    setStatusPriority((prev) =>
+      prev === 'habilitada' ? 'suspendida' : 'habilitada'
+    );
+    setPage(1);
+  };
+
+  const handleToggleRegistroSort = () => {
+    if (activeDateSort === 'registro') {
+      setRegistroOrder((prev) => (prev === 'desc' ? 'asc' : 'desc'));
+    } else {
+      setActiveDateSort('registro');
+    }
+    setPage(1);
+  };
+
+  const handleToggleConsultaSort = () => {
+    if (activeDateSort === 'consulta') {
+      setConsultaOrder((prev) => (prev === 'desc' ? 'asc' : 'desc'));
+    } else {
+      setActiveDateSort('consulta');
+    }
+    setPage(1);
+  };
+
+  const sortedUsers = useMemo(() => {
+    return [...users].sort((a, b) => {
+      // 1. Prioridad de estado: el seleccionado en el botón tiene prioridad de aparición, el otro va al último
+      const aPriority =
+        (statusPriority === 'habilitada' ? a.active : !a.active) ? 0 : 1;
+      const bPriority =
+        (statusPriority === 'habilitada' ? b.active : !b.active) ? 0 : 1;
+      if (aPriority !== bPriority) return aPriority - bPriority;
+
+      // 2. Ordenamiento de fechas: mutuamente excluyentes
+      if (activeDateSort === 'registro') {
+        const timeA = a.created_at ? new Date(a.created_at).getTime() : -Infinity;
+        const timeB = b.created_at ? new Date(b.created_at).getTime() : -Infinity;
+        return registroOrder === 'asc' ? timeA - timeB : timeB - timeA;
+      } else {
+        // 'consulta': si la fecha de ult consulta es - (null/undefined) se toma como el menor valor posible (-Infinity)
+        const timeA = a.last_message_at
+          ? new Date(a.last_message_at).getTime()
+          : -Infinity;
+        const timeB = b.last_message_at
+          ? new Date(b.last_message_at).getTime()
+          : -Infinity;
+        return consultaOrder === 'asc' ? timeA - timeB : timeB - timeA;
+      }
+    });
+  }, [
+    users,
+    statusPriority,
+    activeDateSort,
+    registroOrder,
+    consultaOrder,
+  ]);
+
   const selectedUser =
     selectedUserId !== null
-      ? users.find((u) => Number(u.id) === Number(selectedUserId)) || null
+      ? sortedUsers.find((u) => Number(u.id) === Number(selectedUserId)) || null
       : null;
 
   return (
@@ -172,9 +245,9 @@ export default function UsersManagementPage() {
         </div>
       </div>
 
-      {/* Barra de Búsqueda y Filtro de Estado */}
+      {/* Barra de Búsqueda y Ordenamientos */}
       <section className="adm-card adm-toolbar">
-        <div className="relative flex-1">
+        <div className="relative flex-1 min-w-[240px]">
           <Search
             size={15}
             className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-[var(--adm-texto-suave)]"
@@ -188,20 +261,62 @@ export default function UsersManagementPage() {
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5">
-          <select
-            aria-label="Filtrar por estado de cuenta"
-            value={activeFilter}
-            onChange={(e) => {
-              setActiveFilter(e.target.value);
-              setPage(1);
-            }}
-            className="adm-select !w-auto"
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Botón 1: Prioridad de Estado (sin flechas) */}
+          <button
+            type="button"
+            onClick={handleToggleStatusPriority}
+            className={`adm-btn sm font-medium transition-all ${
+              statusPriority === 'habilitada' ? 'reactivate' : 'danger'
+            }`}
+            title="Alternar prioridad de estado (se muestran todos los usuarios)"
           >
-            <option value="">Todos los estados</option>
-            <option value="true">Habilitada (Con acceso)</option>
-            <option value="false">Suspendida (Bloqueada)</option>
-          </select>
+            <span>
+              {statusPriority === 'habilitada' ? 'Habilitada' : 'Suspendida'}
+            </span>
+          </button>
+
+          {/* Botón 2: Fec. Registro con flecha */}
+          <button
+            type="button"
+            onClick={handleToggleRegistroSort}
+            className={`adm-btn sm flex items-center gap-1.5 transition-all ${
+              activeDateSort === 'registro' ? 'primary' : 'secondary'
+            }`}
+            title={`Ordenar por Fecha de Registro (${
+              registroOrder === 'asc'
+                ? 'Ascendente (más antiguos primero)'
+                : 'Descendente (más recientes primero)'
+            })`}
+          >
+            <span>Fec. Registro</span>
+            {registroOrder === 'asc' ? (
+              <ArrowUp size={13} className="shrink-0" />
+            ) : (
+              <ArrowDown size={13} className="shrink-0" />
+            )}
+          </button>
+
+          {/* Botón 3: Fec. Últ. Consulta con flecha */}
+          <button
+            type="button"
+            onClick={handleToggleConsultaSort}
+            className={`adm-btn sm flex items-center gap-1.5 transition-all ${
+              activeDateSort === 'consulta' ? 'primary' : 'secondary'
+            }`}
+            title={`Ordenar por Fecha de Última Consulta (${
+              consultaOrder === 'asc'
+                ? 'Ascendente (sin consulta primero)'
+                : 'Descendente (más recientes primero)'
+            })`}
+          >
+            <span>Fec. Últ. Consulta</span>
+            {consultaOrder === 'asc' ? (
+              <ArrowUp size={13} className="shrink-0" />
+            ) : (
+              <ArrowDown size={13} className="shrink-0" />
+            )}
+          </button>
         </div>
       </section>
 
@@ -214,15 +329,12 @@ export default function UsersManagementPage() {
           skeletonRows={5}
           emptyTitle="No se encontraron usuarios"
           emptyDescription="No hay cuentas de usuarios registradas que coincidan con los criterios de búsqueda o filtrado."
-          emptyActionLabel={
-            searchInput || activeFilter !== '' ? 'Limpiar filtros' : undefined
-          }
+          emptyActionLabel={searchInput ? 'Limpiar búsqueda' : undefined}
           onEmptyAction={
-            searchInput || activeFilter !== ''
+            searchInput
               ? () => {
                   setSearchInput('');
                   setDebouncedSearch('');
-                  setActiveFilter('');
                   setPage(1);
                 }
               : undefined
@@ -240,7 +352,14 @@ export default function UsersManagementPage() {
                 </tr>
               </thead>
               <tbody>
-                {users.map((u) => (
+                {sortedUsers.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="adm-empty">
+                      No se encontraron usuarios que coincidan con los criterios.
+                    </td>
+                  </tr>
+                )}
+                {sortedUsers.map((u) => (
                   <tr
                     key={u.id}
                     onClick={() => setSelectedUserId(u.id)}
@@ -326,18 +445,6 @@ export default function UsersManagementPage() {
             </button>
           </div>
         </DataState>
-      </section>
-
-      {/* Nota informativa de seguridad */}
-      <section className="adm-card adm-note">
-        <Shield size={16} className="mt-0.5 shrink-0 text-[var(--ac2)]" />
-        <div>
-          <b>Regla de Administrador Único y Suspensión de Cuentas:</b> El
-          sistema admite únicamente un Administrador (el dueño del repositorio),
-          quien está excluido de esta lista. Al <b>Suspender</b> a un usuario,
-          su cuenta queda bloqueada para iniciar sesión, volver a registrarse o
-          enviar correos mediante el formulario de contacto.
-        </div>
       </section>
 
       {/* Card Modal de Detalle del Usuario */}

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Plus,
+  Search,
   Edit3,
   Trash2,
   Monitor,
@@ -35,6 +36,7 @@ export default function DemosListPage() {
   const [selectedProjectId, setSelectedProjectId] =
     useState(initialProjectFilter);
   const [selectedType, setSelectedType] = useState('todos');
+  const [search, setSearch] = useState('');
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -66,7 +68,32 @@ export default function DemosListPage() {
     return () => clearTimeout(timer);
   }, [loadData]);
 
+  const typeCounts = useMemo(() => {
+    const scopedDemos = selectedProjectId
+      ? demos.filter((d) => String(d.project_id) === String(selectedProjectId))
+      : demos;
+
+    let iframe = 0;
+    let video = 0;
+    let imagenes = 0;
+
+    for (const d of scopedDemos) {
+      const norm = d.type === 'images' ? 'imagenes' : d.type;
+      if (norm === 'iframe') iframe++;
+      else if (norm === 'video') video++;
+      else if (norm === 'imagenes') imagenes++;
+    }
+
+    return {
+      todos: scopedDemos.length,
+      iframe,
+      video,
+      imagenes,
+    };
+  }, [demos, selectedProjectId]);
+
   const filteredDemos = useMemo(() => {
+    const q = search.trim().toLowerCase();
     return demos.filter((d) => {
       if (
         selectedProjectId &&
@@ -78,9 +105,25 @@ export default function DemosListPage() {
       if (selectedType !== 'todos' && normType !== selectedType) {
         return false;
       }
+      if (q) {
+        const demoTitle = String(d.title || '').toLowerCase();
+        const demoDesc = String(d.description || '').toLowerCase();
+        const projectTitle = String(
+          d.project_title ||
+            projects.find((p) => String(p.id) === String(d.project_id))?.title ||
+            ''
+        ).toLowerCase();
+        if (
+          !demoTitle.includes(q) &&
+          !demoDesc.includes(q) &&
+          !projectTitle.includes(q)
+        ) {
+          return false;
+        }
+      }
       return true;
     });
-  }, [demos, selectedProjectId, selectedType]);
+  }, [demos, projects, selectedProjectId, selectedType, search]);
 
   const handleConfirmDelete = async () => {
     if (!deleteTarget) return;
@@ -134,6 +177,20 @@ export default function DemosListPage() {
 
       {/* Filtros */}
       <section className="adm-card adm-toolbar">
+        <div className="relative flex-1 min-w-[220px]">
+          <Search
+            size={15}
+            className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-[var(--adm-texto-suave)]"
+          />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Buscar por proyecto, demo o descripción…"
+            className="adm-input !pl-9"
+          />
+        </div>
+
         <div className="flex flex-wrap items-center gap-2.5">
           <span className="adm-mono">Proyecto:</span>
           <select
@@ -160,10 +217,10 @@ export default function DemosListPage() {
 
         <div className="push">
           {[
-            { id: 'todos', label: 'Todos los tipos' },
-            { id: 'iframe', label: 'Iframe' },
-            { id: 'video', label: 'Video' },
-            { id: 'imagenes', label: 'Imágenes' },
+            { id: 'todos', label: `Todos los tipos (${typeCounts.todos})` },
+            { id: 'iframe', label: `Iframe (${typeCounts.iframe})` },
+            { id: 'video', label: `Video (${typeCounts.video})` },
+            { id: 'imagenes', label: `Imágenes (${typeCounts.imagenes})` },
           ].map((t) => (
             <button
               key={t.id}
@@ -201,6 +258,13 @@ export default function DemosListPage() {
                 </tr>
               </thead>
               <tbody>
+                {filteredDemos.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="adm-empty">
+                      No se encontraron demostraciones que coincidan con los filtros o la búsqueda.
+                    </td>
+                  </tr>
+                )}
                 {filteredDemos.map((demo) => {
                   const normType =
                     demo.type === 'images' ? 'imagenes' : demo.type;

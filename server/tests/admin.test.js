@@ -304,6 +304,15 @@ describe('Pruebas Integrales del Panel de Administración (CMS Portfolio v2)', (
     assert.equal(typeof regularUser.projects_viewed_count, 'number');
     assert.equal(typeof regularUser.demos_viewed_count, 'number');
 
+    // 6.3b GET /api/users con ordenamiento prioritario y fechas
+    const sortedRes = await fetch(`${baseUrl}/users?status_priority=habilitada&sort_by=registro&order=desc`, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    assert.equal(sortedRes.status, 200);
+    const sortedBody = await sortedRes.json();
+    assert.equal(sortedBody.ok, true);
+    assert.ok(Array.isArray(sortedBody.data));
+
     // 6.4 Prohibición de asignar otro admin (400 ROLE_CHANGE_FORBIDDEN)
     const promoteRes = await fetch(`${baseUrl}/users/${regularUser.id}`, {
       method: 'PATCH',

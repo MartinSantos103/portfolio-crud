@@ -225,22 +225,24 @@ export default function ServiceFormPage() {
         )}
       </div>
 
-      <label className="adm-check cursor-pointer">
-        <div>
-          <b className="block font-semibold text-[var(--adm-texto)]">
-            Servicio Visible
-          </b>
-          <small className="adm-sub-line">
-            Visible en la sección pública de Servicios y en el selector de
-            Cotización.
-          </small>
-        </div>
-        <input
-          type="checkbox"
-          {...register('active')}
-          className="adm-switch"
-        />
-      </label>
+      {/* Interruptor Publicado */}
+      <div>
+        <label className="adm-check cursor-pointer">
+          <div>
+            <b className="block font-semibold text-[var(--adm-texto)]">
+              Publicado
+            </b>
+            <small className="adm-sub-line">
+              Si se desactiva, queda guardado como Borrador.
+            </small>
+          </div>
+          <input
+            type="checkbox"
+            {...register('active')}
+            className="adm-switch"
+          />
+        </label>
+      </div>
 
       <div className="flex items-center justify-end gap-3 border-t border-[var(--adm-borde)] pt-4">
         <button

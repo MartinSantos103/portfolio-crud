@@ -57,6 +57,20 @@ export default function ProjectsListPage() {
     return () => clearTimeout(timer);
   }, [loadProjects]);
 
+  const statusCounts = useMemo(() => {
+    let publicados = 0;
+    let borradores = 0;
+    for (const p of projects) {
+      if (p.published) publicados++;
+      else borradores++;
+    }
+    return {
+      todos: projects.length,
+      publicados,
+      borradores,
+    };
+  }, [projects]);
+
   const filteredProjects = useMemo(() => {
     const q = search.trim().toLowerCase();
     return projects.filter((p) => {
@@ -184,7 +198,11 @@ export default function ProjectsListPage() {
         </div>
 
         <div className="push">
-          {STATUS_FILTERS.map((f) => (
+          {[
+            { id: 'todos', label: `Todos (${statusCounts.todos})` },
+            { id: 'publicados', label: `Publicados (${statusCounts.publicados})` },
+            { id: 'borradores', label: `Borradores (${statusCounts.borradores})` },
+          ].map((f) => (
             <button
               key={f.id}
               type="button"
