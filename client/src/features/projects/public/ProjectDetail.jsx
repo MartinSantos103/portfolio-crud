@@ -115,8 +115,10 @@ function GitHubRepoStatsCard({ repoUrl }) {
   useEffect(() => {
     let active = true;
     if (!owner || !repo) {
-      setRepoDetails(null);
-      return undefined;
+      const timer = setTimeout(() => {
+        setRepoDetails(null);
+      }, 0);
+      return () => clearTimeout(timer);
     }
 
     fetchGitHubRepoDetails(owner, repo)

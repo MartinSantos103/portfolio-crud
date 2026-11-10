@@ -84,15 +84,21 @@ export default function MessagesInboxPage() {
   const [debouncedSearch, setDebouncedSearch] = useState(urlSearchParam.trim());
   const [prevUrlSearch, setPrevUrlSearch] = useState(urlSearchParam);
   const [typeFilter, setTypeFilter] = useState(searchParams.get('type') || '');
-  const [statusFilter, setStatusFilter] = useState(
-    searchParams.get('status') || ''
-  );
+  const urlStatusParam = searchParams.get('status') || '';
+  const [statusFilter, setStatusFilter] = useState(urlStatusParam);
+  const [prevUrlStatus, setPrevUrlStatus] = useState(urlStatusParam);
   const [page, setPage] = useState(1);
 
   if (urlSearchParam !== prevUrlSearch) {
     setPrevUrlSearch(urlSearchParam);
     setSearchInput(urlSearchParam);
     setDebouncedSearch(urlSearchParam.trim());
+    setPage(1);
+  }
+
+  if (urlStatusParam !== prevUrlStatus) {
+    setPrevUrlStatus(urlStatusParam);
+    setStatusFilter(urlStatusParam);
     setPage(1);
   }
 

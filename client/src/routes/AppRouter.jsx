@@ -1,4 +1,4 @@
-import { createBrowserRouter, RouterProvider, Outlet } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Outlet, Navigate } from 'react-router-dom';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import Placeholder from '../pages/Placeholder.jsx';
 import HomePage from '../features/public/pages/HomePage.jsx';
@@ -13,7 +13,7 @@ import {
 import { ToastProvider } from '../components/ui/Toast.jsx';
 import CustomCursor from '../components/ui/CustomCursor.jsx';
 import AdminLayout from '../components/layout/AdminLayout.jsx';
-import AdminDashboardPage from '../features/admin/dashboard/AdminDashboardPage.jsx';
+import DashboardPage from '../features/admin/dashboard/DashboardPage.jsx';
 import ProfileEditPage from '../features/admin/profile/ProfileEditPage.jsx';
 import ProjectsListPage from '../features/admin/projects/ProjectsListPage.jsx';
 import ProjectFormPage from '../features/admin/projects/ProjectFormPage.jsx';
@@ -23,7 +23,6 @@ import ServicesListPage from '../features/admin/services/ServicesListPage.jsx';
 import ServiceFormPage from '../features/admin/services/ServiceFormPage.jsx';
 import MessagesInboxPage from '../features/admin/messages/MessagesInboxPage.jsx';
 import UsersManagementPage from '../features/users/UsersManagementPage.jsx';
-import MetricsDashboardPage from '../features/metrics/MetricsDashboardPage.jsx';
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 
@@ -89,7 +88,7 @@ const router = createBrowserRouter([
           {
             element: <AdminLayout />,
             children: [
-              { index: true, element: <AdminDashboardPage /> },
+              { index: true, element: <DashboardPage /> },
               { path: 'perfil', element: <ProfileEditPage /> },
               { path: 'proyectos', element: <ProjectsListPage /> },
               { path: 'proyectos/nuevo', element: <ProjectFormPage /> },
@@ -103,7 +102,7 @@ const router = createBrowserRouter([
               { path: 'mensajes', element: <MessagesInboxPage /> },
               { path: 'mensajes/:id', element: <MessagesInboxPage /> },
               { path: 'usuarios', element: <UsersManagementPage /> },
-              { path: 'metricas', element: <MetricsDashboardPage /> },
+              { path: 'metricas', element: <Navigate to="/admin" replace /> },
             ],
           },
         ],

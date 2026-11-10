@@ -66,7 +66,7 @@ router.get('/summary', requireAuth, requireRole('admin'), async (req, res, next)
         FROM messages
         WHERE status = 'nuevo'
         ORDER BY created_at DESC, id DESC
-        LIMIT 5
+        LIMIT 30
       `),
     ]);
 

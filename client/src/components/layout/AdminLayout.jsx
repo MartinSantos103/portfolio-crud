@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { NavLink, Outlet, useLocation, Link } from 'react-router-dom';
 import {
   LayoutDashboard,
-  BarChart3,
   UserCircle,
   FolderKanban,
   PlaySquare,
@@ -31,8 +30,7 @@ const SIDEBAR_GROUPS = [
   {
     title: 'Principal',
     items: [
-      { to: '/admin', label: 'Resumen', icon: LayoutDashboard, end: true },
-      { to: '/admin/metricas', label: 'Métricas', icon: BarChart3 },
+      { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
     ],
   },
   {
@@ -54,27 +52,16 @@ const SIDEBAR_GROUPS = [
 ];
 
 const BREADCRUMB_LABELS = {
-  admin: 'Panel',
+  admin: 'Dashboard',
   perfil: 'Perfil',
   proyectos: 'Proyectos',
   demos: 'Demos',
   servicios: 'Servicios',
   mensajes: 'Mensajes',
   usuarios: 'Usuarios',
-  metricas: 'Métricas',
+  metricas: 'Dashboard',
   nuevo: 'Nuevo',
   editar: 'Editar',
-};
-
-const SECTION_PLANETS = {
-  admin: 'var(--planet-resumen)',
-  metricas: 'var(--planet-metricas)',
-  perfil: 'var(--planet-perfil)',
-  proyectos: 'var(--planet-proyectos)',
-  demos: 'var(--planet-demos)',
-  servicios: 'var(--planet-servicios)',
-  mensajes: 'var(--planet-mensajes)',
-  usuarios: 'var(--planet-usuarios)',
 };
 
 /**
@@ -210,14 +197,6 @@ function AdminLayoutInner() {
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
-
-  // Sincronizar el planeta decorativo del sidebar según la sección activa
-  useEffect(() => {
-    const segments = location.pathname.split('/').filter(Boolean);
-    const sectionKey = segments[1] || 'admin';
-    const planetVar = SECTION_PLANETS[sectionKey] || SECTION_PLANETS.admin;
-    document.documentElement.style.setProperty('--active-planet', planetVar);
-  }, [location.pathname]);
 
   // En dispositivos móviles (< 1024px), cerrar el drawer de navegación al cambiar de ruta
   useEffect(() => {

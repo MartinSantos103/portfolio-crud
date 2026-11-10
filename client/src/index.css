@@ -1674,7 +1674,7 @@ html.cc select {
   z-index: 0;
   pointer-events: none;
   opacity: 0.88;
-  background: var(--active-planet, var(--planet-resumen)) center / contain no-repeat;
+  background: var(--planet-resumen) center / contain no-repeat;
   filter: drop-shadow(0 0 10px rgba(var(--ar), 0.4));
 }
 
@@ -1889,6 +1889,7 @@ html.cc select {
   --nebula3: rgba(52, 211, 153, 0.14);
   --sector-color: var(--adm-acento-hover);
 }
+#v-dashboard,
 #v-metricas {
   --const: var(--const-orion);
   --sec-planet: var(--planet-metricas);
